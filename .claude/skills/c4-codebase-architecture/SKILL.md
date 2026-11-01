@@ -2,6 +2,7 @@
 name: c4-codebase-architecture
 description: Helps an agent inspect a repository and produce C4 architecture documentation. Use this when reverse engineering a codebase, documenting system context, containers, components, or clarifying architecture from code and infrastructure.
 license: MIT
+disable-model-invocation: true
 ---
 
 # C4 Model Codebase Documentation Skill
