@@ -87,3 +87,17 @@ class ConteudoTests(TesteComArquivosEnviados):
             [(oferta.codigo, oferta.conteudo, oferta.preco_unitario) for oferta in self.ofertas(seguinte)],
             [('1001', 3, Decimal('3.10')), ('1003', 1, Decimal('5.00'))],
         )
+
+    def test_confirmar_sem_mudar_o_conteudo_herdado_nao_cria_registro_novo_no_historico(self):
+        self.confirmar_tesouras_com_conteudo_3()
+        seguinte = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,30')], hoje=TERCA)
+        # Corrigir o preço reenvia o Conteúdo herdado (3) como está, igual ao formulário de Corrigir.
+        corrigir(self.gestora, self.ofertas(seguinte)[0], preco_impresso='9,60')
+
+        catalogo = confirmar_revisao(self.gestora, seguinte.pk, hoje=TERCA)
+
+        self.assertEqual([oferta.preco_unitario for oferta in catalogo.ofertas()], [Decimal('3.20')])
+        self.assertEqual(
+            [alteracao(r) for r in historico_do_conteudo(self.gestora, self.alfa, '1001')],
+            [('gestora', SEGUNDA, 1, 3)],
+        )

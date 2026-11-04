@@ -46,8 +46,13 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
 
 
 def guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje):
-    """Guarda o Conteúdo de um Fornecedor + código, registrando quem mudou e quando (ADR-0007)."""
+    """Guarda o Conteúdo de um Fornecedor + código, registrando quem mudou e quando (ADR-0007).
+
+    Sem mudança de valor, não há registro: o histórico lista só alterações.
+    """
     anterior = conteudo_guardado(conteudos_guardados(fornecedor.pk), codigo)
+    if conteudo == anterior:
+        return
     AlteracaoDeConteudo.objects.create(
         fornecedor=fornecedor, codigo=codigo, gestor=gestor, data=hoje, valor_anterior=anterior, valor_novo=conteudo
     )
