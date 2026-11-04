@@ -26,3 +26,8 @@ class TesteComArquivosEnviados(TestCase):
 
 def arquivo_enviado(conteudo, nome='catalogo.pdf'):
     return SimpleUploadedFile(nome, conteudo)
+
+
+def resumo(oferta):
+    """Os campos que a Revisão e o Catálogo guardam de uma Oferta, para comparar em testes."""
+    return (oferta.codigo, oferta.descricao, oferta.preco_impresso, oferta.caixa, oferta.caminho)

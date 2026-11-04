@@ -8,12 +8,8 @@ from extracao.catalogos_ficticios import (
     catalogo_ficticio_layout_a,
     pdf_ficticio_com_texto,
 )
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
 from importacao.casos_de_uso import iniciar_importacao, listar_revisoes_em_andamento, obter_revisao
-
-
-def resumo(oferta):
-    return (oferta.codigo, oferta.descricao, oferta.preco_impresso, oferta.caixa, oferta.caminho)
 
 
 class IniciarImportacaoTests(TesteComArquivosEnviados):
