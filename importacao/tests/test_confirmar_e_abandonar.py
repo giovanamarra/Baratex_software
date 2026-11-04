@@ -134,6 +134,17 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
         self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
         self.assertTrue(catalogo.arquivo.storage.exists(catalogo.arquivo.name))
 
+    def test_confirmar_ou_abandonar_uma_revisao_que_nao_existe_mais_e_recusado(self):
+        revisao = self.iniciar()
+        abandonar_revisao(self.gestora, revisao.pk)
+
+        for acao in (confirmar_revisao, abandonar_revisao):
+            with self.subTest(acao=acao.__name__):
+                with self.assertRaisesMessage(
+                    ErroDeNegocio, 'Esta Revisão não existe mais. Comece uma nova Importação.'
+                ):
+                    acao(self.gestora, revisao.pk)
+
 
 class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
     def test_se_uma_oferta_falha_ao_confirmar_nada_fica_salvo_e_a_revisao_continua_em_andamento(self):
