@@ -1,6 +1,6 @@
 # 06 — Corrigir, adicionar e remover Ofertas na Revisão
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 05
 Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › confirmação recusada; Extração › marcas de conferência)
@@ -37,3 +37,17 @@ A gestora conserta erros de leitura antes de salvar. A confirmação é recusada
 ## Fora deste ticket
 
 - Preço fora do padrão, Unidade de venda ambígua, sugestão de Conteúdo e contagem de preços (08).
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `ac3e1c3` a `11e6f69`)
+
+- **Casos de uso** (`importacao/casos_de_uso.py`): `corrigir_oferta_proposta`, `adicionar_oferta_proposta` (caminho "manual", no fim da lista), `remover_oferta_proposta`, `obter_oferta_proposta` (para os formulários). Valores entram como a gestora digita: preço "1.234,56" ou "9,90", Caixa "24"; vazio = ausente (a confirmação recusa depois). Todos passam pelas recusas da Revisão (de outro Gestor, já confirmada).
+- **Marcas** (`OfertaProposta.marcas`, derivadas): "sem preço" e "preço zero". O ticket 08 acrescenta as outras.
+- **Confirmação** recusa, numa mensagem só e com os códigos: Oferta sem Caixa; Oferta sem preço maior que zero; desconto não informado.
+- **Embalagem intermediária** (decisão da usuária): fora deste ticket. O Layout A não tem o campo; ele entra com o primeiro caminho que o trouxer (Layout B ou tabela).
+- **Desconto obrigatório** (decisão da usuária, vinda do grill): a confirmação é recusada enquanto o desconto da Revisão não for informado; 0 vale como resposta. Mensagem: `Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0.` Spec e GLOSSARY atualizados (`d26ca7f`). A exceção dos Catálogos com várias colunas de preço fica para o ticket 22.
+- **Código e descrição** obrigatórios também ao corrigir (Oferta sem código não pode existir).
+- **Teste de transação do ticket 04** (decisão da usuária): a validação passou a recusar a Oferta de R$-5,00 antes do banco; a falha agora vem de um gatilho no SQLite de teste que recusa gravar a Oferta 1002 depois de o Catálogo ser criado. Sem a transação, o teste falha (provado com mutação).
+- Testes do ticket 04 que confirmavam sem desconto ou com cartões mascarados foram ajustados na preparação; o que provam não mudou.
+- **Telas:** Corrigir e Remover por linha (Remover com confirmação e botão de perigo), "Adicionar Oferta" abaixo da tabela, linhas de alerta com texto. Confirmação recusada volta para a Revisão.

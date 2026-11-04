@@ -17,6 +17,7 @@ Num Catálogo com preços por prazo ou por faixa, vale sempre a menor coluna de 
 - O preço impresso de cada Oferta é o menor valor entre as colunas de preço da linha, ignorando células vazias (19).
   - Exemplo: 12,00 / 11,40 / (vazio) → 11,40.
 - O Catálogo fica marcado como "sem desconto": a Importação não pede desconto, e a Revisão não mostra o campo (24).
+- A confirmação não exige o desconto nesse Catálogo. É a exceção à regra do ticket 06 ("Informe o desconto do Catálogo antes de confirmar"), registrada no spec.
 - A contagem de preços conta as linhas com algum preço, não cada célula.
 - O mapeamento com várias colunas de preço fica guardado no Perfil, como no ticket 21.
 
