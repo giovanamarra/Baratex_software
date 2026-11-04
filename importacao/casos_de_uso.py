@@ -2,6 +2,7 @@
 
 from django.db import transaction
 
+from comparador.erros import AcessoNegado
 from extracao.extrair import extrair_ofertas
 from importacao.models import OfertaProposta, Revisao
 
@@ -30,4 +31,8 @@ def listar_revisoes_em_andamento(gestor):
 
 
 def obter_revisao(gestor, revisao_id):
-    return Revisao.objects.get(pk=revisao_id)
+    # A Revisão em andamento é de quem iniciou a Importação (decisão da usuária no ticket 03).
+    revisao = Revisao.objects.get(pk=revisao_id)
+    if revisao.gestor_id != gestor.pk:
+        raise AcessoNegado('Esta Revisão é de outro Gestor.')
+    return revisao

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
+from comparador.erros import AcessoNegado
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -95,6 +96,13 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
         revisoes = listar_revisoes_em_andamento(self.gestora)
 
         self.assertCountEqual([revisao.pk for revisao in revisoes], [primeira.pk, segunda.pk])
+
+    def test_abrir_a_revisao_de_outro_gestor_e_recusado(self):
+        revisao_da_gestora = self.iniciar_com_um_cartao(self.gestora)
+        outro_gestor = criar_gestor('outro-gestor')
+
+        with self.assertRaisesMessage(AcessoNegado, 'Esta Revisão é de outro Gestor.'):
+            obter_revisao(outro_gestor, revisao_da_gestora.pk)
 
     def iniciar_com_um_cartao(self, gestor):
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')]))
