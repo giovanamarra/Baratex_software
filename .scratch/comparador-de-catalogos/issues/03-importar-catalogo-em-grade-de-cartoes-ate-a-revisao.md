@@ -1,6 +1,6 @@
 # 03 — Importar um Catálogo em grade de cartões até a Revisão
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 01, 02
 Spec: [docs/spec.md](../../../docs/spec.md) (Extração; Revisão; Casos de uso › Importação)
@@ -46,3 +46,17 @@ A gestora escolhe o Fornecedor, envia um PDF em grade de cartões de **um** Layo
 
 - **Qual Layout é o A**: escolha na sessão o Layout que cobre mais arquivos em `catalogos-exemplo/`. Sugestão: a família de 8 arquivos gerados pelo mesmo sistema da importadora. Confirme antes que é uma grade de cartões com texto selecionável. Use os arquivos reais só para estudar a estrutura; nenhum entra no repositório.
 - O reconhecimento usa um traço estrutural do Layout, não o nome real do Fornecedor.
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `f0c9e05` a `82ecfea`)
+
+- **Layout A** (confirmado pela usuária): família de 8 PDFs gerados pelo mesmo sistema da importadora, 1.931 cartões, A4, grade 4 colunas x 5 linhas de cartões de 140 pt, texto selecionável. Reconhecido quando cada cartão traz uma vez `Código:`, `Disponibilidade:` e `Tag:`. O `Ean13:` ficou de fora do traço porque o pdfplumber parte essa palavra em ~3/4 dos cartões reais.
+- **Bibliotecas** (escolha da usuária): pdfplumber (MIT) para ler com posição; fpdf2 (LGPL-3.0) para o Catálogo fictício nos testes.
+- **Construtor do Catálogo fictício**: `extracao/catalogos_ficticios.py` (`CartaoFicticio`, `catalogo_ficticio_layout_a(cartoes, rodape=...)`, `pdf_ficticio_com_texto(linhas)`). Imita a geometria medida no real, com dados inventados.
+- **Casos de uso** (`importacao/casos_de_uso.py`): `iniciar_importacao`, `obter_revisao`, `listar_revisoes_em_andamento`. Extração em `extracao/extrair.py` (`extrair_ofertas`) e `extracao/grade_de_cartoes.py`.
+- **Conferência local com os PDFs reais** (nada entrou no repositório): o leitor lê 1.931 de 1.931 cartões, sem código ou descrição vazios, com preço e Caixa nos cartões certos; o reconhecimento aceita os 8 PDFs do Layout A e recusa os outros 20; 918 Ofertas em 2,5 s.
+- **Achado do real**: 1 cartão com preço mascarado (`R$***,**`) e 2 com Caixa mascarada (`Cx:***`) viram Oferta sem preço ou sem Caixa. O ticket 06 bloqueia a confirmação delas.
+- **Fora do ticket, acrescentado**: Importação sem arquivo é recusada com `Escolha o arquivo do Catálogo.`
+- Mensagens provisórias marcadas em `extracao/extrair.py`, citando os tickets 21, 23 e 25.
+- Arquivos enviados em `MEDIA_ROOT/importacoes/` (`media/` no `.gitignore`); os testes usam uma pasta temporária.
