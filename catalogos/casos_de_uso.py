@@ -4,7 +4,7 @@ from catalogos.models import Fornecedor
 
 
 def cadastrar_fornecedor(gestor, nome):
-    return Fornecedor.objects.create(nome=nome)
+    return Fornecedor.objects.create(nome=nome.strip())
 
 
 def listar_fornecedores(gestor):

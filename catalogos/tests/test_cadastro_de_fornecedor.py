@@ -23,3 +23,8 @@ class CadastroDeFornecedorTests(TestCase):
         cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
 
         self.assertEqual(nomes(listar_fornecedores(outro_gestor)), ['Fornecedor Alfa'])
+
+    def test_nome_do_fornecedor_e_guardado_sem_espacos_nas_pontas(self):
+        cadastrar_fornecedor(self.gestora, '  Fornecedor Beta  ')
+
+        self.assertEqual(nomes(listar_fornecedores(self.gestora)), ['Fornecedor Beta'])
