@@ -138,3 +138,14 @@ class ImportacaoRecusadaTests(TesteComArquivosEnviados):
 
     def test_importacao_sem_arquivo_e_recusada(self):
         self.assertRecusada('Escolha o arquivo do Catálogo.', self.fornecedor, None)
+
+    def test_documento_sem_nenhum_preco_e_recusado(self):
+        sem_precos = catalogo_ficticio_layout_a(
+            [CartaoFicticio('1001', 'Balde Ficticio', preco=None), CartaoFicticio('1002', 'Rodo Ficticio', preco=None)]
+        )
+
+        self.assertRecusada(
+            'Este documento não tem preços, então não é um Catálogo. Envie o arquivo com os preços.',
+            self.fornecedor,
+            arquivo_enviado(sem_precos),
+        )
