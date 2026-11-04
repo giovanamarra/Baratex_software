@@ -42,9 +42,9 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
     def test_confirmar_cria_o_catalogo_com_as_ofertas_da_revisao(self):
         conteudo = catalogo_ficticio_layout_a([
             CartaoFicticio('1001', 'Balde Ficticio', '7,50', '6'),
-            CartaoFicticio('1002', 'Rodo Ficticio', '***,**', '12'),  # sem preço: o bloqueio é do ticket 06
-            CartaoFicticio('1003', 'Pa Ficticia', '3,20', '***'),  # sem Caixa: idem
-        ])
+            CartaoFicticio('1002', 'Rodo Ficticio', '11,00', '12'),
+            CartaoFicticio('1003', 'Pa Ficticia', '3,20', '36'),
+        ])  # Ofertas sem preço ou sem Caixa são recusadas desde o ticket 06
         revisao = iniciar_importacao(self.gestora, self.fornecedor, arquivo_enviado(conteudo))
 
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
@@ -56,8 +56,8 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
             [resumo(oferta) for oferta in catalogo.ofertas()],
             [
                 ('1001', 'Balde Ficticio', Decimal('7.50'), 6, 'grade de cartões'),
-                ('1002', 'Rodo Ficticio', None, 12, 'grade de cartões'),
-                ('1003', 'Pa Ficticia', Decimal('3.20'), None, 'grade de cartões'),
+                ('1002', 'Rodo Ficticio', Decimal('11.00'), 12, 'grade de cartões'),
+                ('1003', 'Pa Ficticia', Decimal('3.20'), 36, 'grade de cartões'),
             ],
         )
 

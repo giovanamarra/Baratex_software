@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
@@ -10,6 +11,7 @@ from importacao.casos_de_uso import (
     corrigir_oferta_proposta,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
+    listar_revisoes_em_andamento,
     obter_revisao,
     remover_oferta_proposta,
 )
@@ -89,3 +91,34 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             [(oferta.codigo, oferta.marcas) for oferta in self.ofertas(revisao)],
             [('1001', []), ('1002', ['sem preço']), ('1003', ['preço zero'])],
         )
+
+    def test_confirmacao_e_recusada_com_oferta_sem_caixa_e_passa_depois_de_informar_a_caixa(self):
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', caixa='***'),  # mascarada, como no real
+            CartaoFicticio('1002', 'Rodo Ficticio'),
+            CartaoFicticio('1007', 'Pa Ficticia', caixa='***'),
+        ])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+
+        with self.assertRaisesMessage(
+            ErroDeNegocio, 'Informe a Caixa antes de confirmar. Ofertas sem Caixa: 1001, 1007.'
+        ):
+            confirmar_revisao(self.gestora, revisao.pk)
+        self.assertEqual([r.pk for r in listar_revisoes_em_andamento(self.gestora)], [revisao.pk])
+
+        for oferta in self.ofertas(revisao):
+            if oferta.caixa is None:
+                self.corrigir(oferta, caixa='12')
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual([oferta.caixa for oferta in catalogo.ofertas()], [12, 24, 12])
+
+    def corrigir(self, oferta, **mudancas):
+        """Corrige só os campos pedidos, repetindo os outros como estão."""
+        valores = {
+            'codigo': oferta.codigo,
+            'descricao': oferta.descricao,
+            'preco_impresso': '' if oferta.preco_impresso is None else str(oferta.preco_impresso),
+            'caixa': '' if oferta.caixa is None else str(oferta.caixa),
+        }
+        corrigir_oferta_proposta(self.gestora, oferta.pk, **{**valores, **mudancas})
