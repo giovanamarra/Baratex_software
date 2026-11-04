@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor, criar_loja, nomes
 from contas.casos_de_uso import listar_minhas_lojas, renomear_loja
 
@@ -23,4 +24,14 @@ class LojasDoGestorTests(TestCase):
 
         self.assertCountEqual(
             nomes(listar_minhas_lojas(self.gestora)), ['Loja Praça', 'Loja Norte']
+        )
+
+    def test_renomear_loja_de_outro_gestor_e_recusado_e_a_loja_nao_muda(self):
+        with self.assertRaisesMessage(
+            ErroDeNegocio, 'Esta Loja é de outro Gestor. Só ele pode editá-la.'
+        ):
+            renomear_loja(self.gestora, self.loja_sul, 'Loja Invadida')
+
+        self.assertCountEqual(
+            nomes(listar_minhas_lojas(self.outro_gestor)), ['Loja Sul', 'Loja Leste']
         )
