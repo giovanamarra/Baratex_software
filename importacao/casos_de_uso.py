@@ -2,12 +2,14 @@
 
 from django.db import transaction
 
-from comparador.erros import AcessoNegado
+from comparador.erros import AcessoNegado, ErroDeNegocio
 from extracao.extrair import extrair_ofertas
 from importacao.models import OfertaProposta, Revisao
 
 
 def iniciar_importacao(gestor, fornecedor, arquivo):
+    if fornecedor is None:
+        raise ErroDeNegocio('Escolha o Fornecedor do Catálogo.')
     ofertas = extrair_ofertas(arquivo)
     arquivo.seek(0)
     with transaction.atomic():

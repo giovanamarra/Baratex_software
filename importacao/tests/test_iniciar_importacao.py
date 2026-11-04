@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
-from comparador.erros import AcessoNegado
+from comparador.erros import AcessoNegado, ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -116,3 +116,22 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
     def iniciar_com_um_cartao(self, gestor):
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')]))
         return iniciar_importacao(gestor, self.fornecedor, catalogo)
+
+
+class ImportacaoRecusadaTests(TesteComArquivosEnviados):
+    """Cada recusa tem mensagem em português e não cria Revisão."""
+
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.fornecedor = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
+        self.catalogo_valido = arquivo_enviado(
+            catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')])
+        )
+
+    def assertRecusada(self, mensagem, fornecedor, arquivo):
+        with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+            iniciar_importacao(self.gestora, fornecedor, arquivo)
+        self.assertEqual(list(listar_revisoes_em_andamento(self.gestora)), [])
+
+    def test_importacao_sem_fornecedor_e_recusada(self):
+        self.assertRecusada('Escolha o Fornecedor do Catálogo.', None, self.catalogo_valido)
