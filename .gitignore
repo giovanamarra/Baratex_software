@@ -1,3 +1,7 @@
 catalogos-exemplo/
 pedidos-exemplo/
 .DS_Store
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
