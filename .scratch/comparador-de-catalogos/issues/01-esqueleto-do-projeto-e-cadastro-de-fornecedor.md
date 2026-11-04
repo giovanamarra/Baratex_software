@@ -1,6 +1,6 @@
 # 01 — Esqueleto do projeto e cadastro de Fornecedor
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: —
 Spec: [docs/spec.md](../../../docs/spec.md) (Testing Decisions; Implementation Decisions › Arquitetura e tecnologia)
@@ -46,3 +46,15 @@ Comportamento (pelo caso de uso)
 ## Notas para o /tdd
 
 - Este ticket define o padrão: um teste por comportamento, nomeado pelo comportamento ("cadastrar Fornecedor com nome repetido é recusado"), sem verificar tabelas nem chamadas internas.
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `38f2008` a `3c4fe4f`)
+
+- Django 6.1.3, SQLite, `pt-br`, `America/Sao_Paulo`, `AUTH_USER_MODEL = 'contas.Gestor'` na primeira migração. Dependências em `requirements.txt`; ambiente em `.venv/`.
+- Casos de uso: `catalogos/casos_de_uso.py` (`cadastrar_fornecedor(gestor, nome)`, `listar_fornecedores(gestor)`).
+- Exceção base: `comparador/erros.py` (`ErroDeNegocio`, com `.mensagem`).
+- Auxiliar de teste: `contas/auxiliares_de_teste.py` (`criar_gestor(usuario)`).
+- Testes: `catalogos/tests/test_cadastro_de_fornecedor.py`, 5 testes, todos verdes.
+- O teste "outro Gestor vê o Fornecedor" nasceu verde (a lista não filtra por Gestor). Fica como regressão do ADR-0007; uma mutação temporária que torna a lista privada ao primeiro Gestor fez só ele falhar.
+- Nome repetido é comparado com `casefold()` em Python, porque o `iexact` do SQLite não iguala maiúsculas acentuadas.
