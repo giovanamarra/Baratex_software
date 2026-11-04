@@ -4,7 +4,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao
+from importacao.casos_de_uso import iniciar_importacao, obter_revisao
 
 
 def resumo(oferta):
@@ -66,3 +66,22 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
         revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo)
 
         self.assertEqual(revisao.fornecedor.nome, 'Fornecedor Alfa')
+
+    def test_revisao_em_andamento_buscada_de_novo_traz_as_mesmas_ofertas(self):
+        cartoes = [
+            CartaoFicticio('1001', 'Balde Ficticio', '7,50', '6'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '11,00', '12'),
+        ]
+        revisao = iniciar_importacao(
+            self.gestora, self.fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+        )
+
+        recarregada = obter_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual(
+            [resumo(oferta) for oferta in recarregada.ofertas_propostas()],
+            [
+                ('1001', 'Balde Ficticio', Decimal('7.50'), 6, 'grade de cartões'),
+                ('1002', 'Rodo Ficticio', Decimal('11.00'), 12, 'grade de cartões'),
+            ],
+        )

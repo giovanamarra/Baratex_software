@@ -23,3 +23,7 @@ def iniciar_importacao(gestor, fornecedor, arquivo):
             for ordem, oferta in enumerate(ofertas)
         )
     return revisao
+
+
+def obter_revisao(gestor, revisao_id):
+    return Revisao.objects.get(pk=revisao_id)
