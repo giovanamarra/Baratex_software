@@ -1,6 +1,6 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
-from catalogos.models import Fornecedor
+from catalogos.models import Catalogo, Fornecedor
 from comparador.erros import ErroDeNegocio
 
 
@@ -16,6 +16,10 @@ def cadastrar_fornecedor(gestor, nome):
 
 def listar_fornecedores(gestor):
     return Fornecedor.objects.all()
+
+
+def listar_catalogos_do_fornecedor(gestor, fornecedor):
+    return Catalogo.objects.filter(fornecedor=fornecedor)
 
 
 def _fornecedor_com_o_mesmo_nome(nome):

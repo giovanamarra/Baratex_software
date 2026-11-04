@@ -12,3 +12,13 @@ class Fornecedor(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Catalogo(models.Model):
+    """Conjunto de preços de um Fornecedor, datado pelo dia da Importação. Nunca é sobrescrito."""
+
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.PROTECT, related_name='catalogos')
+
+    class Meta:
+        verbose_name = 'Catálogo'
+        verbose_name_plural = 'Catálogos'
