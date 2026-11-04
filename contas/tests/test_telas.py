@@ -3,6 +3,8 @@
 from django.test import TestCase
 from django.urls import URLPattern, get_resolver, reverse
 
+from contas.auxiliares_de_teste import criar_gestor
+
 PAGINAS_PUBLICAS = {'entrar'}
 
 
@@ -23,3 +25,15 @@ class AcessoSemLoginTests(TestCase):
             with self.subTest(pagina=pagina):
                 resposta = self.client.get(pagina)
                 self.assertRedirects(resposta, f'{reverse("entrar")}?next={pagina}')
+
+
+class EntrarTests(TestCase):
+    def test_senha_errada_mostra_usuario_ou_senha_incorretos(self):
+        criar_gestor('gestora')
+
+        resposta = self.client.post(
+            reverse('entrar'), {'username': 'gestora', 'password': 'senha-errada'}
+        )
+
+        self.assertContains(resposta, 'Usuário ou senha incorretos.')
+        self.assertNotIn('_auth_user_id', self.client.session)
