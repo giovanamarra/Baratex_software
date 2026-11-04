@@ -158,6 +158,19 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('7.50'))
 
+    def test_caixa_zero_negativa_fracionaria_ou_que_nao_e_numero_e_recusada(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', caixa='24')])
+        balde = self.ofertas(revisao)[0]
+
+        for caixa in ['0', '-12', '12,5', '12.5', 'doze']:
+            with self.subTest(caixa=caixa):
+                with self.assertRaisesMessage(
+                    ErroDeNegocio, 'A Caixa precisa ser um número inteiro de Unidades de venda, maior que zero.'
+                ):
+                    self.corrigir(balde, caixa=caixa)
+
+        self.assertEqual(self.ofertas(revisao)[0].caixa, 24)
+
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
         valores = {

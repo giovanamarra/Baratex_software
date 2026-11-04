@@ -97,7 +97,11 @@ def _preco_digitado(texto):
 
 def _caixa_digitada(texto):
     texto = texto.strip()
-    return int(texto) if texto else None
+    if not texto:
+        return None
+    if not texto.isdigit() or int(texto) == 0:
+        raise ErroDeNegocio('A Caixa precisa ser um número inteiro de Unidades de venda, maior que zero.')
+    return int(texto)
 
 
 def _desconto_valido(texto):
