@@ -8,6 +8,7 @@ from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
 from importacao.casos_de_uso import (
+    abandonar_revisao,
     confirmar_revisao,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
@@ -113,3 +114,13 @@ class ConteudoTests(TesteComArquivosEnviados):
             [('1001', 1, Decimal('9.00'))],
         )
         self.assertEqual(list(historico_do_conteudo(self.gestora, beta, '1001')), [])
+
+    def test_se_a_revisao_for_abandonada_o_conteudo_definido_nela_nao_e_guardado(self):
+        abandonada = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], hoje=SEGUNDA)
+        corrigir(self.gestora, self.ofertas(abandonada)[0], conteudo='3')
+
+        abandonar_revisao(self.gestora, abandonada.pk)
+
+        seguinte = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], hoje=TERCA)
+        self.assertEqual([oferta.conteudo for oferta in self.ofertas(seguinte)], [1])
+        self.assertEqual(list(historico_do_conteudo(self.gestora, self.alfa, '1001')), [])
