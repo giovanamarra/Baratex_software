@@ -12,6 +12,28 @@ python3 -m venv .venv
 .venv/bin/python manage.py migrate
 ```
 
+## Abrir a aplicação
+
+1. Crie o usuário do Responsável pela instalação (pede usuário, e-mail opcional e senha):
+
+   ```sh
+   .venv/bin/python manage.py createsuperuser
+   ```
+
+2. Inicie o servidor:
+
+   ```sh
+   .venv/bin/python manage.py runserver
+   ```
+
+3. Abra <http://127.0.0.1:8000/admin/>, entre com esse usuário e cadastre:
+   - em **Gestores › Adicionar**, cada Gestor com usuário e senha; na página do Gestor, a seção **Lojas** recebe as Lojas dele;
+   - ou em **Lojas › Adicionar**, uma Loja escolhendo o Gestor dono.
+
+4. Saia do painel e abra <http://127.0.0.1:8000/>. Entre com o usuário de um Gestor para ver as Lojas dele e os Fornecedores do grupo.
+
+Não há autocadastro nem recuperação de senha: só o Responsável cria Gestores.
+
 ## Rodar os testes
 
 ```sh
