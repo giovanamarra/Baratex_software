@@ -53,3 +53,14 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
         catalogo = confirmar_revisao(self.gestora, revisao.pk)  # confirmada hoje, não no dia 10
 
         self.assertEqual(catalogo.data, date(2026, 10, 10))
+
+    def test_lista_de_catalogos_do_fornecedor_mostra_o_catalogo_confirmado_com_a_data(self):
+        revisao = self.iniciar(hoje=date(2026, 10, 10))
+        confirmar_revisao(self.gestora, revisao.pk)
+
+        catalogos = listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)
+
+        self.assertEqual(
+            [(catalogo.data, catalogo.fornecedor.nome) for catalogo in catalogos],
+            [(date(2026, 10, 10), 'Fornecedor Alfa')],
+        )
