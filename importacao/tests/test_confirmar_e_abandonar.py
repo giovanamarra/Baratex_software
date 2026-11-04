@@ -5,7 +5,7 @@ from django.db import IntegrityError
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
 from catalogos.models import Oferta
-from comparador.erros import ErroDeNegocio
+from comparador.erros import AcessoNegado, ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import (
@@ -144,6 +144,18 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
                     ErroDeNegocio, 'Esta Revisão não existe mais. Comece uma nova Importação.'
                 ):
                     acao(self.gestora, revisao.pk)
+
+    def test_outro_gestor_nao_confirma_nem_abandona_a_revisao(self):
+        revisao = self.iniciar()
+        outro_gestor = criar_gestor('outro-gestor')
+
+        for acao in (confirmar_revisao, abandonar_revisao):
+            with self.subTest(acao=acao.__name__):
+                with self.assertRaisesMessage(AcessoNegado, 'Esta Revisão é de outro Gestor.'):
+                    acao(outro_gestor, revisao.pk)
+
+        self.assertEqual([r.pk for r in listar_revisoes_em_andamento(self.gestora)], [revisao.pk])
+        self.assertEqual(list(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), [])
 
 
 class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):

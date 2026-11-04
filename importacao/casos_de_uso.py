@@ -40,7 +40,7 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
 
 
 def confirmar_revisao(gestor, revisao_id):
-    revisao = _revisao_em_andamento(revisao_id)
+    revisao = _revisao_em_andamento(gestor, revisao_id)
     # O Catálogo aponta para o mesmo arquivo guardado na Revisão: ele vira o arquivo de origem.
     # Transação única: se uma Oferta falhar, nem o Catálogo nem a marcação da Revisão ficam salvos.
     with transaction.atomic():
@@ -55,7 +55,7 @@ def confirmar_revisao(gestor, revisao_id):
 def abandonar_revisao(gestor, revisao_id):
     # Uma Revisão confirmada também é recusada: o arquivo dela agora é o arquivo de origem do
     # Catálogo (decisão da usuária no ticket 04).
-    revisao = _revisao_em_andamento(revisao_id)
+    revisao = _revisao_em_andamento(gestor, revisao_id)
     arquivo = revisao.arquivo
     revisao.delete()  # leva junto as Ofertas propostas
     arquivo.delete(save=False)
@@ -73,11 +73,13 @@ def obter_revisao(gestor, revisao_id):
     return revisao
 
 
-def _revisao_em_andamento(revisao_id):
-    """A Revisão que ainda pode ser confirmada ou abandonada."""
+def _revisao_em_andamento(gestor, revisao_id):
+    """A Revisão do Gestor que ainda pode ser confirmada ou abandonada."""
     revisao = Revisao.objects.filter(pk=revisao_id).first()
     if revisao is None:
         raise ErroDeNegocio('Esta Revisão não existe mais. Comece uma nova Importação.')
+    if revisao.gestor_id != gestor.pk:
+        raise AcessoNegado('Esta Revisão é de outro Gestor.')
     if revisao.catalogo_id is not None:
         raise ErroDeNegocio('Esta Revisão já foi confirmada.')
     return revisao
