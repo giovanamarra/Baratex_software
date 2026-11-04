@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 
+from catalogos.models import conteudo_guardado, conteudos_guardados
 from catalogos.preco_unitario import calcular_preco_unitario
 
 
@@ -24,7 +25,11 @@ class Revisao(models.Model):
         verbose_name_plural = 'Revisões'
 
     def ofertas_propostas(self):
-        return list(self.ofertas.order_by('ordem'))
+        ofertas = list(self.ofertas.order_by('ordem'))
+        guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para a Revisão inteira
+        for oferta in ofertas:
+            oferta._conteudo_guardado = conteudo_guardado(guardados, oferta.codigo)
+        return ofertas
 
 
 class OfertaProposta(models.Model):
@@ -46,8 +51,12 @@ class OfertaProposta(models.Model):
 
     @property
     def conteudo(self):
-        # O Conteúdo começa em 1 (história 42).
-        return self.conteudo_definido if self.conteudo_definido is not None else 1
+        """O definido nesta Revisão ou, sem ele, o guardado por Fornecedor + código (1 se nunca definido)."""
+        if self.conteudo_definido is not None:
+            return self.conteudo_definido
+        if not hasattr(self, '_conteudo_guardado'):
+            self._conteudo_guardado = conteudo_guardado(conteudos_guardados(self.revisao.fornecedor_id), self.codigo)
+        return self._conteudo_guardado
 
     @property
     def preco_unitario(self):

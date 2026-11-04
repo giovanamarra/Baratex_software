@@ -36,6 +36,12 @@ class ConteudoTests(TesteComArquivosEnviados):
     def ofertas(self, revisao):
         return obter_revisao(revisao.gestor, revisao.pk).ofertas_propostas()
 
+    def confirmar_tesouras_com_conteudo_3(self, fornecedor=None):
+        """Primeiro Catálogo: a gestora define Conteúdo 3 para o kit 1001 e confirma."""
+        revisao = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], fornecedor, SEGUNDA)
+        corrigir(self.gestora, self.ofertas(revisao)[0], conteudo='3')
+        return confirmar_revisao(self.gestora, revisao.pk, hoje=SEGUNDA)
+
     def test_definir_o_conteudo_na_revisao_recalcula_o_preco_unitario(self):
         revisao = self.importar([
             CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00'),
@@ -67,4 +73,17 @@ class ConteudoTests(TesteComArquivosEnviados):
         self.assertEqual(
             [alteracao(r) for r in historico_do_conteudo(self.gestora, self.alfa, '1001')],
             [('gestora', TERCA, 1, 3)],
+        )
+
+    def test_no_catalogo_seguinte_do_mesmo_fornecedor_a_oferta_ja_chega_na_revisao_com_o_conteudo_guardado(self):
+        self.confirmar_tesouras_com_conteudo_3()
+
+        seguinte = self.importar([
+            CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,30'),
+            CartaoFicticio('1003', 'Pa Ficticia', '5,00'),
+        ], hoje=TERCA)
+
+        self.assertEqual(
+            [(oferta.codigo, oferta.conteudo, oferta.preco_unitario) for oferta in self.ofertas(seguinte)],
+            [('1001', 3, Decimal('3.10')), ('1003', 1, Decimal('5.00'))],
         )
