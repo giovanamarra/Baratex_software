@@ -149,3 +149,10 @@ class ImportacaoRecusadaTests(TesteComArquivosEnviados):
             self.fornecedor,
             arquivo_enviado(sem_precos),
         )
+
+    def test_arquivo_que_nao_abre_e_recusado(self):
+        self.assertRecusada(
+            'Não consegui abrir este arquivo. Ele pode estar corrompido: peça ao Fornecedor que envie de novo.',
+            self.fornecedor,
+            arquivo_enviado(b'%PDF-1.4 bytes quebrados, sem estrutura de PDF', nome='catalogo.pdf'),
+        )
