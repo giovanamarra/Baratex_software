@@ -135,3 +135,6 @@ class ImportacaoRecusadaTests(TesteComArquivosEnviados):
 
     def test_importacao_sem_fornecedor_e_recusada(self):
         self.assertRecusada('Escolha o Fornecedor do Catálogo.', None, self.catalogo_valido)
+
+    def test_importacao_sem_arquivo_e_recusada(self):
+        self.assertRecusada('Escolha o arquivo do Catálogo.', self.fornecedor, None)

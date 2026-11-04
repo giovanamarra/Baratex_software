@@ -10,6 +10,8 @@ from importacao.models import OfertaProposta, Revisao
 def iniciar_importacao(gestor, fornecedor, arquivo):
     if fornecedor is None:
         raise ErroDeNegocio('Escolha o Fornecedor do Catálogo.')
+    if arquivo is None:
+        raise ErroDeNegocio('Escolha o arquivo do Catálogo.')
     ofertas = extrair_ofertas(arquivo)
     arquivo.seek(0)
     with transaction.atomic():
