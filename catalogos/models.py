@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from catalogos.preco_unitario import calcular_preco_unitario
+
 
 class Fornecedor(models.Model):
     """Empresa que vende produtos ao grupo (GLOSSARY). Pertence ao grupo (ADR-0007)."""
@@ -54,3 +56,10 @@ class Oferta(models.Model):
                 name='oferta_preco_impresso_nao_negativo',
             ),
         ]
+
+    # O Conteúdo começa em 1 (história 42); o ticket 07 passa a guardá-lo por Fornecedor + código.
+    conteudo = 1
+
+    @property
+    def preco_unitario(self):
+        return calcular_preco_unitario(self.preco_impresso, self.catalogo.desconto, self.conteudo)

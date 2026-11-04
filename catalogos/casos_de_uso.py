@@ -38,6 +38,11 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
     return catalogo
 
 
+def obter_catalogo(gestor, catalogo_id):
+    """Qualquer Gestor consulta qualquer Catálogo: a base de compras é do grupo (ADR-0007)."""
+    return Catalogo.objects.get(pk=catalogo_id)
+
+
 def listar_catalogos_do_fornecedor(gestor, fornecedor):
     # Mais recente primeiro; no mesmo dia, o último confirmado primeiro.
     return Catalogo.objects.filter(fornecedor=fornecedor).order_by('-data', '-pk')

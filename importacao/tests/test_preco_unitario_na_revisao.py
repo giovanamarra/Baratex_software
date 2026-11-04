@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from catalogos.casos_de_uso import cadastrar_fornecedor
+from catalogos.casos_de_uso import cadastrar_fornecedor, obter_catalogo
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -88,3 +88,19 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
         ])
 
         self.assertEqual(precos_unitarios(revisao.ofertas_propostas()), [Decimal('10.00'), Decimal('10.00')])
+
+    def test_ofertas_do_catalogo_confirmado_tem_o_mesmo_preco_unitario_da_revisao(self):
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', '10,00'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '9,99'),
+            CartaoFicticio('1003', 'Pa Ficticia', '0,50'),
+        ])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '3')
+        na_revisao = precos_unitarios(obter_revisao(self.gestora, revisao.pk).ofertas_propostas())
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+
+        # O Catálogo é do grupo (ADR-0007): outro Gestor consulta e vê o mesmo.
+        no_catalogo = precos_unitarios(obter_catalogo(criar_gestor('outro-gestor'), catalogo.pk).ofertas())
+
+        self.assertEqual(na_revisao, [Decimal('9.70'), Decimal('9.69'), Decimal('0.49')])
+        self.assertEqual(no_catalogo, na_revisao)
