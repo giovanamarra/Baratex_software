@@ -158,6 +158,30 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('7.50'))
 
+    def test_preco_com_ponto_de_milhar_sem_virgula_e_recusado_por_ser_ambiguo(self):
+        # No Brasil o ponto separa milhar: "1.500" pode ser mil e quinhentos ou um real e cinquenta.
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
+        balde = self.ofertas(revisao)[0]
+        mensagem = 'Use vírgula para os centavos: 1.500,00 para mil e quinhentos, 1,50 para um real e cinquenta.'
+        tentativas = {
+            'corrigir com 1.500': lambda: self.corrigir(balde, preco_impresso='1.500'),
+            'corrigir com 1.500.000': lambda: self.corrigir(balde, preco_impresso='1.500.000'),
+            'adicionar com 2.250': lambda: adicionar_oferta_proposta(
+                self.gestora, revisao.pk, codigo='2001', descricao='Esponja Ficticia', preco_impresso='2.250', caixa='60'
+            ),
+        }
+
+        for tentativa, acao in tentativas.items():
+            with self.subTest(tentativa=tentativa):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    acao()
+
+        self.assertEqual([(o.codigo, o.preco_impresso) for o in self.ofertas(revisao)], [('1001', Decimal('7.50'))])
+        for digitado, preco in [('12.5', Decimal('12.5')), ('12', Decimal('12')), ('1.500,00', Decimal('1500.00'))]:
+            with self.subTest(digitado=digitado):
+                self.corrigir(balde, preco_impresso=digitado)
+                self.assertEqual(self.ofertas(revisao)[0].preco_impresso, preco)
+
     def test_caixa_zero_negativa_fracionaria_ou_que_nao_e_numero_e_recusada(self):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', caixa='24')])
         balde = self.ofertas(revisao)[0]
