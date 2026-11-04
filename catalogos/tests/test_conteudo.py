@@ -101,3 +101,15 @@ class ConteudoTests(TesteComArquivosEnviados):
             [alteracao(r) for r in historico_do_conteudo(self.gestora, self.alfa, '1001')],
             [('gestora', SEGUNDA, 1, 3)],
         )
+
+    def test_o_mesmo_codigo_de_outro_fornecedor_continua_com_conteudo_1(self):
+        beta = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        self.confirmar_tesouras_com_conteudo_3()
+
+        do_beta = self.importar([CartaoFicticio('1001', 'Tesoura Ficticia Avulsa', '9,00')], beta, TERCA)
+
+        self.assertEqual(
+            [(oferta.codigo, oferta.conteudo, oferta.preco_unitario) for oferta in self.ofertas(do_beta)],
+            [('1001', 1, Decimal('9.00'))],
+        )
+        self.assertEqual(list(historico_do_conteudo(self.gestora, beta, '1001')), [])
