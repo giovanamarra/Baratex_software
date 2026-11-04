@@ -2,11 +2,7 @@ from django.test import TestCase
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_fornecedores
 from comparador.erros import ErroDeNegocio
-from contas.auxiliares_de_teste import criar_gestor
-
-
-def nomes(fornecedores):
-    return [fornecedor.nome for fornecedor in fornecedores]
+from contas.auxiliares_de_teste import criar_gestor, nomes
 
 
 class CadastroDeFornecedorTests(TestCase):
