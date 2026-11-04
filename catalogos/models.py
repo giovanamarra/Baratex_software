@@ -21,6 +21,7 @@ class Catalogo(models.Model):
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.PROTECT, related_name='catalogos')
     gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='catalogos_importados')
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
+    data = models.DateField()  # dia em que a Importação começou
 
     class Meta:
         verbose_name = 'Catálogo'

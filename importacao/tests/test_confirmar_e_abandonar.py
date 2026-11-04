@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
@@ -12,11 +13,12 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
         self.gestora = criar_gestor('gestora')
         self.fornecedor = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
 
-    def iniciar(self, cartoes=None):
+    def iniciar(self, cartoes=None, hoje=None):
         cartoes = cartoes or [CartaoFicticio('1001', 'Balde Ficticio')]
-        return iniciar_importacao(
-            self.gestora, self.fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
-        )
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+        if hoje is None:
+            return iniciar_importacao(self.gestora, self.fornecedor, catalogo)
+        return iniciar_importacao(self.gestora, self.fornecedor, catalogo, hoje=hoje)
 
     def test_antes_de_confirmar_o_fornecedor_continua_sem_catalogos(self):
         self.iniciar()
@@ -44,3 +46,10 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
                 ('1003', 'Pa Ficticia', Decimal('3.20'), None, 'grade de cartões'),
             ],
         )
+
+    def test_data_do_catalogo_e_o_dia_em_que_a_importacao_comecou(self):
+        revisao = self.iniciar(hoje=date(2026, 10, 10))
+
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)  # confirmada hoje, não no dia 10
+
+        self.assertEqual(catalogo.data, date(2026, 10, 10))

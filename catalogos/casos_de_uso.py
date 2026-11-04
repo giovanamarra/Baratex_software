@@ -18,9 +18,9 @@ def listar_fornecedores(gestor):
     return Fornecedor.objects.all()
 
 
-def registrar_catalogo(gestor, fornecedor, arquivo, ofertas):
+def registrar_catalogo(gestor, fornecedor, data, arquivo, ofertas):
     """Cria o Catálogo e as suas Ofertas. Chamado pela Importação ao confirmar a Revisão."""
-    catalogo = Catalogo.objects.create(gestor=gestor, fornecedor=fornecedor, arquivo=arquivo)
+    catalogo = Catalogo.objects.create(gestor=gestor, fornecedor=fornecedor, data=data, arquivo=arquivo)
     Oferta.objects.bulk_create(
         Oferta(
             catalogo=catalogo,
