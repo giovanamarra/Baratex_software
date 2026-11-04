@@ -48,6 +48,30 @@ def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
     revisao.save()
 
 
+def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impresso, caixa):
+    """Os valores chegam como a gestora digitou: preço "1.234,56" ou "9,90"; Caixa "24"; vazio = ausente."""
+    oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
+    oferta.codigo = codigo.strip()
+    oferta.descricao = descricao.strip()
+    oferta.preco_impresso = _preco_digitado(preco_impresso)
+    oferta.caixa = _caixa_digitada(caixa)
+    oferta.save()
+
+
+def _preco_digitado(texto):
+    texto = texto.strip()
+    if not texto:
+        return None
+    if ',' in texto:  # formato brasileiro: ponto separa milhar, vírgula separa centavos
+        texto = texto.replace('.', '').replace(',', '.')
+    return Decimal(texto)
+
+
+def _caixa_digitada(texto):
+    texto = texto.strip()
+    return int(texto) if texto else None
+
+
 def _desconto_valido(texto):
     try:
         desconto = Decimal(texto.strip().replace(',', '.'))
@@ -95,6 +119,15 @@ def obter_revisao(gestor, revisao_id):
     if revisao.gestor_id != gestor.pk:
         raise AcessoNegado('Esta Revisão é de outro Gestor.')
     return revisao
+
+
+def _oferta_proposta_em_andamento(gestor, oferta_id):
+    """A Oferta proposta de uma Revisão do Gestor que ainda está em andamento."""
+    oferta = OfertaProposta.objects.filter(pk=oferta_id).first()
+    if oferta is None:
+        raise ErroDeNegocio('Esta Oferta não existe mais na Revisão.')
+    _revisao_em_andamento(gestor, oferta.revisao_id)
+    return oferta
 
 
 def _revisao_em_andamento(gestor, revisao_id):
