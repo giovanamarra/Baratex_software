@@ -76,6 +76,10 @@ def adicionar_oferta_proposta(gestor, revisao_id, codigo, descricao, preco_impre
     )
 
 
+def remover_oferta_proposta(gestor, oferta_id):
+    _oferta_proposta_em_andamento(gestor, oferta_id).delete()
+
+
 def _preco_digitado(texto):
     texto = texto.strip()
     if not texto:

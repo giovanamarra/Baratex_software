@@ -6,10 +6,12 @@ from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layou
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
 from importacao.casos_de_uso import (
     adicionar_oferta_proposta,
+    confirmar_revisao,
     corrigir_oferta_proposta,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
     obter_revisao,
+    remover_oferta_proposta,
 )
 
 
@@ -61,3 +63,17 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
                 ('2001', 'Esponja Ficticia', Decimal('3.40'), 60, 'manual'),
             ],
         )
+
+    def test_remover_uma_oferta_tira_ela_da_revisao_e_do_catalogo(self):
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', '7,50'),
+            CartaoFicticio('1002', 'Lixo de Leitura', '1,00'),
+        ])
+        lixo = self.ofertas(revisao)[1]
+
+        remover_oferta_proposta(self.gestora, lixo.pk)
+
+        self.assertEqual([oferta.codigo for oferta in self.ofertas(revisao)], ['1001'])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+        self.assertEqual([oferta.codigo for oferta in catalogo.ofertas()], ['1001'])
