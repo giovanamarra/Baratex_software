@@ -41,3 +41,13 @@ Não há autocadastro nem recuperação de senha: só o Responsável cria Gestor
 ```
 
 Os testes entram pelos casos de uso de cada módulo (por exemplo, `catalogos/casos_de_uso.py`) e usam o banco de teste do Django. Nenhum teste chama serviços externos.
+
+## Conferir o leitor com os Catálogos reais
+
+Os Catálogos reais ficam fora do repositório (a pasta `catalogos-exemplo/` está no `.gitignore`) e nunca entram nos testes. Para conferir, na sua máquina, que o leitor do Layout A continua lendo os arquivos reais:
+
+```sh
+.venv/bin/python ferramentas/conferir_catalogos_reais.py catalogos-exemplo
+```
+
+O script não faz parte da suíte de testes. Para cada arquivo, numerado pela ordem alfabética do nome, ele imprime só números: se o Layout A foi reconhecido, quantos cartões e quantas Ofertas, quantas sem preço e sem Caixa, e o tempo. Nenhum código, descrição, preço ou nome de marca aparece na saída, então ela pode ser compartilhada.
