@@ -16,3 +16,10 @@ class CadastroDeFornecedorTests(TestCase):
         cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
 
         self.assertEqual(nomes(listar_fornecedores(self.gestora)), ['Fornecedor Alfa'])
+
+    def test_outro_gestor_ve_o_fornecedor_cadastrado_porque_a_base_e_do_grupo(self):
+        outro_gestor = criar_gestor('outro-gestor')
+
+        cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
+
+        self.assertEqual(nomes(listar_fornecedores(outro_gestor)), ['Fornecedor Alfa'])
