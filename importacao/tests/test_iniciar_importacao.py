@@ -3,7 +3,11 @@ from decimal import Decimal
 from catalogos.casos_de_uso import cadastrar_fornecedor
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
-from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
+from extracao.catalogos_ficticios import (
+    CartaoFicticio,
+    catalogo_ficticio_layout_a,
+    pdf_ficticio_com_texto,
+)
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
 from importacao.casos_de_uso import iniciar_importacao, listar_revisoes_em_andamento, obter_revisao
 
@@ -155,4 +159,16 @@ class ImportacaoRecusadaTests(TesteComArquivosEnviados):
             'Não consegui abrir este arquivo. Ele pode estar corrompido: peça ao Fornecedor que envie de novo.',
             self.fornecedor,
             arquivo_enviado(b'%PDF-1.4 bytes quebrados, sem estrutura de PDF', nome='catalogo.pdf'),
+        )
+
+    def test_pdf_de_layout_desconhecido_e_recusado_por_enquanto(self):
+        lista_de_precos = pdf_ficticio_com_texto(
+            ['COD  DESCRICAO  PRECO', '1001  Balde Ficticio  R$ 7,50', '1002  Rodo Ficticio  R$ 11,00']
+        )
+
+        self.assertRecusada(
+            'Não reconheci o Layout deste PDF. Por enquanto, só Catálogos em grade de cartões '
+            'de Layouts conhecidos podem ser importados.',
+            self.fornecedor,
+            arquivo_enviado(lista_de_precos),
         )

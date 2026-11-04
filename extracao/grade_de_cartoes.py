@@ -24,6 +24,21 @@ DISTANCIA_DA_DESCRICAO = 12  # a descrição fica ~12 pt abaixo da linha do cód
 ALTURA_ACIMA_DO_CODIGO = 40  # o preço fica até ~26 pt acima da linha do código
 
 
+# "Ean13:" também está em todo cartão, mas o pdfplumber parte essa palavra em ~3/4 dos cartões reais.
+ROTULOS_DO_CARTAO = (ROTULO_CODIGO, 'Disponibilidade:', 'Tag:')
+
+
+def e_layout_a(pdf):
+    """Reconhece o Layout A pelo conteúdo: cada cartão traz uma vez cada um destes rótulos."""
+    contagem = dict.fromkeys(ROTULOS_DO_CARTAO, 0)
+    for pagina in pdf.pages:
+        for palavra in pagina.extract_words():
+            for rotulo in ROTULOS_DO_CARTAO:
+                if palavra['text'].startswith(rotulo):
+                    contagem[rotulo] += 1
+    return len(set(contagem.values())) == 1 and contagem[ROTULO_CODIGO] > 0
+
+
 def ler_layout_a(pdf):
     ofertas = []
     for pagina in pdf.pages:

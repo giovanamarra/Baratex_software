@@ -41,6 +41,15 @@ def catalogo_ficticio_layout_a(cartoes, rodape='Catálogo de Produtos Fornecedor
     return bytes(pdf.output())
 
 
+def pdf_ficticio_com_texto(linhas):
+    """PDF com texto selecionável, uma linha por item, sem a estrutura de nenhum Layout conhecido."""
+    pdf = FPDF(unit='pt', format='A4')
+    pdf.add_page()
+    for numero, linha in enumerate(linhas):
+        _texto(pdf, 40, 60 + numero * 14, 10, linha)
+    return bytes(pdf.output())
+
+
 def _cabecalho_e_rodape(pdf, rodape):
     _texto(pdf, 523, 18, 7.8, f'Página {pdf.page_no()}')
     _texto(pdf, 13, 788, 7.8, rodape)
