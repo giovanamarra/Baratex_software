@@ -5,3 +5,5 @@ pedidos-exemplo/
 __pycache__/
 *.pyc
 db.sqlite3
+# Arquivos enviados (podem ser Catálogos reais)
+media/
