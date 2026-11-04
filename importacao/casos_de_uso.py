@@ -86,7 +86,13 @@ def _preco_digitado(texto):
         return None
     if ',' in texto:  # formato brasileiro: ponto separa milhar, vírgula separa centavos
         texto = texto.replace('.', '').replace(',', '.')
-    return Decimal(texto)
+    try:
+        preco = Decimal(texto)
+    except InvalidOperation:
+        preco = None
+    if preco is None or not preco.is_finite() or preco <= 0:
+        raise ErroDeNegocio('O preço precisa ser maior que zero.')
+    return preco
 
 
 def _caixa_digitada(texto):

@@ -147,6 +147,17 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
         self.assertEqual(list(listar_revisoes_em_andamento(self.gestora)), [])
 
+    def test_corrigir_com_preco_negativo_zero_ou_que_nao_e_numero_e_recusado(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
+        balde = self.ofertas(revisao)[0]
+
+        for preco in ['-1,00', '0', '0,00', 'sete']:
+            with self.subTest(preco=preco):
+                with self.assertRaisesMessage(ErroDeNegocio, 'O preço precisa ser maior que zero.'):
+                    self.corrigir(balde, preco_impresso=preco)
+
+        self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('7.50'))
+
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
         valores = {
