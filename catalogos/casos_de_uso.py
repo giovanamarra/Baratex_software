@@ -8,8 +8,19 @@ def cadastrar_fornecedor(gestor, nome):
     nome = nome.strip()
     if not nome:
         raise ErroDeNegocio('Informe o nome do Fornecedor.')
+    existente = _fornecedor_com_o_mesmo_nome(nome)
+    if existente:
+        raise ErroDeNegocio(f'Já existe um Fornecedor chamado {existente.nome}.')
     return Fornecedor.objects.create(nome=nome)
 
 
 def listar_fornecedores(gestor):
     return Fornecedor.objects.all()
+
+
+def _fornecedor_com_o_mesmo_nome(nome):
+    # Compara em Python: o iexact do SQLite não iguala maiúsculas acentuadas ("Ó" e "ó").
+    procurado = nome.casefold()
+    return next(
+        (f for f in Fornecedor.objects.all() if f.nome.casefold() == procurado), None
+    )

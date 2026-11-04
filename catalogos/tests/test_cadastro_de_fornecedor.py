@@ -37,3 +37,21 @@ class CadastroDeFornecedorTests(TestCase):
                     cadastrar_fornecedor(self.gestora, nome_vazio)
 
         self.assertEqual(nomes(listar_fornecedores(self.gestora)), [])
+
+    def test_fornecedor_com_nome_repetido_e_recusado(self):
+        cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
+        cadastrar_fornecedor(self.gestora, 'Ótica Beta')
+
+        casos = [
+            ('Fornecedor Alfa', 'Já existe um Fornecedor chamado Fornecedor Alfa.'),
+            ('  fornecedor ALFA  ', 'Já existe um Fornecedor chamado Fornecedor Alfa.'),
+            ('ÓTICA BETA', 'Já existe um Fornecedor chamado Ótica Beta.'),
+        ]
+        for nome_repetido, mensagem in casos:
+            with self.subTest(nome=nome_repetido):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    cadastrar_fornecedor(self.gestora, nome_repetido)
+
+        self.assertCountEqual(
+            nomes(listar_fornecedores(self.gestora)), ['Fornecedor Alfa', 'Ótica Beta']
+        )
