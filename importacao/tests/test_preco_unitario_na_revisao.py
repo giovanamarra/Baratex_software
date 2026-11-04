@@ -47,3 +47,9 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
 
                 ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
                 self.assertEqual(precos_unitarios(ofertas), esperados)
+
+    def test_caixa_nao_divide_o_preco(self):
+        # Embalagem intermediária fica de fora: o Layout A não tem esse campo (decisão do ticket 03).
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '12,00', caixa='48')])
+
+        self.assertEqual(precos_unitarios(revisao.ofertas_propostas()), [Decimal('12.00')])
