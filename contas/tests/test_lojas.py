@@ -35,3 +35,13 @@ class LojasDoGestorTests(TestCase):
         self.assertCountEqual(
             nomes(listar_minhas_lojas(self.outro_gestor)), ['Loja Sul', 'Loja Leste']
         )
+
+    def test_nome_de_loja_vazio_e_recusado(self):
+        for nome_vazio in ['', '   ']:
+            with self.subTest(nome=nome_vazio):
+                with self.assertRaisesMessage(ErroDeNegocio, 'Informe o nome da Loja.'):
+                    renomear_loja(self.gestora, self.loja_centro, nome_vazio)
+
+        self.assertCountEqual(
+            nomes(listar_minhas_lojas(self.gestora)), ['Loja Centro', 'Loja Norte']
+        )
