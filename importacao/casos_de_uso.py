@@ -54,7 +54,12 @@ def confirmar_revisao(gestor, revisao_id):
     # Transação única: se uma Oferta falhar, nem o Catálogo nem a marcação da Revisão ficam salvos.
     with transaction.atomic():
         catalogo = registrar_catalogo(
-            gestor, revisao.fornecedor, revisao.iniciada_em, revisao.arquivo, revisao.ofertas_propostas()
+            gestor,
+            revisao.fornecedor,
+            revisao.iniciada_em,
+            revisao.arquivo,
+            revisao.desconto,
+            revisao.ofertas_propostas(),
         )
         revisao.catalogo = catalogo
         revisao.save()

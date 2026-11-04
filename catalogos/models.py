@@ -22,6 +22,8 @@ class Catalogo(models.Model):
     gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='catalogos_importados')
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
     data = models.DateField()  # dia em que a Importação começou
+    # Condições do Catálogo: desconto percentual (ex.: 3 = 3%); vazio = sem desconto.
+    desconto = models.DecimalField(max_digits=7, decimal_places=4, null=True)
 
     class Meta:
         verbose_name = 'Catálogo'

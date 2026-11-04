@@ -4,7 +4,12 @@ from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao, informar_condicoes_do_catalogo, obter_revisao
+from importacao.casos_de_uso import (
+    confirmar_revisao,
+    iniciar_importacao,
+    informar_condicoes_do_catalogo,
+    obter_revisao,
+)
 
 
 def precos_unitarios(ofertas):
@@ -63,3 +68,14 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
 
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
         self.assertEqual([(o.preco_impresso, o.preco_unitario) for o in ofertas], [(Decimal('8.00'), Decimal('7.20'))])
+
+    def test_vale_o_ultimo_desconto_informado_e_ao_confirmar_ele_fica_no_catalogo(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '5')
+
+        ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual(precos_unitarios(ofertas), [Decimal('9.50')])
+        self.assertEqual(catalogo.desconto, Decimal('5'))
