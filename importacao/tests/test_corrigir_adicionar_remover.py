@@ -77,3 +77,15 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
         self.assertEqual([oferta.codigo for oferta in catalogo.ofertas()], ['1001'])
+
+    def test_oferta_sem_preco_ou_com_preco_zero_fica_marcada(self):
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', '7,50'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '***,**'),  # mascarado, como no real
+            CartaoFicticio('1003', 'Pa Ficticia', '0,00'),
+        ])
+
+        self.assertEqual(
+            [(oferta.codigo, oferta.marcas) for oferta in self.ofertas(revisao)],
+            [('1001', []), ('1002', ['sem preço']), ('1003', ['preço zero'])],
+        )

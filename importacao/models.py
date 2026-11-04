@@ -48,3 +48,12 @@ class OfertaProposta(models.Model):
     @property
     def preco_unitario(self):
         return calcular_preco_unitario(self.preco_impresso, self.revisao.desconto, self.conteudo)
+
+    @property
+    def marcas(self):
+        """Marcas de conferência, em texto (o ticket 08 acrescenta as outras)."""
+        if self.preco_impresso is None:
+            return ['sem preço']
+        if self.preco_impresso == 0:
+            return ['preço zero']
+        return []
