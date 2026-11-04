@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'contas.Gestor'
 LOGIN_URL = 'entrar'
 LOGIN_REDIRECT_URL = 'inicio'
+LOGOUT_REDIRECT_URL = 'entrar'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

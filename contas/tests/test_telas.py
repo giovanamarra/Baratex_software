@@ -71,3 +71,10 @@ class TelasDoGestorTests(TestCase):
                 )
 
         self.assertEqual(nomes(listar_minhas_lojas(self.outro_gestor)), ['Loja Sul'])
+
+    def test_depois_de_sair_a_proxima_pagina_pede_login(self):
+        self.client.post(reverse('sair'))
+
+        resposta = self.client.get(reverse('inicio'))
+
+        self.assertRedirects(resposta, f'{reverse("entrar")}?next={reverse("inicio")}')

@@ -6,6 +6,15 @@
   <title>{% block titulo %}Comparador de Catálogos{% endblock %} · Baratex</title>
 </head>
 <body>
+  {% if user.is_authenticated %}
+  <nav>
+    <a href="{% url 'inicio' %}">As minhas Lojas</a>
+    <form method="post" action="{% url 'sair' %}">
+      {% csrf_token %}
+      <button type="submit">Sair</button>
+    </form>
+  </nav>
+  {% endif %}
   <main>
     {% block conteudo %}{% endblock %}
   </main>
