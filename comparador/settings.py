@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
 # O Gestor é o usuário do sistema desde a primeira migração (trocar depois é caro).
 AUTH_USER_MODEL = 'contas.Gestor'
+LOGIN_URL = 'entrar'
+LOGIN_REDIRECT_URL = 'inicio'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +52,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Toda página exige login, salvo as marcadas com @login_not_required (a tela de entrada).
+    'django.contrib.auth.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -59,7 +63,7 @@ ROOT_URLCONF = 'comparador.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
