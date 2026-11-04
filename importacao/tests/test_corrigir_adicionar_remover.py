@@ -191,6 +191,20 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual([(oferta.codigo, oferta.descricao) for oferta in self.ofertas(revisao)], [('1001', 'Balde Ficticio')])
 
+    def test_confirmacao_e_recusada_sem_o_desconto_informado_e_zero_vale_como_resposta(self):
+        # Decisão da usuária (ticket 06): o desconto é resposta obrigatória a cada Importação.
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
+
+        with self.assertRaisesMessage(
+            ErroDeNegocio,
+            'Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0.',
+        ):
+            confirmar_revisao(self.gestora, revisao.pk)
+
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+        self.assertEqual(catalogo.desconto, Decimal('0'))
+
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
         valores = {

@@ -32,8 +32,12 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
         cartoes = cartoes or [CartaoFicticio('1001', 'Balde Ficticio')]
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
         if hoje is None:
-            return iniciar_importacao(self.gestora, self.fornecedor, catalogo)
-        return iniciar_importacao(self.gestora, self.fornecedor, catalogo, hoje=hoje)
+            revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo)
+        else:
+            revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo, hoje=hoje)
+        # Desde o ticket 06, confirmar exige o desconto informado; 0 vale como resposta.
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        return revisao
 
     def test_antes_de_confirmar_o_fornecedor_continua_sem_catalogos(self):
         self.iniciar()
@@ -47,6 +51,7 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
             CartaoFicticio('1003', 'Pa Ficticia', '3,20', '36'),
         ])  # Ofertas sem preço ou sem Caixa são recusadas desde o ticket 06
         revisao = iniciar_importacao(self.gestora, self.fornecedor, arquivo_enviado(conteudo))
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
 
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
 

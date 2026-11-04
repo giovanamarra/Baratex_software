@@ -125,7 +125,7 @@ def _desconto_valido(texto):
 def confirmar_revisao(gestor, revisao_id):
     revisao = _revisao_em_andamento(gestor, revisao_id)
     ofertas = revisao.ofertas_propostas()
-    _exigir_revisao_completa(ofertas)
+    _exigir_revisao_completa(revisao, ofertas)
     # O Catálogo aponta para o mesmo arquivo guardado na Revisão: ele vira o arquivo de origem.
     # Transação única: se uma Oferta falhar, nem o Catálogo nem a marcação da Revisão ficam salvos.
     with transaction.atomic():
@@ -142,9 +142,12 @@ def confirmar_revisao(gestor, revisao_id):
     return catalogo
 
 
-def _exigir_revisao_completa(ofertas):
+def _exigir_revisao_completa(revisao, ofertas):
     """Recusa a confirmação listando, de uma vez, tudo o que falta (spec, Revisão)."""
     problemas = []
+    if revisao.desconto is None:
+        # O desconto é resposta obrigatória a cada Importação; 0 vale (decisão da usuária, ticket 06).
+        problemas.append('Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0.')
     sem_caixa = [oferta.codigo for oferta in ofertas if oferta.caixa is None]
     if sem_caixa:
         problemas.append(f'Informe a Caixa antes de confirmar. Ofertas sem Caixa: {", ".join(sem_caixa)}.')
