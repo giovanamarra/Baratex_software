@@ -21,6 +21,9 @@ urlpatterns = [
     path('', contas.inicio, name='inicio'),
     path('lojas/<int:pk>/editar/', contas.editar_loja, name='editar_loja'),
     path('fornecedores/', catalogos.fornecedores, name='fornecedores'),
+    path('fornecedores/<int:pk>/catalogos/', catalogos.catalogos_do_fornecedor, name='catalogos_do_fornecedor'),
     path('importar/', importacao.importar, name='importar'),
     path('revisoes/<int:pk>/', importacao.revisao, name='revisao'),
+    path('revisoes/<int:pk>/confirmar/', importacao.confirmar, name='confirmar_revisao'),
+    path('revisoes/<int:pk>/abandonar/', importacao.abandonar, name='abandonar_revisao'),
 ]

@@ -26,6 +26,13 @@
     {% endif %}
   </nav>
   <main>
+    {% for mensagem in messages %}
+    {% if mensagem.level_tag == 'error' %}
+    <p class="erro" role="alert"><strong>Não foi possível concluir:</strong> {{ mensagem }}</p>
+    {% else %}
+    <p class="aviso" role="status"><strong>Pronto:</strong> {{ mensagem }}</p>
+    {% endif %}
+    {% endfor %}
     {% block conteudo %}{% endblock %}
   </main>
 </body>

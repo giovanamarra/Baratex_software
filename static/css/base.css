@@ -174,6 +174,26 @@ select {
   list-style: none;
 }
 
+/* Aviso de sucesso: texto ("Pronto:") e borda, nunca só a cor */
+
+.aviso {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: var(--bx-verde);
+  background: var(--bx-branco);
+  border: 1px solid var(--bx-borda);
+  border-left: 6px solid var(--bx-verde-texto);
+  border-radius: 8px;
+}
+
+.acoes--antes-da-tabela {
+  margin-bottom: 1rem;
+}
+
+.numero-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Listas e tabelas */
 
 .lista {

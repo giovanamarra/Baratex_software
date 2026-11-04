@@ -5,7 +5,19 @@
 {% block conteudo %}
 <section class="cartao">
   <h1>Revisão: {{ revisao.fornecedor.nome }}</h1>
-  <p class="texto-secundario">{{ ofertas|length }} Ofertas propostas. Nada é salvo como Catálogo antes da confirmação.</p>
+  {% if revisao.catalogo_id %}
+  <p><strong>Revisão confirmada.</strong> O Catálogo de {{ revisao.iniciada_em|date:"d/m/Y" }} já foi salvo.
+    <a href="{% url 'catalogos_do_fornecedor' revisao.fornecedor_id %}">Ver os Catálogos de {{ revisao.fornecedor.nome }}</a></p>
+  {% else %}
+  <p class="texto-secundario">{{ ofertas|length }} Ofertas propostas, Importação de {{ revisao.iniciada_em|date:"d/m/Y" }}. Nada é salvo como Catálogo antes da confirmação.</p>
+  <div class="acoes acoes--antes-da-tabela">
+    <form method="post" action="{% url 'confirmar_revisao' revisao.pk %}">
+      {% csrf_token %}
+      <button class="botao botao--primario" type="submit">Confirmar Revisão</button>
+    </form>
+    <a class="botao botao--secundario" href="{% url 'abandonar_revisao' revisao.pk %}">Abandonar</a>
+  </div>
+  {% endif %}
   <div class="tabela-rolavel">
     <table>
       <thead>

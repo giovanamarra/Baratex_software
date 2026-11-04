@@ -19,12 +19,15 @@
 <section class="cartao">
   <h2>Fornecedores do grupo</h2>
   <table>
-    <thead><tr><th scope="col">Nome</th></tr></thead>
+    <thead><tr><th scope="col">Nome</th><th scope="col">Catálogos</th></tr></thead>
     <tbody>
       {% for fornecedor in fornecedores %}
-      <tr><td>{{ fornecedor.nome }}</td></tr>
+      <tr>
+        <td>{{ fornecedor.nome }}</td>
+        <td><a href="{% url 'catalogos_do_fornecedor' fornecedor.pk %}">Ver Catálogos</a></td>
+      </tr>
       {% empty %}
-      <tr><td class="texto-secundario">Nenhum Fornecedor cadastrado ainda.</td></tr>
+      <tr><td colspan="2" class="texto-secundario">Nenhum Fornecedor cadastrado ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>
