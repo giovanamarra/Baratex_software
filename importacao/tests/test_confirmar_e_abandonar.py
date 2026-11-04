@@ -5,6 +5,7 @@ from django.db import IntegrityError
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
 from catalogos.models import Oferta
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import (
@@ -113,6 +114,15 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
         self.assertFalse(armazenamento.exists(nome_do_arquivo))
         self.assertEqual(list(listar_revisoes_em_andamento(self.gestora)), [])
         self.assertEqual(list(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), [])
+
+    def test_confirmar_uma_revisao_ja_confirmada_e_recusado(self):
+        revisao = self.iniciar()
+        confirmar_revisao(self.gestora, revisao.pk)
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'Esta Revisão já foi confirmada.'):
+            confirmar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
 
 
 class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):

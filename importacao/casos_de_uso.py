@@ -41,6 +41,8 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
 
 def confirmar_revisao(gestor, revisao_id):
     revisao = Revisao.objects.get(pk=revisao_id)
+    if revisao.catalogo_id is not None:
+        raise ErroDeNegocio('Esta Revisão já foi confirmada.')
     # O Catálogo aponta para o mesmo arquivo guardado na Revisão: ele vira o arquivo de origem.
     # Transação única: se uma Oferta falhar, nem o Catálogo nem a marcação da Revisão ficam salvos.
     with transaction.atomic():
