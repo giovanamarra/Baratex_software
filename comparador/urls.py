@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 
+from catalogos import views as catalogos
 from contas import views as contas
 from contas.formularios import FormularioDeEntrada
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path('sair/', LogoutView.as_view(), name='sair'),
     path('', contas.inicio, name='inicio'),
     path('lojas/<int:pk>/editar/', contas.editar_loja, name='editar_loja'),
+    path('fornecedores/', catalogos.fornecedores, name='fornecedores'),
 ]

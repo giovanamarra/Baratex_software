@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block titulo %}Fornecedores{% endblock %}
+
+{% block conteudo %}
+<h1>Fornecedores</h1>
+
+<section>
+  <h2>Cadastrar Fornecedor</h2>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível cadastrar:</strong> {{ erro }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label for="nome">Nome do Fornecedor</label>
+      <input id="nome" name="nome" type="text" value="{{ nome }}" maxlength="200">
+    </p>
+    <button type="submit">Cadastrar</button>
+  </form>
+</section>
+
+<section>
+  <h2>Fornecedores do grupo</h2>
+  <table>
+    <thead><tr><th scope="col">Nome</th></tr></thead>
+    <tbody>
+      {% for fornecedor in fornecedores %}
+      <tr><td>{{ fornecedor.nome }}</td></tr>
+      {% empty %}
+      <tr><td>Nenhum Fornecedor cadastrado ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
