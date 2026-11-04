@@ -16,9 +16,9 @@ A gestora escolhe o Fornecedor, envia um PDF em grade de cartões de **um** Layo
 - Iniciar Importação (Gestor, Fornecedor, arquivo) com um Catálogo fictício do Layout A de N cartões cria uma Revisão em andamento com N Ofertas propostas. Cada uma tem código, descrição, preço impresso, Caixa, Embalagem intermediária (quando o cartão traz uma) e caminho de extração "grade de cartões".
 - O Layout é reconhecido pelo conteúdo do PDF, sem a gestora escolher o leitor (16).
 - O Fornecedor da Revisão é o escolhido pela gestora, mesmo quando o PDF traz o nome de outra marca (9).
-- Nada é salvo como Catálogo: depois de iniciar, o Fornecedor continua sem Catálogos e nenhuma Oferta aparece em consultas.
+- ~~Nada é salvo como Catálogo~~: movido para o ticket 04, que cria o Catálogo e a lista de Catálogos do Fornecedor (decisão da usuária, 2026-11-04).
 - A Revisão em andamento é persistida. Buscá-la de novo pelo identificador, como num recarregamento da página, traz as mesmas Ofertas propostas.
-- A gestora vê as próprias Revisões em andamento e consegue retomá-las.
+- A gestora vê as próprias Revisões em andamento e consegue retomá-las. A Revisão em andamento é de quem iniciou a Importação: outro Gestor que a abre pela URL recebe 403 com `Esta Revisão é de outro Gestor.` (decisão da usuária, 2026-11-04).
 - O arquivo enviado fica guardado no armazenamento de arquivos, ligado à Revisão.
 - Telas finas: formulário de Importação (Fornecedor + arquivo) e tela de Revisão com as Ofertas e o caminho de extração de cada uma (27).
 
@@ -34,7 +34,8 @@ A gestora escolhe o Fornecedor, envia um PDF em grade de cartões de **um** Layo
 ## O que o teste precisa
 
 - **Catálogo fictício do Layout A**: um construtor de teste que gera o PDF, com texto selecionável, a partir de uma lista de Ofertas inventadas. Ele imita a estrutura do Layout real escolhido: quantos cartões há por página, onde fica cada campo e os rótulos do Layout (prefixo do código, "R$", rótulo da Caixa, rótulo da Embalagem intermediária) e o traço que permite reconhecê-lo. Códigos, descrições, preços e nomes de marca são inventados. O construtor é reutilizado em quase todos os tickets seguintes.
-- Os casos mínimos: duas páginas; um cartão com Embalagem intermediária; um cartão com nome de marca diferente do Fornecedor; o mesmo Layout sem nenhum preço; e bytes inválidos.
+- Os casos mínimos: duas páginas; um cartão com nome de marca diferente do Fornecedor; o mesmo Layout sem nenhum preço; e bytes inválidos.
+- Sem cartão com Embalagem intermediária: o Layout A real não tem esse campo (só "Cx: N"), então o leitor nunca a propõe (decisão da usuária, 2026-11-04).
 - Nenhum fake da LLM.
 
 ## Fora deste ticket

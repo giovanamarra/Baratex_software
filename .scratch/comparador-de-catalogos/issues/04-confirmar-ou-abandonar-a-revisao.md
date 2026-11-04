@@ -13,6 +13,7 @@ A gestora confirma a Revisão e o Catálogo passa a existir, com data e Ofertas,
 
 ## Critérios de aceite
 
+- Antes de confirmar, nada é salvo como Catálogo: com uma Revisão em andamento, o Fornecedor continua sem Catálogos (veio do ticket 03).
 - Confirmar a Revisão cria, de uma vez só (transação única), o Catálogo e as suas Ofertas. O Catálogo guarda o Fornecedor, a data, o Gestor que importou, o arquivo de origem e as Condições do Catálogo (vazias neste ticket).
 - A data do Catálogo é o dia em que a Importação começou: uma Importação iniciada no dia 10 e confirmada no dia 11 gera um Catálogo do dia 10 (15).
 - Listar os Catálogos de um Fornecedor mostra o Catálogo confirmado, com a data (58).
