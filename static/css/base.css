@@ -197,6 +197,31 @@ select {
   margin-bottom: 1rem;
 }
 
+.acoes--depois-da-tabela {
+  margin-top: 1rem;
+}
+
+.acoes--na-linha {
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.botao--pequeno {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+/* Linha com marca de conferência (sem preço, preço zero, sem Caixa): fundo de alerta e o texto
+   da marca na própria célula, nunca só a cor (BRAND.md). Vale sobre a alternância de linhas. */
+
+table tbody tr.linha--alerta {
+  background: var(--bx-alerta-fundo);
+}
+
+.alerta + .alerta {
+  margin-left: 0.25rem;
+}
+
 /* Campo e botão na mesma linha (ex.: Desconto do Catálogo + Recalcular) */
 
 .acoes:has(.campo--em-linha) {

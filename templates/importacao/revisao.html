@@ -9,6 +9,7 @@
   {% if revisao.catalogo_id %}
   <p><strong>Revisão confirmada.</strong> O Catálogo de {{ revisao.iniciada_em|date:"d/m/Y" }} já foi salvo.
     <a href="{% url 'catalogo' revisao.catalogo_id %}">Ver as Ofertas do Catálogo</a></p>
+  {% include "catalogos/_tabela_de_ofertas.html" %}
   {% else %}
   <p class="texto-secundario">{{ ofertas|length }} Ofertas propostas, Importação de {{ revisao.iniciada_em|date:"d/m/Y" }}. Nada é salvo como Catálogo antes da confirmação.</p>
   <form method="post" action="{% url 'informar_condicoes_do_catalogo' revisao.pk %}" class="acoes acoes--antes-da-tabela">
@@ -28,7 +29,10 @@
     </form>
     <a class="botao botao--secundario" href="{% url 'abandonar_revisao' revisao.pk %}">Abandonar</a>
   </div>
+  {% include "catalogos/_tabela_de_ofertas.html" with com_acoes=True %}
+  <div class="acoes acoes--depois-da-tabela">
+    <a class="botao botao--secundario" href="{% url 'adicionar_oferta_proposta' revisao.pk %}">Adicionar Oferta</a>
+  </div>
   {% endif %}
-  {% include "catalogos/_tabela_de_ofertas.html" %}
 </section>
 {% endblock %}

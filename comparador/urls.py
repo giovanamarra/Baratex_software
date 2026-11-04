@@ -28,4 +28,7 @@ urlpatterns = [
     path('revisoes/<int:pk>/condicoes/', importacao.informar_condicoes, name='informar_condicoes_do_catalogo'),
     path('revisoes/<int:pk>/confirmar/', importacao.confirmar, name='confirmar_revisao'),
     path('revisoes/<int:pk>/abandonar/', importacao.abandonar, name='abandonar_revisao'),
+    path('revisoes/<int:pk>/adicionar-oferta/', importacao.adicionar_oferta, name='adicionar_oferta_proposta'),
+    path('ofertas-propostas/<int:pk>/corrigir/', importacao.corrigir_oferta, name='corrigir_oferta_proposta'),
+    path('ofertas-propostas/<int:pk>/remover/', importacao.remover_oferta, name='remover_oferta_proposta'),
 ]

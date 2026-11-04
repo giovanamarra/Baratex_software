@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block titulo %}{% if oferta %}Corrigir Oferta{% else %}Adicionar Oferta{% endif %}{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>{% if oferta %}Corrigir a Oferta {{ oferta.codigo }}{% else %}Adicionar Oferta à mão{% endif %}</h1>
+  <p class="texto-secundario">Revisão de {{ revisao.fornecedor.nome }}. A correção só chega ao Catálogo quando a Revisão for confirmada.</p>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> {{ erro }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="codigo">Código do Fornecedor</label>
+      <input id="codigo" name="codigo" type="text" value="{{ valores.codigo }}" maxlength="100" required>
+    </div>
+    <div class="campo">
+      <label for="descricao">Descrição</label>
+      <input id="descricao" name="descricao" type="text" value="{{ valores.descricao }}" maxlength="300" required>
+    </div>
+    <div class="campo">
+      <label for="preco_impresso">Preço impresso (R$)</label>
+      <input id="preco_impresso" name="preco_impresso" type="text" inputmode="decimal" value="{{ valores.preco_impresso }}" placeholder="0,00">
+    </div>
+    <div class="campo">
+      <label for="caixa">Caixa (Unidades de venda)</label>
+      <input id="caixa" name="caixa" type="text" inputmode="numeric" value="{{ valores.caixa }}" placeholder="24">
+    </div>
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Salvar</button>
+      <a class="botao botao--secundario" href="{% url 'revisao' revisao.pk %}">Voltar à Revisão</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

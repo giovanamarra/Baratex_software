@@ -9,11 +9,15 @@ from catalogos.casos_de_uso import listar_fornecedores
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from importacao.casos_de_uso import (
     abandonar_revisao,
+    adicionar_oferta_proposta,
     confirmar_revisao,
+    corrigir_oferta_proposta,
     informar_condicoes_do_catalogo,
     iniciar_importacao,
     listar_revisoes_em_andamento,
+    obter_oferta_proposta,
     obter_revisao,
+    remover_oferta_proposta,
 )
 from importacao.models import Revisao
 
@@ -62,6 +66,9 @@ def confirmar(request, pk):
         return _acesso_negado(request, erro)
     except ErroDeNegocio as erro:
         messages.error(request, erro.mensagem)
+        # Se a Revisão ainda está em andamento (faltou Caixa, preço ou desconto), volta para corrigi-la.
+        if listar_revisoes_em_andamento(request.user).filter(pk=pk).exists():
+            return redirect('revisao', pk=pk)
         return redirect('importar')
     messages.success(request, f'Revisão confirmada: Catálogo de {catalogo.data:%d/%m/%Y} salvo.')
     return redirect('catalogos_do_fornecedor', pk=catalogo.fornecedor_id)
@@ -81,6 +88,84 @@ def abandonar(request, pk):
         messages.error(request, getattr(erro, 'mensagem', 'Esta Revisão não existe mais. Comece uma nova Importação.'))
         return redirect('importar')
     return render(request, 'importacao/abandonar.html', {'revisao': revisao})
+
+
+CAMPOS_DA_OFERTA = ('codigo', 'descricao', 'preco_impresso', 'caixa')
+
+
+def corrigir_oferta(request, pk):
+    try:
+        oferta = obter_oferta_proposta(request.user, pk)
+        if request.method == 'POST':
+            valores = _valores_digitados(request)
+            try:
+                corrigir_oferta_proposta(request.user, pk, **valores)
+            except AcessoNegado:
+                raise
+            except ErroDeNegocio as erro:
+                return _formulario_da_oferta(request, oferta.revisao, valores, erro.mensagem, oferta)
+            messages.success(request, f'Oferta {valores["codigo"].strip()} corrigida.')
+            return redirect('revisao', pk=oferta.revisao_id)
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except ErroDeNegocio as erro:
+        messages.error(request, erro.mensagem)
+        return redirect('importar')
+    valores = {
+        'codigo': oferta.codigo,
+        'descricao': oferta.descricao,
+        'preco_impresso': '' if oferta.preco_impresso is None else f'{oferta.preco_impresso:.2f}'.replace('.', ','),
+        'caixa': '' if oferta.caixa is None else str(oferta.caixa),
+    }
+    return _formulario_da_oferta(request, oferta.revisao, valores, None, oferta)
+
+
+def adicionar_oferta(request, pk):
+    try:
+        revisao = obter_revisao(request.user, pk)
+        if revisao.catalogo_id:
+            raise ErroDeNegocio('Esta Revisão já foi confirmada.')
+        if request.method == 'POST':
+            valores = _valores_digitados(request)
+            try:
+                adicionar_oferta_proposta(request.user, pk, **valores)
+            except AcessoNegado:
+                raise
+            except ErroDeNegocio as erro:
+                return _formulario_da_oferta(request, revisao, valores, erro.mensagem)
+            messages.success(request, f'Oferta {valores["codigo"].strip()} adicionada.')
+            return redirect('revisao', pk=pk)
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except (ErroDeNegocio, Revisao.DoesNotExist) as erro:
+        messages.error(request, getattr(erro, 'mensagem', 'Esta Revisão não existe mais. Comece uma nova Importação.'))
+        return redirect('importar')
+    return _formulario_da_oferta(request, revisao, dict.fromkeys(CAMPOS_DA_OFERTA, ''), None)
+
+
+def remover_oferta(request, pk):
+    # GET mostra a confirmação (ação destrutiva, BRAND.md); POST remove de fato.
+    try:
+        oferta = obter_oferta_proposta(request.user, pk)
+        if request.method == 'POST':
+            remover_oferta_proposta(request.user, pk)
+            messages.success(request, f'Oferta {oferta.codigo} removida da Revisão.')
+            return redirect('revisao', pk=oferta.revisao_id)
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except ErroDeNegocio as erro:
+        messages.error(request, erro.mensagem)
+        return redirect('importar')
+    return render(request, 'importacao/remover_oferta.html', {'oferta': oferta})
+
+
+def _valores_digitados(request):
+    return {campo: request.POST.get(campo, '') for campo in CAMPOS_DA_OFERTA}
+
+
+def _formulario_da_oferta(request, revisao, valores, erro, oferta=None):
+    contexto = {'revisao': revisao, 'valores': valores, 'erro': erro, 'oferta': oferta}
+    return render(request, 'importacao/oferta_proposta.html', contexto)
 
 
 def _acesso_negado(request, erro):

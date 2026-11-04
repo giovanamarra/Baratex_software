@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block titulo %}Remover Oferta{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Remover a Oferta {{ oferta.codigo }} desta Revisão?</h1>
+  <p>{{ oferta.descricao }}. Ela não vai entrar no Catálogo.</p>
+  <form method="post" class="acoes">
+    {% csrf_token %}
+    <button class="botao botao--perigo" type="submit">Remover a Oferta</button>
+    <a class="botao botao--primario" href="{% url 'revisao' oferta.revisao_id %}">Voltar à Revisão</a>
+  </form>
+</section>
+{% endblock %}

@@ -181,6 +181,11 @@ def obter_revisao(gestor, revisao_id):
     return revisao
 
 
+def obter_oferta_proposta(gestor, oferta_id):
+    """Para os formulários de Corrigir e Remover: mesmas recusas de quem altera a Revisão."""
+    return _oferta_proposta_em_andamento(gestor, oferta_id)
+
+
 def _oferta_proposta_em_andamento(gestor, oferta_id):
     """A Oferta proposta de uma Revisão do Gestor que ainda está em andamento."""
     oferta = OfertaProposta.objects.filter(pk=oferta_id).first()
