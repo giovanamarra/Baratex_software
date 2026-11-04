@@ -1,6 +1,6 @@
 # 02 — Gestor entra, vê as suas Lojas e sai
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 01
 Spec: [docs/spec.md](../../../docs/spec.md) (Acesso e Lojas; Testing Decisions › poucos testes pelo cliente HTTP)
@@ -42,3 +42,15 @@ Pelo cliente HTTP do Django (os únicos testes de tela deste ticket)
 
 - Autocadastro e recuperação de senha por e-mail (Out of Scope).
 - Autorização de Pedidos (tickets 15 e 16).
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `57d79d0` a `71b1c9b`)
+
+- Casos de uso em `contas/casos_de_uso.py`: `listar_minhas_lojas`, `renomear_loja`, `exigir_dono_da_loja`.
+- `AcessoNegado` (filha de `ErroDeNegocio`, em `comparador/erros.py`): as telas respondem 403. Reutilizar nos Pedidos (tickets 15 e 16).
+- Login obrigatório pelo `LoginRequiredMiddleware`. O teste `test_sem_login_qualquer_pagina_leva_ao_login` percorre todas as rotas nomeadas de `comparador/urls.py`: toda página nova precisa de nome e já nasce coberta.
+- Rotas: `/entrar/`, `/sair/` (só POST), `/`, `/lojas/<pk>/editar/`, `/fornecedores/`, `/admin/`.
+- Identidade visual: `static/css/tokens.css` (testado contra o bloco do BRAND.md), `static/css/base.css`, logos em `static/img/`, `templates/base.html`. Teste impede hex fora de `tokens.css`.
+- 18 testes, todos verdes. Os 10 comportamentos e o teste de tokens começaram vermelhos. Só o teste de hex nasceu verde (o CSS já usava variáveis) e foi provado com mutação.
+- O painel administrativo foi conferido com um teste descartável (não ficou no repositório).
