@@ -1,6 +1,6 @@
 # 04 — Confirmar ou abandonar a Revisão
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 03
 Spec: [docs/spec.md](../../../docs/spec.md) (Revisão; Modelo de dados › Catálogo)
@@ -36,3 +36,16 @@ A gestora confirma a Revisão e o Catálogo passa a existir, com data e Ofertas,
 
 - Regras que recusam a confirmação (Caixa, preço, páginas da LLM): tickets 06 e 26.
 - Aplicar o Conteúdo e o vínculo de Produto já guardados: tickets 07 e 12.
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `03f067d` a `a73aff8`)
+
+- **Casos de uso:** `confirmar_revisao`, `abandonar_revisao` (`importacao/casos_de_uso.py`); `registrar_catalogo`, `listar_catalogos_do_fornecedor` (`catalogos/casos_de_uso.py`). `iniciar_importacao` ganhou `hoje=` (padrão: dia local) para os testes simularem dias.
+- **Modelo:** `Catalogo` (Fornecedor, Gestor que importou, data, arquivo de origem) e `Oferta` no módulo Catálogos. A Revisão guarda `iniciada_em` e o `catalogo` que gerou; sem Catálogo, está em andamento. O Catálogo aponta para o mesmo arquivo guardado na Revisão.
+- **Decisões da usuária:** abandonar uma Revisão já confirmada é recusado com `Esta Revisão já foi confirmada.`; a falha da transação é provocada por uma regra real no banco (preço impresso nunca negativo; vazio permitido), sem mock.
+- **Transação única:** testada com `TransactionTestCase` (o `TestCase` esconderia a falta de transação). Dois vermelhos registrados: sem a regra a Oferta negativa entrava; com a regra e sem transação o Catálogo ficava salvo pela metade.
+- **Lista de Catálogos:** do mais recente para o mais antigo (no mesmo dia, o último confirmado primeiro).
+- **Autorização:** só quem iniciou confirma ou abandona (caso de uso e cliente HTTP, 403).
+- **Condições do Catálogo:** nenhum campo criado ainda; o desconto entra no ticket 05, onde tem comportamento para testar.
+- Ofertas sem preço ou sem Caixa continuam confirmáveis; o bloqueio é do ticket 06.
