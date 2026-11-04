@@ -1,11 +1,12 @@
 from decimal import Decimal
 
-from catalogos.casos_de_uso import cadastrar_fornecedor
+from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
 from importacao.casos_de_uso import (
+    abandonar_revisao,
     adicionar_oferta_proposta,
     confirmar_revisao,
     corrigir_oferta_proposta,
@@ -127,6 +128,24 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             confirmar_revisao(self.gestora, revisao.pk)
 
         self.assertEqual([r.pk for r in listar_revisoes_em_andamento(self.gestora)], [revisao.pk])
+
+    def test_correcoes_chegam_ao_catalogo_com_a_confirmacao_e_abandonar_descarta(self):
+        cartoes = [CartaoFicticio('1001', 'Balde Ficticio', '7,50')]
+        confirmada = self.iniciar(cartoes)
+        abandonada = self.iniciar(cartoes)
+        for revisao in (confirmada, abandonada):
+            self.corrigir(self.ofertas(revisao)[0], descricao='Balde Ficticio 10L', preco_impresso='8,00')
+            informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+
+        catalogo = confirmar_revisao(self.gestora, confirmada.pk)
+        abandonar_revisao(self.gestora, abandonada.pk)
+
+        self.assertEqual(
+            [resumo(oferta) for oferta in catalogo.ofertas()],
+            [('1001', 'Balde Ficticio 10L', Decimal('8.00'), 24, 'grade de cartões')],
+        )
+        self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
+        self.assertEqual(list(listar_revisoes_em_andamento(self.gestora)), [])
 
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
