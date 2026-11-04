@@ -10,6 +10,7 @@ from comparador.erros import AcessoNegado, ErroDeNegocio
 from importacao.casos_de_uso import (
     abandonar_revisao,
     confirmar_revisao,
+    informar_condicoes_do_catalogo,
     iniciar_importacao,
     listar_revisoes_em_andamento,
     obter_revisao,
@@ -40,6 +41,17 @@ def revisao(request, pk):
     except AcessoNegado as erro:
         return _acesso_negado(request, erro)
     return render(request, 'importacao/revisao.html', {'revisao': revisao, 'ofertas': revisao.ofertas_propostas()})
+
+
+@require_POST
+def informar_condicoes(request, pk):
+    try:
+        informar_condicoes_do_catalogo(request.user, pk, request.POST.get('desconto', ''))
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except ErroDeNegocio as erro:
+        messages.error(request, erro.mensagem)
+    return redirect('revisao', pk=pk)
 
 
 @require_POST

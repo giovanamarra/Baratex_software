@@ -1,12 +1,14 @@
 """Testes pelo cliente HTTP: só login obrigatório e autorização (spec, Testing Decisions)."""
 
+from decimal import Decimal
+
 from django.urls import reverse
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao, listar_revisoes_em_andamento
+from importacao.casos_de_uso import iniciar_importacao, listar_revisoes_em_andamento, obter_revisao
 
 
 class TelasDeImportacaoTests(TesteComArquivosEnviados):
@@ -44,3 +46,19 @@ class TelasDeImportacaoTests(TesteComArquivosEnviados):
 
         self.assertEqual([r.pk for r in listar_revisoes_em_andamento(gestora)], [revisao.pk])
         self.assertEqual(list(listar_catalogos_do_fornecedor(gestora, fornecedor)), [])
+
+    def test_outro_gestor_nao_informa_desconto_na_revisao_pela_url(self):
+        gestora = criar_gestor('gestora')
+        criar_gestor('outro-gestor')
+        fornecedor = cadastrar_fornecedor(gestora, 'Fornecedor Alfa')
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio', '10,00')]))
+        revisao = iniciar_importacao(gestora, fornecedor, catalogo)
+        self.client.login(username='outro-gestor', password=SENHA_DE_TESTE)
+
+        resposta = self.client.post(
+            reverse('informar_condicoes_do_catalogo', kwargs={'pk': revisao.pk}), {'desconto': '50'}
+        )
+
+        self.assertContains(resposta, 'Esta Revisão é de outro Gestor.', status_code=403)
+        ofertas = obter_revisao(gestora, revisao.pk).ofertas_propostas()
+        self.assertEqual([oferta.preco_unitario for oferta in ofertas], [Decimal('10.00')])

@@ -197,6 +197,22 @@ select {
   margin-bottom: 1rem;
 }
 
+/* Campo e botão na mesma linha (ex.: Desconto do Catálogo + Recalcular) */
+
+.acoes:has(.campo--em-linha) {
+  align-items: flex-end;
+}
+
+.campo--em-linha {
+  margin: 0;
+}
+
+.campo--em-linha input {
+  width: 8rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .numero-tabular {
   font-variant-numeric: tabular-nums;
 }

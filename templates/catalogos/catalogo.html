@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block titulo %}Catálogo · {{ catalogo.fornecedor.nome }} · {{ catalogo.data|date:"d/m/Y" }}{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data|date:"d/m/Y" }}</h1>
+  <p>Desconto aplicado: <strong>{{ catalogo.desconto|percentual }}</strong>. Importado por {{ catalogo.gestor.get_username }}. {{ ofertas|length }} Ofertas.</p>
+  {% include "catalogos/_tabela_de_ofertas.html" %}
+  <p><a href="{% url 'catalogos_do_fornecedor' catalogo.fornecedor_id %}">Voltar aos Catálogos de {{ catalogo.fornecedor.nome }}</a></p>
+</section>
+{% endblock %}

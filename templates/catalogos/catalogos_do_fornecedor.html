@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load formatos %}
 
 {% block titulo %}Catálogos · {{ fornecedor.nome }}{% endblock %}
 
@@ -10,17 +11,21 @@
     <thead>
       <tr>
         <th scope="col">Data</th>
+        <th scope="col">Desconto</th>
         <th scope="col">Importado por</th>
+        <th scope="col">Ofertas</th>
       </tr>
     </thead>
     <tbody>
       {% for catalogo in catalogos %}
       <tr>
         <td class="numero-tabular">{{ catalogo.data|date:"d/m/Y" }}</td>
+        <td>{{ catalogo.desconto|percentual }}</td>
         <td>{{ catalogo.gestor.get_username }}</td>
+        <td><a href="{% url 'catalogo' catalogo.pk %}">Ver Ofertas</a></td>
       </tr>
       {% empty %}
-      <tr><td colspan="2" class="texto-secundario">Nenhum Catálogo importado ainda.</td></tr>
+      <tr><td colspan="4" class="texto-secundario">Nenhum Catálogo importado ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -3,7 +3,13 @@
 from django.http import Http404
 from django.shortcuts import redirect, render
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor, listar_fornecedores
+from catalogos.casos_de_uso import (
+    cadastrar_fornecedor,
+    listar_catalogos_do_fornecedor,
+    listar_fornecedores,
+    obter_catalogo,
+)
+from catalogos.models import Catalogo
 from comparador.erros import ErroDeNegocio
 
 
@@ -28,3 +34,11 @@ def catalogos_do_fornecedor(request, pk):
     return render(
         request, 'catalogos/catalogos_do_fornecedor.html', {'fornecedor': fornecedor, 'catalogos': catalogos}
     )
+
+
+def catalogo(request, pk):
+    try:
+        catalogo = obter_catalogo(request.user, pk)
+    except Catalogo.DoesNotExist:
+        raise Http404
+    return render(request, 'catalogos/catalogo.html', {'catalogo': catalogo, 'ofertas': catalogo.ofertas()})

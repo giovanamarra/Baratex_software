@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load formatos %}
 
 {% block titulo %}Revisão · {{ revisao.fornecedor.nome }}{% endblock %}
 
@@ -7,9 +8,19 @@
   <h1>Revisão: {{ revisao.fornecedor.nome }}</h1>
   {% if revisao.catalogo_id %}
   <p><strong>Revisão confirmada.</strong> O Catálogo de {{ revisao.iniciada_em|date:"d/m/Y" }} já foi salvo.
-    <a href="{% url 'catalogos_do_fornecedor' revisao.fornecedor_id %}">Ver os Catálogos de {{ revisao.fornecedor.nome }}</a></p>
+    <a href="{% url 'catalogo' revisao.catalogo_id %}">Ver as Ofertas do Catálogo</a></p>
   {% else %}
   <p class="texto-secundario">{{ ofertas|length }} Ofertas propostas, Importação de {{ revisao.iniciada_em|date:"d/m/Y" }}. Nada é salvo como Catálogo antes da confirmação.</p>
+  <form method="post" action="{% url 'informar_condicoes_do_catalogo' revisao.pk %}" class="acoes acoes--antes-da-tabela">
+    {% csrf_token %}
+    <div class="campo campo--em-linha">
+      <label for="desconto">Desconto do Catálogo (%)</label>
+      <input id="desconto" name="desconto" type="text" inputmode="decimal" placeholder="0"
+             value="{{ revisao.desconto|percentual_no_campo }}">
+    </div>
+    <button class="botao botao--secundario" type="submit">Recalcular</button>
+  </form>
+  <p>Desconto aplicado: <strong>{{ revisao.desconto|percentual }}</strong>. O Preço unitário é o preço impresso com esse desconto, dividido pelo Conteúdo (hoje, sempre 1). Impostos não entram.</p>
   <div class="acoes acoes--antes-da-tabela">
     <form method="post" action="{% url 'confirmar_revisao' revisao.pk %}">
       {% csrf_token %}
@@ -18,29 +29,6 @@
     <a class="botao botao--secundario" href="{% url 'abandonar_revisao' revisao.pk %}">Abandonar</a>
   </div>
   {% endif %}
-  <div class="tabela-rolavel">
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Código</th>
-          <th scope="col">Descrição</th>
-          <th scope="col" class="numero">Preço impresso</th>
-          <th scope="col" class="numero">Caixa</th>
-          <th scope="col">Caminho</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for oferta in ofertas %}
-        <tr>
-          <td>{{ oferta.codigo }}</td>
-          <td>{{ oferta.descricao }}</td>
-          <td class="numero">{% if oferta.preco_impresso is not None %}R$ {{ oferta.preco_impresso|floatformat:"2g" }}{% else %}<strong class="alerta">sem preço</strong>{% endif %}</td>
-          <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<strong class="alerta">sem Caixa</strong>{% endif %}</td>
-          <td>{{ oferta.caminho }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {% include "catalogos/_tabela_de_ofertas.html" %}
 </section>
 {% endblock %}
