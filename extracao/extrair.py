@@ -14,7 +14,17 @@ MENSAGEM_PROVISORIA_LAYOUT_DESCONHECIDO = (
 )
 
 
+# PROVISÓRIO: os tickets 21 (Excel) e 25 (imagem, pela LLM) acrescentam os outros formatos.
+MENSAGEM_PROVISORIA_FORMATO = 'Por enquanto, só Catálogos em PDF de grade de cartões podem ser importados.'
+ASSINATURA_DE_PDF = b'%PDF'
+
+
 def extrair_ofertas(arquivo):
+    # O formato vem do conteúdo, não da extensão: um Excel renomeado para .pdf continua sendo Excel.
+    inicio = arquivo.read(len(ASSINATURA_DE_PDF))
+    arquivo.seek(0)
+    if inicio != ASSINATURA_DE_PDF:
+        raise ErroDeNegocio(MENSAGEM_PROVISORIA_FORMATO)
     try:
         with pdfplumber.open(arquivo) as pdf:
             if not e_layout_a(pdf):

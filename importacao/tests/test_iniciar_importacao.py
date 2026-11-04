@@ -172,3 +172,19 @@ class ImportacaoRecusadaTests(TesteComArquivosEnviados):
             self.fornecedor,
             arquivo_enviado(lista_de_precos),
         )
+
+    def test_excel_imagem_ou_outro_formato_e_recusado_por_enquanto(self):
+        outros_formatos = {
+            'catalogo.xlsx': b'PK\x03\x04 planilha ficticia',
+            'pagina.png': b'\x89PNG\r\n\x1a\n imagem ficticia',
+            'pagina.jpg': b'\xff\xd8\xff\xe0 imagem ficticia',
+            'pedido.docx': b'PK\x03\x04 documento ficticio',
+            'excel-renomeado.pdf': b'PK\x03\x04 planilha ficticia com nome de PDF',
+        }
+        for nome, conteudo in outros_formatos.items():
+            with self.subTest(arquivo=nome):
+                self.assertRecusada(
+                    'Por enquanto, só Catálogos em PDF de grade de cartões podem ser importados.',
+                    self.fornecedor,
+                    arquivo_enviado(conteudo, nome=nome),
+                )
