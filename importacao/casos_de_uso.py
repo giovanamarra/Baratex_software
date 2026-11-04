@@ -1,6 +1,6 @@
 """Casos de uso do módulo Importação e Revisão. As telas e os testes entram por aqui."""
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 from django.utils import timezone
@@ -44,8 +44,18 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
 def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
     """`desconto` é o percentual como a gestora digitou (ex.: "3" ou "2,5")."""
     revisao = _revisao_em_andamento(gestor, revisao_id)
-    revisao.desconto = Decimal(desconto.strip().replace(',', '.'))
+    revisao.desconto = _desconto_valido(desconto)
     revisao.save()
+
+
+def _desconto_valido(texto):
+    try:
+        desconto = Decimal(texto.strip().replace(',', '.'))
+    except InvalidOperation:
+        desconto = None
+    if desconto is None or not desconto.is_finite() or not 0 <= desconto < 100:
+        raise ErroDeNegocio('O desconto precisa ser de 0% até menos de 100%.')
+    return desconto
 
 
 def confirmar_revisao(gestor, revisao_id):

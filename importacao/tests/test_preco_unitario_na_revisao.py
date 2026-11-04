@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, obter_catalogo
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -104,3 +105,16 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
 
         self.assertEqual(na_revisao, [Decimal('9.70'), Decimal('9.69'), Decimal('0.49')])
         self.assertEqual(no_catalogo, na_revisao)
+
+    def test_desconto_negativo_de_100_ou_mais_ou_que_nao_e_numero_e_recusado(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '5')
+
+        for desconto in ['-1', '100', '150', 'dez', '']:
+            with self.subTest(desconto=desconto):
+                with self.assertRaisesMessage(ErroDeNegocio, 'O desconto precisa ser de 0% até menos de 100%.'):
+                    informar_condicoes_do_catalogo(self.gestora, revisao.pk, desconto)
+
+        # O desconto anterior (5%) continua valendo.
+        ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
+        self.assertEqual(precos_unitarios(ofertas), [Decimal('9.50')])
