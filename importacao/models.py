@@ -11,6 +11,9 @@ class Revisao(models.Model):
     fornecedor = models.ForeignKey('catalogos.Fornecedor', on_delete=models.PROTECT)
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
     iniciada_em = models.DateField()  # vira a data do Catálogo (história 15)
+    # Condições do Catálogo: desconto em percentual (ex.: 3 = 3%), vazio = sem desconto. Guardado
+    # como a gestora digitou, sem arredondar; só o Preço unitário é arredondado.
+    desconto = models.DecimalField(max_digits=7, decimal_places=4, null=True)
     # Preenchido ao confirmar. Sem Catálogo, a Revisão está em andamento.
     catalogo = models.OneToOneField(
         'catalogos.Catalogo', on_delete=models.PROTECT, null=True, related_name='revisao'
@@ -44,4 +47,4 @@ class OfertaProposta(models.Model):
 
     @property
     def preco_unitario(self):
-        return calcular_preco_unitario(self.preco_impresso, self.conteudo)
+        return calcular_preco_unitario(self.preco_impresso, self.revisao.desconto, self.conteudo)

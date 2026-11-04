@@ -1,5 +1,7 @@
 """Casos de uso do módulo Importação e Revisão. As telas e os testes entram por aqui."""
 
+from decimal import Decimal
+
 from django.db import transaction
 from django.utils import timezone
 
@@ -37,6 +39,13 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
             for ordem, oferta in enumerate(ofertas)
         )
     return revisao
+
+
+def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
+    """`desconto` é o percentual como a gestora digitou (ex.: "3" ou "2,5")."""
+    revisao = _revisao_em_andamento(gestor, revisao_id)
+    revisao.desconto = Decimal(desconto.strip().replace(',', '.'))
+    revisao.save()
 
 
 def confirmar_revisao(gestor, revisao_id):
