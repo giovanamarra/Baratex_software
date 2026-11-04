@@ -53,3 +53,16 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
                 ('1002', 'Vassoura Ficticia', Decimal('12.90'), None, 'grade de cartões'),
             ],
         )
+
+    def test_fornecedor_da_revisao_e_o_escolhido_mesmo_com_outra_marca_no_pdf(self):
+        cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        catalogo = arquivo_enviado(
+            catalogo_ficticio_layout_a(
+                [CartaoFicticio('1001', 'Balde Ficticio')],
+                rodape='Catálogo de Produtos Fornecedor Beta Marca Zeta',
+            )
+        )
+
+        revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo)
+
+        self.assertEqual(revisao.fornecedor.nome, 'Fornecedor Alfa')
