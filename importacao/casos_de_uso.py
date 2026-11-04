@@ -56,6 +56,9 @@ def confirmar_revisao(gestor, revisao_id):
 
 def abandonar_revisao(gestor, revisao_id):
     revisao = Revisao.objects.get(pk=revisao_id)
+    if revisao.catalogo_id is not None:
+        # O arquivo agora é o arquivo de origem do Catálogo (decisão da usuária no ticket 04).
+        raise ErroDeNegocio('Esta Revisão já foi confirmada.')
     arquivo = revisao.arquivo
     revisao.delete()  # leva junto as Ofertas propostas
     arquivo.delete(save=False)

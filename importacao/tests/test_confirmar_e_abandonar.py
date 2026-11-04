@@ -124,6 +124,16 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
 
         self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
 
+    def test_abandonar_uma_revisao_ja_confirmada_e_recusado_e_o_catalogo_fica_intacto(self):
+        revisao = self.iniciar()
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'Esta Revisão já foi confirmada.'):
+            abandonar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual(len(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), 1)
+        self.assertTrue(catalogo.arquivo.storage.exists(catalogo.arquivo.name))
+
 
 class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
     def test_se_uma_oferta_falha_ao_confirmar_nada_fica_salvo_e_a_revisao_continua_em_andamento(self):
