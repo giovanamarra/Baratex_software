@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'contas',
     'catalogos',
+    'importacao',
 ]
 
 # O Gestor é o usuário do sistema desde a primeira migração (trocar depois é caro).
