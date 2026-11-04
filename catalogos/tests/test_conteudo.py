@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, historico_do_conteudo, obter_catalogo
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
@@ -173,3 +174,22 @@ class ConteudoTests(TesteComArquivosEnviados):
                 ('gestora', SEGUNDA, 1, 3),
             ],
         )
+
+    def test_conteudo_zero_negativo_fracionario_ou_que_nao_e_numero_e_recusado_na_revisao_e_fora_dela(self):
+        catalogo = self.confirmar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')])
+        revisao = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], hoje=TERCA)
+        na_revisao = self.ofertas(revisao)[0]
+        mensagem = 'O Conteúdo precisa ser um número inteiro maior ou igual a 1.'
+
+        for conteudo in ['0', '-1', '3,0', '2.5', 'tres', '']:
+            with self.subTest(conteudo=conteudo, onde='na Revisão'):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    corrigir(self.gestora, na_revisao, conteudo=conteudo)
+            with self.subTest(conteudo=conteudo, onde='fora da Revisão'):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    definir_conteudo(self.gestora, self.alfa, '1001', conteudo, hoje=TERCA)
+
+        self.assertEqual([oferta.conteudo for oferta in self.ofertas(revisao)], [1])
+        self.assertEqual(self.precos_unitarios(catalogo), [('1001', 1, Decimal('9.00'))])
+        corrigir(self.gestora, na_revisao, conteudo=' 3 ')  # "3" vale, mesmo com espaços em volta
+        self.assertEqual([oferta.conteudo for oferta in self.ofertas(revisao)], [3])

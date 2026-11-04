@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.utils import timezone
 
-from catalogos.casos_de_uso import guardar_conteudo, registrar_catalogo
+from catalogos.casos_de_uso import conteudo_digitado, guardar_conteudo, registrar_catalogo
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from extracao.extrair import extrair_ofertas
 from importacao.models import OfertaProposta, Revisao
@@ -58,7 +58,7 @@ def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impress
     oferta.codigo, oferta.descricao = _codigo_e_descricao(codigo, descricao)
     oferta.preco_impresso = _preco_digitado(preco_impresso)
     oferta.caixa = _caixa_digitada(caixa)
-    oferta.conteudo_definido = int(conteudo)
+    oferta.conteudo_definido = conteudo_digitado(conteudo)
     oferta.save()
 
 

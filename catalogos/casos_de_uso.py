@@ -64,7 +64,15 @@ def definir_conteudo(gestor, fornecedor, codigo, conteudo, hoje=None):
     """Fora da Revisão. Muda o Preço unitário de todas as Ofertas do Fornecedor + código, inclusive as de
     Catálogos anteriores: o Conteúdo é por Fornecedor + código. `conteudo` vem como a gestora digitou.
     """
-    guardar_conteudo(gestor, fornecedor, codigo, int(conteudo), hoje or timezone.localdate())
+    guardar_conteudo(gestor, fornecedor, codigo, conteudo_digitado(conteudo), hoje or timezone.localdate())
+
+
+def conteudo_digitado(texto):
+    """Conteúdo como a gestora digitou: inteiro, maior ou igual a 1 ("3" vale; "3,0", "0" e "-1" não)."""
+    texto = texto.strip()
+    if not texto.isdecimal() or int(texto) < 1:  # isdecimal: só o que int() lê ("³" não)
+        raise ErroDeNegocio('O Conteúdo precisa ser um número inteiro maior ou igual a 1.')
+    return int(texto)
 
 
 def historico_do_conteudo(gestor, fornecedor, codigo):
