@@ -121,7 +121,8 @@ select {
   gap: 0.75rem;
 }
 
-/* Botões: primário verde com texto branco; secundário branco com borda e texto verdes */
+/* Botões: primário verde com texto branco; secundário branco com borda e texto verdes;
+   perigo (ação destrutiva) branco com borda e texto de erro, nunca no estilo primário */
 
 .botao {
   display: inline-block;
@@ -142,6 +143,12 @@ select {
 .botao--primario:hover {
   background: var(--bx-verde-2);
   border-color: var(--bx-verde-2);
+}
+
+.botao--perigo {
+  color: var(--bx-erro);
+  background: var(--bx-branco);
+  border-color: var(--bx-erro);
 }
 
 .botao--secundario {
@@ -174,15 +181,15 @@ select {
   list-style: none;
 }
 
-/* Aviso de sucesso: texto ("Pronto:") e borda, nunca só a cor */
+/* Aviso de sucesso (BRAND.md): fundo limão-claro, borda esquerda verde de 6px, texto verde
+   começando com "Pronto:" (o texto vem do template base) */
 
 .aviso {
   margin: 0;
   padding: 0.75rem 1rem;
   color: var(--bx-verde);
-  background: var(--bx-branco);
-  border: 1px solid var(--bx-borda);
-  border-left: 6px solid var(--bx-verde-texto);
+  background: var(--bx-limao-claro);
+  border-left: 6px solid var(--bx-verde);
   border-radius: 8px;
 }
 

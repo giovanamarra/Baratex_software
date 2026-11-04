@@ -9,8 +9,8 @@
   <p class="texto-secundario">Revisão de {{ revisao.fornecedor.nome }}, Importação de {{ revisao.iniciada_em|date:"d/m/Y" }}.</p>
   <form method="post" class="acoes">
     {% csrf_token %}
-    <button class="botao botao--primario" type="submit">Abandonar e apagar o arquivo</button>
-    <a class="botao botao--secundario" href="{% url 'revisao' revisao.pk %}">Voltar à Revisão</a>
+    <button class="botao botao--perigo" type="submit">Abandonar e apagar o arquivo</button>
+    <a class="botao botao--primario" href="{% url 'revisao' revisao.pk %}">Voltar à Revisão</a>
   </form>
 </section>
 {% endblock %}
