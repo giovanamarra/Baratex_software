@@ -17,6 +17,7 @@ from importacao.casos_de_uso import (
 
 SEGUNDA = date(2026, 3, 2)
 TERCA = date(2026, 3, 3)
+QUARTA = date(2026, 3, 4)
 
 
 def alteracao(registro):
@@ -153,3 +154,22 @@ class ConteudoTests(TesteComArquivosEnviados):
         )
         self.assertEqual(self.precos_unitarios(de_terca), [('1001', 3, Decimal('3.10'))])
         self.assertEqual(self.precos_unitarios(do_beta), [('1001', 1, Decimal('9.00'))])
+
+    def test_o_historico_do_conteudo_lista_gestor_data_valor_anterior_e_valor_novo(self):
+        # O Conteúdo é dado do grupo (ADR-0007): outro Gestor também pode mudá-lo, e fica registrado.
+        outro_gestor = criar_gestor('outro-gestor')
+        self.confirmar_tesouras_com_conteudo_3()  # segunda: 1 -> 3, na confirmação da Revisão
+        self.confirmar([CartaoFicticio('1002', 'Kit 2 Rodos Ficticios', '9,90')], hoje=SEGUNDA)
+
+        definir_conteudo(outro_gestor, self.alfa, '1001', '6', hoje=TERCA)
+        definir_conteudo(self.gestora, self.alfa, '1002', '2', hoje=TERCA)  # outro código: fora da lista
+        definir_conteudo(self.gestora, self.alfa, '1001', '2', hoje=QUARTA)
+
+        self.assertEqual(
+            [alteracao(r) for r in historico_do_conteudo(self.gestora, self.alfa, '1001')],
+            [
+                ('gestora', QUARTA, 6, 2),
+                ('outro-gestor', TERCA, 3, 6),
+                ('gestora', SEGUNDA, 1, 3),
+            ],
+        )
