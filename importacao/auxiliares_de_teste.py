@@ -4,10 +4,10 @@ import shutil
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings
 
 
-class TesteComArquivosEnviados(TestCase):
+class ArquivosEnviadosTemporarios:
     """Guarda os arquivos enviados numa pasta temporária, apagada no fim. Nunca em media/."""
 
     @classmethod
@@ -22,6 +22,14 @@ class TesteComArquivosEnviados(TestCase):
         super().tearDownClass()
         cls._media_temporaria.disable()
         shutil.rmtree(cls._pasta_de_arquivos, ignore_errors=True)
+
+
+class TesteComArquivosEnviados(ArquivosEnviadosTemporarios, TestCase):
+    pass
+
+
+class TesteTransacionalComArquivosEnviados(ArquivosEnviadosTemporarios, TransactionTestCase):
+    """Grava de verdade no banco de teste: para provar o que uma transação desfaz ou não."""
 
 
 def arquivo_enviado(conteudo, nome='catalogo.pdf'):

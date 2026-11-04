@@ -45,3 +45,10 @@ class Oferta(models.Model):
     class Meta:
         verbose_name = 'Oferta'
         verbose_name_plural = 'Ofertas'
+        constraints = [
+            # Preço impresso pode faltar (é mascarado em alguns Catálogos), mas nunca é negativo.
+            models.CheckConstraint(
+                condition=models.Q(preco_impresso__gte=0) | models.Q(preco_impresso__isnull=True),
+                name='oferta_preco_impresso_nao_negativo',
+            ),
+        ]

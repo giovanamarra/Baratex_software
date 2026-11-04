@@ -1,10 +1,18 @@
 from datetime import date
 from decimal import Decimal
 
+from django.db import IntegrityError
+
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
+from catalogos.models import Oferta
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
+from importacao.auxiliares_de_teste import (
+    TesteComArquivosEnviados,
+    TesteTransacionalComArquivosEnviados,
+    arquivo_enviado,
+    resumo,
+)
 from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, listar_revisoes_em_andamento
 
 
@@ -89,3 +97,22 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
         confirmar_revisao(self.gestora, confirmada.pk)
 
         self.assertEqual([revisao.pk for revisao in listar_revisoes_em_andamento(self.gestora)], [em_andamento.pk])
+
+
+class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
+    def test_se_uma_oferta_falha_ao_confirmar_nada_fica_salvo_e_a_revisao_continua_em_andamento(self):
+        gestora = criar_gestor('gestora')
+        fornecedor = cadastrar_fornecedor(gestora, 'Fornecedor Alfa')
+        cartoes = [
+            CartaoFicticio('1001', 'Balde Ficticio', '7,50'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '-5,00'),  # o banco recusa preço negativo
+        ]
+        revisao = iniciar_importacao(gestora, fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes)))
+
+        with self.assertRaises(IntegrityError):
+            confirmar_revisao(gestora, revisao.pk)
+
+        self.assertEqual(list(listar_catalogos_do_fornecedor(gestora, fornecedor)), [])
+        # Ainda não há caso de uso que liste Ofertas (a busca é do ticket 09): olho o modelo direto.
+        self.assertFalse(Oferta.objects.exists())
+        self.assertEqual([r.pk for r in listar_revisoes_em_andamento(gestora)], [revisao.pk])
