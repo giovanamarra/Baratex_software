@@ -13,7 +13,7 @@ Depois de escolher, ela digita tudo de novo na planilha padrão de Pedido que en
 Uma aplicação web, usada pelos Gestores do grupo, que:
 
 1. **Importa Catálogos** de qualquer um dos formatos reais por três caminhos de extração (grade de cartões, tabela, LLM com visão) e sempre passa por uma **Revisão** em que a gestora confere, corrige e confirma as Ofertas antes de salvar.
-2. Calcula o **Preço unitário** de cada Oferta (preço impresso menos o desconto das Condições do Catálogo, dividido pelo Conteúdo) e destaca o que passa do **Teto de compra**.
+2. Calcula o **Preço unitário** de cada Oferta (preço impresso × (1 − desconto% das Condições do Catálogo) ÷ Conteúdo, arredondado para centavos) e destaca o que passa do **Teto de compra**.
 3. Permite agrupar Ofertas comparáveis de Fornecedores diferentes num **Produto** e mostra as Ofertas vigentes desse Produto lado a lado, ordenadas por Preço unitário, com descrição e foto, sem eleger uma vencedora.
 4. Guarda todos os Catálogos como histórico, para que se veja a evolução do preço de cada Produto e de cada Fornecedor.
 5. Permite a cada Gestor montar **Pedidos** por Fornecedor, com a quantidade de cada Oferta para cada uma das suas Lojas, e exportá-los na planilha padrão da gestora, com fórmulas, pronta para enviar.
@@ -193,7 +193,7 @@ Erros de regra de negócio são exceções de domínio com mensagem em portuguê
 ### Modelo de dados (decisões)
 
 - **Oferta** guarda separadamente: código do Fornecedor, descrição, preço impresso, Caixa, Embalagem intermediária (opcional), foto (opcional), caminho de extração e página de origem. O Preço unitário é **derivado**, nunca digitado.
-- **Preço unitário = (preço impresso − desconto das Condições do Catálogo) ÷ Conteúdo** (ADR-0005). Impostos são ignorados; a alíquota impressa não é guardada nem exibida.
+- **Preço unitário = preço impresso × (1 − desconto%) ÷ Conteúdo**, arredondado para centavos (meio centavo para cima); o desconto das Condições do Catálogo é percentual (ADR-0005). Impostos são ignorados; a alíquota impressa não é guardada nem exibida.
 - **Conteúdo** é guardado por Fornecedor + código, e não por Oferta, para valer em Catálogos futuros. O padrão é 1.
 - **Vínculo Oferta → Produto** é guardado por Fornecedor + código (ADR-0003).
 - **Catálogo** guarda Fornecedor, data (dia da Importação), Gestor que importou, arquivo de origem e Condições do Catálogo (desconto, que pode ser vazio). Catálogos nunca são sobrescritos.

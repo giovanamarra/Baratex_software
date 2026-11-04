@@ -6,7 +6,7 @@ status: accepted
 
 Substitui o ADR-0002, que somava o IPI destacado ao Preço unitário. O papel da gestora no sistema é **selecionar mercadoria**; a triagem fiscal acontece depois, feita pela contabilidade da empresa, que calcula IPI, ICMS e DIFAL. Decidimos que o sistema ignora qualquer imposto:
 
-**Preço unitário = (preço impresso − desconto das Condições do Catálogo) ÷ Conteúdo.**
+**Preço unitário = preço impresso × (1 − desconto%) ÷ Conteúdo**, arredondado para centavos (meio centavo para cima).
 
 ## Regras que continuam valendo do ADR-0002
 
@@ -22,3 +22,5 @@ Substitui o ADR-0002, que somava o IPI destacado ao Preço unitário. O papel da
 ## Consequências
 
 Fornecedores que destacam IPI parecem mais baratos do que os que já o embutem no preço; na amostra, a diferença chega a 15%. Uma Oferta abaixo do Teto de compra pode acabar acima dele depois da triagem fiscal. Essa diferença é aceita. A alíquota impressa no Catálogo não é exibida nem usada no MVP.
+
+Atualizado em 2026-11-04: o desconto das Condições do Catálogo é percentual, como na planilha de Pedido da gestora (ticket 05).

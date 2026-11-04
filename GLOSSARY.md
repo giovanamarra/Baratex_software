@@ -35,7 +35,7 @@ Conjunto único de regras de um Fornecedor que os Catálogos não informam, defi
 _Avoid_: Cadastro, configuração
 
 **Condições do Catálogo**:
-Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto além do que já está impresso, que não existe em Catálogos com várias colunas de preço, porque neles vale sempre a menor.
+Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto percentual além do que já está impresso (por exemplo, 3%), que não existe em Catálogos com várias colunas de preço, porque neles vale sempre a menor.
 _Avoid_: Parâmetros, ajustes
 
 ### Preços e quantidades
@@ -61,7 +61,7 @@ Permissão de um Fornecedor para vender menos que uma Caixa, até uma menor quan
 _Avoid_: Caixa aberta, quebra de caixa
 
 **Preço unitário**:
-Preço impresso da Oferta, após o desconto das Condições do Catálogo, dividido pelo Conteúdo. Não inclui impostos, que ficam com a contabilidade. É a base de toda comparação.
+Preço impresso da Oferta, após o desconto percentual das Condições do Catálogo, dividido pelo Conteúdo: preço impresso × (1 − desconto%) ÷ Conteúdo, arredondado para centavos (meio centavo para cima). Não inclui impostos, que ficam com a contabilidade. É a base de toda comparação.
 _Avoid_: Preço por embalagem, preço por caixa, custo
 
 **Teto de compra**:
