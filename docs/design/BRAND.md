@@ -31,6 +31,9 @@ Regras:
 
 - Botão primário: fundo `--bx-verde`, texto branco; foco com contorno de 3px `--bx-limao`.
 - Botão secundário: fundo branco, borda e texto `--bx-verde`.
+- Botão de perigo (apagar, abandonar, descartar): fundo branco, borda e texto `--bx-erro`, com o verbo da ação no texto ("Abandonar e apagar o arquivo"). Ação destrutiva nunca usa o estilo primário.
+- Tela de confirmação de ação destrutiva: o botão de perigo e, ao lado, "Voltar" como botão primário, para que o caminho seguro seja o mais visível.
+- Aviso de sucesso: fundo `--bx-limao-claro`, borda esquerda de 6px `--bx-verde`, texto `--bx-verde` começando com "Pronto:".
 - Cor nunca é o único sinal: alerta de Teto, erro e marcas de conferência levam também ícone ou texto ("acima do Teto").
 - Tabelas: cabeçalho `--bx-verde` com texto branco, linhas alternando branco e `--bx-cinza`.
 
