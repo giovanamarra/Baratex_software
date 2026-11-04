@@ -25,5 +25,9 @@ def iniciar_importacao(gestor, fornecedor, arquivo):
     return revisao
 
 
+def listar_revisoes_em_andamento(gestor):
+    return Revisao.objects.filter(gestor=gestor)
+
+
 def obter_revisao(gestor, revisao_id):
     return Revisao.objects.get(pk=revisao_id)

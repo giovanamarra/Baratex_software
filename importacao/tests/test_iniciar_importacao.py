@@ -4,7 +4,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao, obter_revisao
+from importacao.casos_de_uso import iniciar_importacao, listar_revisoes_em_andamento, obter_revisao
 
 
 def resumo(oferta):
@@ -85,3 +85,17 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
                 ('1002', 'Rodo Ficticio', Decimal('11.00'), 12, 'grade de cartões'),
             ],
         )
+
+    def test_gestora_ve_so_as_proprias_revisoes_em_andamento(self):
+        outro_gestor = criar_gestor('outro-gestor')
+        primeira = self.iniciar_com_um_cartao(self.gestora)
+        segunda = self.iniciar_com_um_cartao(self.gestora)
+        self.iniciar_com_um_cartao(outro_gestor)
+
+        revisoes = listar_revisoes_em_andamento(self.gestora)
+
+        self.assertCountEqual([revisao.pk for revisao in revisoes], [primeira.pk, segunda.pk])
+
+    def iniciar_com_um_cartao(self, gestor):
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')]))
+        return iniciar_importacao(gestor, self.fornecedor, catalogo)
