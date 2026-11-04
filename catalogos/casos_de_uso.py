@@ -1,5 +1,7 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
+from django.utils import timezone
+
 from catalogos.models import (
     AlteracaoDeConteudo,
     Catalogo,
@@ -56,6 +58,13 @@ def guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje):
     AlteracaoDeConteudo.objects.create(
         fornecedor=fornecedor, codigo=codigo, gestor=gestor, data=hoje, valor_anterior=anterior, valor_novo=conteudo
     )
+
+
+def definir_conteudo(gestor, fornecedor, codigo, conteudo, hoje=None):
+    """Fora da Revisão. Muda o Preço unitário de todas as Ofertas do Fornecedor + código, inclusive as de
+    Catálogos anteriores: o Conteúdo é por Fornecedor + código. `conteudo` vem como a gestora digitou.
+    """
+    guardar_conteudo(gestor, fornecedor, codigo, int(conteudo), hoje or timezone.localdate())
 
 
 def historico_do_conteudo(gestor, fornecedor, codigo):

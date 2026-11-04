@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, historico_do_conteudo, obter_catalogo
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, historico_do_conteudo, obter_catalogo
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
@@ -36,6 +36,16 @@ class ConteudoTests(TesteComArquivosEnviados):
 
     def ofertas(self, revisao):
         return obter_revisao(revisao.gestor, revisao.pk).ofertas_propostas()
+
+    def confirmar(self, cartoes, fornecedor=None, hoje=SEGUNDA):
+        revisao = self.importar(cartoes, fornecedor, hoje)
+        return confirmar_revisao(self.gestora, revisao.pk, hoje=hoje)
+
+    def precos_unitarios(self, catalogo):
+        return [
+            (oferta.codigo, oferta.conteudo, oferta.preco_unitario)
+            for oferta in obter_catalogo(self.gestora, catalogo.pk).ofertas()
+        ]
 
     def confirmar_tesouras_com_conteudo_3(self, fornecedor=None):
         """Primeiro Catálogo: a gestora define Conteúdo 3 para o kit 1001 e confirma."""
@@ -124,3 +134,22 @@ class ConteudoTests(TesteComArquivosEnviados):
         seguinte = self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], hoje=TERCA)
         self.assertEqual([oferta.conteudo for oferta in self.ofertas(seguinte)], [1])
         self.assertEqual(list(historico_do_conteudo(self.gestora, self.alfa, '1001')), [])
+
+    def test_definir_o_conteudo_fora_da_revisao_muda_o_preco_unitario_em_todos_os_catalogos_do_fornecedor_e_codigo(self):
+        # É a regra, não um efeito colateral: o Conteúdo é guardado por Fornecedor + código, e não por
+        # Oferta, então vale também para as Ofertas de Catálogos anteriores (ADR-0005; spec, Modelo de dados).
+        beta = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        de_segunda = self.confirmar([
+            CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '9,90'),
+        ], hoje=SEGUNDA)
+        de_terca = self.confirmar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,30')], hoje=TERCA)
+        do_beta = self.confirmar([CartaoFicticio('1001', 'Tesoura Ficticia Avulsa', '9,00')], beta, TERCA)
+
+        definir_conteudo(self.gestora, self.alfa, '1001', '3', hoje=TERCA)
+
+        self.assertEqual(
+            self.precos_unitarios(de_segunda), [('1001', 3, Decimal('3.00')), ('1002', 1, Decimal('9.90'))]
+        )
+        self.assertEqual(self.precos_unitarios(de_terca), [('1001', 3, Decimal('3.10'))])
+        self.assertEqual(self.precos_unitarios(do_beta), [('1001', 1, Decimal('9.00'))])
