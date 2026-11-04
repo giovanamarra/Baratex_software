@@ -35,7 +35,7 @@ Conjunto único de regras de um Fornecedor que os Catálogos não informam, defi
 _Avoid_: Cadastro, configuração
 
 **Condições do Catálogo**:
-Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto percentual além do que já está impresso (por exemplo, 3%), que não existe em Catálogos com várias colunas de preço, porque neles vale sempre a menor.
+Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto percentual além do que já está impresso (por exemplo, 3%). É resposta obrigatória a cada Importação: sem desconto, a gestora informa 0. Não existe em Catálogos com várias colunas de preço, porque neles vale sempre a menor.
 _Avoid_: Parâmetros, ajustes
 
 ### Preços e quantidades

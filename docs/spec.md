@@ -196,7 +196,7 @@ Erros de regra de negócio são exceções de domínio com mensagem em portuguê
 - **Preço unitário = preço impresso × (1 − desconto%) ÷ Conteúdo**, arredondado para centavos (meio centavo para cima); o desconto das Condições do Catálogo é percentual (ADR-0005). Impostos são ignorados; a alíquota impressa não é guardada nem exibida.
 - **Conteúdo** é guardado por Fornecedor + código, e não por Oferta, para valer em Catálogos futuros. O padrão é 1.
 - **Vínculo Oferta → Produto** é guardado por Fornecedor + código (ADR-0003).
-- **Catálogo** guarda Fornecedor, data (dia da Importação), Gestor que importou, arquivo de origem e Condições do Catálogo (desconto, que pode ser vazio). Catálogos nunca são sobrescritos.
+- **Catálogo** guarda Fornecedor, data (dia da Importação), Gestor que importou, arquivo de origem e Condições do Catálogo (desconto percentual, informado obrigatoriamente pela gestora a cada Importação; 0 quando não houver desconto). Catálogos nunca são sobrescritos.
 - **Oferta vigente** é calculada, não armazenada: para cada Fornecedor + código, a Oferta do Catálogo de data mais recente; empate no mesmo dia → a de menor Preço unitário.
 - **Teto de compra** é um único valor do grupo.
 - **Perfil do Fornecedor**: Fracionamento (sim/não e menor quantidade, em Unidades de venda) e mapeamento de colunas para Catálogos em tabela.
@@ -218,7 +218,7 @@ Erros de regra de negócio são exceções de domínio com mensagem em portuguê
 ### Revisão
 
 - A Revisão em andamento é persistida (rascunho), para sobreviver a uma navegação ou a um recarregamento, mas não cria Catálogo nem Oferta até a confirmação.
-- A confirmação é recusada enquanto houver: Oferta sem Caixa; Oferta sem preço válido; página lida pela LLM não marcada como conferida pela gestora.
+- A confirmação é recusada enquanto houver: Oferta sem Caixa; Oferta sem preço válido; desconto do Catálogo não informado (informar 0 vale como resposta; a exceção são os Catálogos com várias colunas de preço, que não pedem desconto); página lida pela LLM não marcada como conferida pela gestora.
 - A confirmação aplica, para cada Oferta, o Conteúdo e o vínculo de Produto já guardados por Fornecedor + código.
 
 ### Exportação
