@@ -1,7 +1,7 @@
 """Caminho 1 da extração: grade de cartões, com um leitor determinístico por Layout (ADR-0006)."""
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 CAMINHO = 'grade de cartões'
 
@@ -57,8 +57,12 @@ def _ler_cartao(ancora, palavras):
 
 
 def _preco(texto):
-    # "R$1.234,56" -> Decimal("1234.56")
-    return Decimal(texto[2:].replace('.', '').replace(',', '.'))
+    # "R$1.234,56" -> Decimal("1234.56"). Preço mascarado ("R$***,**") vira Oferta sem preço.
+    numero = texto[2:].replace('.', '').replace(',', '.')
+    try:
+        return Decimal(numero)
+    except InvalidOperation:
+        return None
 
 
 def _caixa(textos_da_linha_do_codigo):

@@ -36,3 +36,20 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
                 ('2021', 'Caneca Ficticia 20', Decimal('5.00'), 24, 'grade de cartões'),
             ],
         )
+
+    def test_cartao_com_preco_ou_caixa_mascarados_vira_oferta_sem_preco_ou_sem_caixa(self):
+        cartoes = [
+            CartaoFicticio('1001', 'Balde Ficticio', preco='***,**'),
+            CartaoFicticio('1002', 'Vassoura Ficticia', caixa='***'),
+        ]
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+
+        revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo)
+
+        self.assertEqual(
+            [resumo(oferta) for oferta in revisao.ofertas_propostas()],
+            [
+                ('1001', 'Balde Ficticio', None, 24, 'grade de cartões'),
+                ('1002', 'Vassoura Ficticia', Decimal('12.90'), None, 'grade de cartões'),
+            ],
+        )
