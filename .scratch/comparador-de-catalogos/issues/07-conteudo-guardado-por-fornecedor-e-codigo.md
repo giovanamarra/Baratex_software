@@ -1,6 +1,6 @@
 # 07 — Conteúdo guardado por Fornecedor e código
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 05
 Spec: [docs/spec.md](../../../docs/spec.md) (Modelo de dados › Conteúdo, Auditoria; Revisão › a confirmação aplica o Conteúdo guardado)
@@ -36,3 +36,15 @@ A gestora diz que um kit de 3 tesouras vendidas avulsas tem Conteúdo 3 e vê o 
 
 - A sugestão de Conteúdo quando a descrição cita peças (08).
 - O botão "definir Conteúdo" nos resultados da busca (09, que usa o caso de uso deste ticket).
+
+## Comments
+
+**2026-11-04 — implementado por TDD** (commits `e503175` a `9015fa8`; antes, duas correções pedidas pela usuária: `ff35c77` telas que abrem e `8be8c68` preço ambíguo)
+
+- **Guardado** (`catalogos.models.AlteracaoDeConteudo`): um registro por mudança (Fornecedor, código, Gestor, data, valor anterior, valor novo). O Conteúdo atual é o valor novo do registro mais recente; sem registro, vale 1. O histórico é a própria fonte, sem tabela à parte que possa divergir.
+- **Na Revisão** (`OfertaProposta.conteudo_definido`): só o Conteúdo definido nela; vazio = usa o guardado. Definido em Corrigir (`corrigir_oferta_proposta(..., conteudo)`). Abandonar descarta.
+- **Confirmação** (`confirmar_revisao(gestor, revisao_id, hoje=None)`): grava no histórico só o Conteúdo que difere do guardado, com o dia da confirmação. Confirmar sem mudar o herdado não cria registro (regra da usuária).
+- **Fora da Revisão** (`definir_conteudo(gestor, fornecedor, codigo, conteudo, hoje=None)`): recusa código sem Oferta confirmada do Fornecedor (Oferta proposta não conta). Muda o Preço unitário das Ofertas de todos os Catálogos do Fornecedor + código: é a regra, testada explicitamente. Mesmo valor do atual não cria registro.
+- **Histórico** (`historico_do_conteudo`): do mais recente para o mais antigo. Qualquer Gestor define e vê (ADR-0007).
+- **Conteúdo digitado** (`conteudo_digitado`): inteiro ≥ 1; "3" vale (com espaços em volta também); "3,0", "2.5", "0", "-1", texto e vazio são recusados.
+- **Telas:** coluna Conteúdo ao lado do Preço unitário (Revisão e Catálogo); campo Conteúdo no Corrigir (não no Adicionar: a Oferta nova usa o guardado e pode ser corrigida depois); por linha do Catálogo, "Definir Conteúdo" (aviso "Atenção: Isto muda o Preço unitário desta Oferta em todos os Catálogos do Fornecedor." antes de salvar) e "Histórico" (dd/mm/aaaa).
