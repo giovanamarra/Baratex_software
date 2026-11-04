@@ -83,6 +83,11 @@ def historico_do_conteudo(gestor, fornecedor, codigo):
     return AlteracaoDeConteudo.objects.filter(fornecedor=fornecedor, codigo=codigo).order_by('-pk')
 
 
+def obter_oferta(gestor, oferta_id):
+    """Qualquer Gestor consulta qualquer Oferta (ADR-0007). Para as telas de Conteúdo."""
+    return Oferta.objects.select_related('catalogo__fornecedor').get(pk=oferta_id)
+
+
 def obter_catalogo(gestor, catalogo_id):
     """Qualquer Gestor consulta qualquer Catálogo: a base de compras é do grupo (ADR-0007)."""
     return Catalogo.objects.get(pk=catalogo_id)

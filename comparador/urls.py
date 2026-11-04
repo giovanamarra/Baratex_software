@@ -23,6 +23,12 @@ urlpatterns = [
     path('fornecedores/', catalogos.fornecedores, name='fornecedores'),
     path('fornecedores/<int:pk>/catalogos/', catalogos.catalogos_do_fornecedor, name='catalogos_do_fornecedor'),
     path('catalogos/<int:pk>/', catalogos.catalogo, name='catalogo'),
+    path('ofertas/<int:pk>/conteudo/', catalogos.definir_conteudo_da_oferta, name='definir_conteudo'),
+    path(
+        'ofertas/<int:pk>/historico-do-conteudo/',
+        catalogos.historico_do_conteudo_da_oferta,
+        name='historico_do_conteudo',
+    ),
     path('importar/', importacao.importar, name='importar'),
     path('revisoes/<int:pk>/', importacao.revisao, name='revisao'),
     path('revisoes/<int:pk>/condicoes/', importacao.informar_condicoes, name='informar_condicoes_do_catalogo'),

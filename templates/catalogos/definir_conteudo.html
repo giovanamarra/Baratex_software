@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block titulo %}Definir Conteúdo · {{ oferta.codigo }}{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Definir o Conteúdo do código {{ oferta.codigo }}</h1>
+  <p class="texto-secundario">{{ oferta.descricao }}, de {{ oferta.catalogo.fornecedor.nome }}.</p>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> {{ erro }}</p>{% endif %}
+  <p class="atencao" role="note"><strong>Atenção:</strong> Isto muda o Preço unitário desta Oferta em todos os Catálogos do Fornecedor.</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="conteudo">Conteúdo (itens vendidos separadamente a partir de uma Unidade de venda)</label>
+      <input id="conteudo" name="conteudo" type="text" inputmode="numeric" value="{{ conteudo }}" placeholder="1">
+    </div>
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Salvar Conteúdo</button>
+      <a class="botao botao--secundario" href="{% url 'catalogo' oferta.catalogo_id %}">Voltar ao Catálogo</a>
+      <a href="{% url 'historico_do_conteudo' oferta.pk %}">Ver o histórico do Conteúdo</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

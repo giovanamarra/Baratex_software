@@ -25,6 +25,13 @@
       <label for="caixa">Caixa (Unidades de venda)</label>
       <input id="caixa" name="caixa" type="text" inputmode="numeric" value="{{ valores.caixa }}" placeholder="24">
     </div>
+    {% if oferta %}
+    <div class="campo">
+      <label for="conteudo">Conteúdo (itens vendidos separadamente a partir de uma Unidade de venda)</label>
+      <input id="conteudo" name="conteudo" type="text" inputmode="numeric" value="{{ valores.conteudo }}" placeholder="1">
+      <p class="texto-secundario">Divide o Preço unitário. Ao confirmar a Revisão, fica guardado para este Fornecedor e código e vale nos próximos Catálogos.</p>
+    </div>
+    {% endif %}
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Salvar</button>
       <a class="botao botao--secundario" href="{% url 'revisao' revisao.pk %}">Voltar à Revisão</a>

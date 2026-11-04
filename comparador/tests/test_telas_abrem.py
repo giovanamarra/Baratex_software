@@ -8,7 +8,7 @@ from datetime import date
 
 from django.urls import reverse
 
-from catalogos.casos_de_uso import cadastrar_fornecedor
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -73,3 +73,18 @@ class TelasAbremTests(TesteComArquivosEnviados):
 
         self.assertContains(resposta, 'Balde Ficticio')
         self.assertContains(resposta, 'R$ 9,90')
+
+    def test_definir_conteudo_abre_e_mostra_o_aviso_antes_de_salvar(self):
+        balde = self.catalogo_confirmado().ofertas()[0]
+
+        resposta = self.client.get(reverse('definir_conteudo', kwargs={'pk': balde.pk}))
+
+        self.assertContains(resposta, 'Isto muda o Preço unitário desta Oferta em todos os Catálogos do Fornecedor.')
+
+    def test_historico_do_conteudo_abre_e_mostra_as_alteracoes(self):
+        balde = self.catalogo_confirmado().ofertas()[0]
+        definir_conteudo(self.gestora, self.fornecedor, '1001', '3', hoje=date(2026, 3, 4))
+
+        resposta = self.client.get(reverse('historico_do_conteudo', kwargs={'pk': balde.pk}))
+
+        self.assertContains(resposta, '04/03/2026')

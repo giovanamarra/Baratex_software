@@ -98,7 +98,7 @@ def corrigir_oferta(request, pk):
         oferta = obter_oferta_proposta(request.user, pk)
         if request.method == 'POST':
             valores = _valores_digitados(request)
-            valores['conteudo'] = request.POST.get('conteudo', str(oferta.conteudo))
+            valores['conteudo'] = request.POST.get('conteudo', '')
             try:
                 corrigir_oferta_proposta(request.user, pk, **valores)
             except AcessoNegado:
@@ -117,6 +117,7 @@ def corrigir_oferta(request, pk):
         'descricao': oferta.descricao,
         'preco_impresso': '' if oferta.preco_impresso is None else f'{oferta.preco_impresso:.2f}'.replace('.', ','),
         'caixa': '' if oferta.caixa is None else str(oferta.caixa),
+        'conteudo': str(oferta.conteudo),
     }
     return _formulario_da_oferta(request, oferta.revisao, valores, None, oferta)
 

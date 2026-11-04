@@ -21,7 +21,7 @@
     </div>
     <button class="botao botao--secundario" type="submit">Recalcular</button>
   </form>
-  <p>Desconto aplicado: <strong>{{ revisao.desconto|percentual }}</strong>. O Preço unitário é o preço impresso com esse desconto, dividido pelo Conteúdo (hoje, sempre 1). Impostos não entram.</p>
+  <p>Desconto aplicado: <strong>{{ revisao.desconto|percentual }}</strong>. O Preço unitário é o preço impresso com esse desconto, dividido pelo Conteúdo. Impostos não entram. O Conteúdo vem do que já foi guardado para o Fornecedor e o código (1 se nunca foi definido); mude-o em Corrigir. O Conteúdo novo só fica guardado ao confirmar.</p>
   <div class="acoes acoes--antes-da-tabela">
     <form method="post" action="{% url 'confirmar_revisao' revisao.pk %}">
       {% csrf_token %}

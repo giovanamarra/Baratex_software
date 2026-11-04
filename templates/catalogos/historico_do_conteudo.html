@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block titulo %}Histórico do Conteúdo · {{ oferta.codigo }}{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Histórico do Conteúdo do código {{ oferta.codigo }}</h1>
+  <p class="texto-secundario">{{ oferta.catalogo.fornecedor.nome }}. Conteúdo atual: <strong>{{ oferta.conteudo }}</strong>. Da alteração mais recente para a mais antiga.</p>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Data</th>
+        <th scope="col">Gestor</th>
+        <th scope="col" class="numero">Valor anterior</th>
+        <th scope="col" class="numero">Valor novo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alteracao in alteracoes %}
+      <tr>
+        <td class="numero-tabular">{{ alteracao.data|date:"d/m/Y" }}</td>
+        <td>{{ alteracao.gestor.get_username }}</td>
+        <td class="numero">{{ alteracao.valor_anterior }}</td>
+        <td class="numero">{{ alteracao.valor_novo }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="texto-secundario">O Conteúdo deste código nunca foi alterado: vale 1.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="acoes acoes--depois-da-tabela">
+    <a class="botao botao--secundario" href="{% url 'definir_conteudo' oferta.pk %}">Definir Conteúdo</a>
+    <a href="{% url 'catalogo' oferta.catalogo_id %}">Voltar ao Catálogo</a>
+  </div>
+</section>
+{% endblock %}

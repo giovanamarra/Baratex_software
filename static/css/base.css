@@ -222,6 +222,18 @@ table tbody tr.linha--alerta {
   margin-left: 0.25rem;
 }
 
+/* Atenção antes de uma ação de efeito amplo (ex.: Conteúdo fora da Revisão): cores de alerta e o
+   texto "Atenção:", nunca só a cor (BRAND.md) */
+
+.atencao {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--bx-alerta);
+  background: var(--bx-alerta-fundo);
+  border-left: 6px solid var(--bx-alerta);
+  border-radius: 8px;
+}
+
 /* Campo e botão na mesma linha (ex.: Desconto do Catálogo + Recalcular) */
 
 .acoes:has(.campo--em-linha) {
