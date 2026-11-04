@@ -49,12 +49,16 @@ def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
     revisao.save()
 
 
-def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impresso, caixa):
-    """Os valores chegam como a gestora digitou: preço "1.234,56" ou "9,90"; Caixa "24"; vazio = ausente."""
+def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impresso, caixa, conteudo):
+    """Os valores chegam como a gestora digitou: preço "1.234,56" ou "9,90"; Caixa "24"; vazio = ausente.
+
+    O Conteúdo definido aqui fica só na Revisão até a confirmação.
+    """
     oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
     oferta.codigo, oferta.descricao = _codigo_e_descricao(codigo, descricao)
     oferta.preco_impresso = _preco_digitado(preco_impresso)
     oferta.caixa = _caixa_digitada(caixa)
+    oferta.conteudo_definido = int(conteudo)
     oferta.save()
 
 

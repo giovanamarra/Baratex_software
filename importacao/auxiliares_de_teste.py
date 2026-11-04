@@ -6,6 +6,8 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase, override_settings
 
+from importacao.casos_de_uso import corrigir_oferta_proposta
+
 
 class ArquivosEnviadosTemporarios:
     """Guarda os arquivos enviados numa pasta temporária, apagada no fim. Nunca em media/."""
@@ -34,6 +36,18 @@ class TesteTransacionalComArquivosEnviados(ArquivosEnviadosTemporarios, Transact
 
 def arquivo_enviado(conteudo, nome='catalogo.pdf'):
     return SimpleUploadedFile(nome, conteudo)
+
+
+def corrigir(gestor, oferta, **mudancas):
+    """Corrige na Revisão só os campos pedidos, repetindo os outros como o formulário de Corrigir."""
+    valores = {
+        'codigo': oferta.codigo,
+        'descricao': oferta.descricao,
+        'preco_impresso': '' if oferta.preco_impresso is None else str(oferta.preco_impresso),
+        'caixa': '' if oferta.caixa is None else str(oferta.caixa),
+        'conteudo': str(oferta.conteudo),
+    }
+    corrigir_oferta_proposta(gestor, oferta.pk, **{**valores, **mudancas})
 
 
 def resumo(oferta):

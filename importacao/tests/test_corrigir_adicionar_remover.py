@@ -4,7 +4,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_for
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, resumo
 from importacao.casos_de_uso import (
     abandonar_revisao,
     adicionar_oferta_proposta,
@@ -39,7 +39,8 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         balde = self.ofertas(revisao)[0]
 
         corrigir_oferta_proposta(
-            self.gestora, balde.pk, codigo='1001-A', descricao='Balde Ficticio 10L', preco_impresso='15,00', caixa='12'
+            self.gestora, balde.pk, codigo='1001-A', descricao='Balde Ficticio 10L', preco_impresso='15,00', caixa='12',
+            conteudo='1',
         )
 
         ofertas = self.ofertas(revisao)
@@ -230,11 +231,4 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         self.assertEqual(catalogo.desconto, Decimal('0'))
 
     def corrigir(self, oferta, **mudancas):
-        """Corrige só os campos pedidos, repetindo os outros como estão."""
-        valores = {
-            'codigo': oferta.codigo,
-            'descricao': oferta.descricao,
-            'preco_impresso': '' if oferta.preco_impresso is None else str(oferta.preco_impresso),
-            'caixa': '' if oferta.caixa is None else str(oferta.caixa),
-        }
-        corrigir_oferta_proposta(self.gestora, oferta.pk, **{**valores, **mudancas})
+        corrigir(self.gestora, oferta, **mudancas)

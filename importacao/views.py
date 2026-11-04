@@ -98,6 +98,7 @@ def corrigir_oferta(request, pk):
         oferta = obter_oferta_proposta(request.user, pk)
         if request.method == 'POST':
             valores = _valores_digitados(request)
+            valores['conteudo'] = request.POST.get('conteudo', str(oferta.conteudo))
             try:
                 corrigir_oferta_proposta(request.user, pk, **valores)
             except AcessoNegado:

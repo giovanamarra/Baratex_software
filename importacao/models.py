@@ -37,13 +37,17 @@ class OfertaProposta(models.Model):
     preco_impresso = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     caixa = models.PositiveIntegerField(null=True)
     caminho = models.CharField(max_length=30)
+    # Conteúdo definido pela gestora nesta Revisão. Fica só aqui até a confirmação; vazio = não mexeu.
+    conteudo_definido = models.PositiveIntegerField(null=True)
 
     class Meta:
         verbose_name = 'Oferta proposta'
         verbose_name_plural = 'Ofertas propostas'
 
-    # O Conteúdo começa em 1 (história 42); o ticket 07 passa a guardá-lo por Fornecedor + código.
-    conteudo = 1
+    @property
+    def conteudo(self):
+        # O Conteúdo começa em 1 (história 42).
+        return self.conteudo_definido if self.conteudo_definido is not None else 1
 
     @property
     def preco_unitario(self):
