@@ -64,7 +64,10 @@ def definir_conteudo(gestor, fornecedor, codigo, conteudo, hoje=None):
     """Fora da Revisão. Muda o Preço unitário de todas as Ofertas do Fornecedor + código, inclusive as de
     Catálogos anteriores: o Conteúdo é por Fornecedor + código. `conteudo` vem como a gestora digitou.
     """
-    guardar_conteudo(gestor, fornecedor, codigo, conteudo_digitado(conteudo), hoje or timezone.localdate())
+    conteudo = conteudo_digitado(conteudo)
+    if not Oferta.objects.filter(catalogo__fornecedor=fornecedor, codigo=codigo).exists():
+        raise ErroDeNegocio(f'O Fornecedor {fornecedor.nome} não tem Oferta com o código {codigo}.')
+    guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje or timezone.localdate())
 
 
 def conteudo_digitado(texto):

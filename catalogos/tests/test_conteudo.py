@@ -28,7 +28,7 @@ def alteracao(registro):
 class ConteudoTests(TesteComArquivosEnviados):
     def setUp(self):
         self.gestora = criar_gestor('gestora')
-        self.alfa = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
+        self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
 
     def importar(self, cartoes, fornecedor=None, hoje=SEGUNDA, gestor=None):
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
@@ -116,7 +116,7 @@ class ConteudoTests(TesteComArquivosEnviados):
         )
 
     def test_o_mesmo_codigo_de_outro_fornecedor_continua_com_conteudo_1(self):
-        beta = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        beta = cadastrar_fornecedor(self.gestora, 'Beta')
         self.confirmar_tesouras_com_conteudo_3()
 
         do_beta = self.importar([CartaoFicticio('1001', 'Tesoura Ficticia Avulsa', '9,00')], beta, TERCA)
@@ -140,7 +140,7 @@ class ConteudoTests(TesteComArquivosEnviados):
     def test_definir_o_conteudo_fora_da_revisao_muda_o_preco_unitario_em_todos_os_catalogos_do_fornecedor_e_codigo(self):
         # É a regra, não um efeito colateral: o Conteúdo é guardado por Fornecedor + código, e não por
         # Oferta, então vale também para as Ofertas de Catálogos anteriores (ADR-0005; spec, Modelo de dados).
-        beta = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        beta = cadastrar_fornecedor(self.gestora, 'Beta')
         de_segunda = self.confirmar([
             CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00'),
             CartaoFicticio('1002', 'Rodo Ficticio', '9,90'),
@@ -193,3 +193,14 @@ class ConteudoTests(TesteComArquivosEnviados):
         self.assertEqual(self.precos_unitarios(catalogo), [('1001', 1, Decimal('9.00'))])
         corrigir(self.gestora, na_revisao, conteudo=' 3 ')  # "3" vale, mesmo com espaços em volta
         self.assertEqual([oferta.conteudo for oferta in self.ofertas(revisao)], [3])
+
+    def test_definir_fora_da_revisao_o_conteudo_de_um_codigo_sem_oferta_e_recusado(self):
+        beta = cadastrar_fornecedor(self.gestora, 'Beta')
+        self.confirmar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')])
+        self.confirmar([CartaoFicticio('9999', 'Balde Ficticio', '7,50')], beta)  # o código existe, mas no Beta
+        self.importar([CartaoFicticio('9999', 'Balde Ficticio', '7,50')])  # Oferta proposta ainda não é Oferta
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'O Fornecedor Alfa não tem Oferta com o código 9999.'):
+            definir_conteudo(self.gestora, self.alfa, '9999', '3', hoje=TERCA)
+
+        self.assertEqual(list(historico_do_conteudo(self.gestora, self.alfa, '9999')), [])
