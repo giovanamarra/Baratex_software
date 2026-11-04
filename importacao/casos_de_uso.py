@@ -120,7 +120,7 @@ def _caixa_digitada(texto):
     texto = texto.strip()
     if not texto:
         return None
-    if not texto.isdigit() or int(texto) == 0:
+    if not texto.isdecimal() or int(texto) == 0:  # isdecimal: só o que int() lê ("³" não)
         raise ErroDeNegocio('A Caixa precisa ser um número inteiro de Unidades de venda, maior que zero.')
     return int(texto)
 

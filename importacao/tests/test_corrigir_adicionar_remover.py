@@ -187,7 +187,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', caixa='24')])
         balde = self.ofertas(revisao)[0]
 
-        for caixa in ['0', '-12', '12,5', '12.5', 'doze']:
+        for caixa in ['0', '-12', '12,5', '12.5', 'doze', '³']:  # "³" passa no isdigit(), mas não é número
             with self.subTest(caixa=caixa):
                 with self.assertRaisesMessage(
                     ErroDeNegocio, 'A Caixa precisa ser um número inteiro de Unidades de venda, maior que zero.'
