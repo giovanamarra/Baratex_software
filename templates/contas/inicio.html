@@ -4,4 +4,11 @@
 
 {% block conteudo %}
 <h1>As minhas Lojas</h1>
+<ul>
+  {% for loja in lojas %}
+  <li>{{ loja.nome }}</li>
+  {% empty %}
+  <li>Nenhuma Loja cadastrada para você. Peça ao responsável pela instalação.</li>
+  {% endfor %}
+</ul>
 {% endblock %}
