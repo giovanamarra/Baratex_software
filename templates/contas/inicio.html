@@ -6,7 +6,7 @@
 <h1>As minhas Lojas</h1>
 <ul>
   {% for loja in lojas %}
-  <li>{{ loja.nome }}</li>
+  <li>{{ loja.nome }} <a href="{% url 'editar_loja' loja.pk %}">Renomear</a></li>
   {% empty %}
   <li>Nenhuma Loja cadastrada para você. Peça ao responsável pela instalação.</li>
   {% endfor %}

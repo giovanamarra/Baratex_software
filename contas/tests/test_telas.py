@@ -3,7 +3,8 @@
 from django.test import TestCase
 from django.urls import URLPattern, get_resolver, reverse
 
-from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
+from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja, nomes
+from contas.casos_de_uso import listar_minhas_lojas
 
 PAGINAS_PUBLICAS = {'entrar'}
 
@@ -54,3 +55,19 @@ class TelasDoGestorTests(TestCase):
         self.assertContains(resposta, 'Loja Centro')
         self.assertContains(resposta, 'Loja Norte')
         self.assertNotContains(resposta, 'Loja Sul')
+
+    def test_editar_pela_url_a_loja_de_outro_gestor_e_recusado_e_a_loja_nao_muda(self):
+        url = reverse('editar_loja', kwargs={'pk': self.loja_sul.pk})
+        tentativas = {
+            'abrir o formulário': lambda: self.client.get(url),
+            'enviar o formulário': lambda: self.client.post(url, {'nome': 'Loja Invadida'}),
+        }
+
+        for tentativa, requisicao in tentativas.items():
+            with self.subTest(tentativa=tentativa):
+                resposta = requisicao()
+                self.assertContains(
+                    resposta, 'Esta Loja é de outro Gestor. Só ele pode editá-la.', status_code=403
+                )
+
+        self.assertEqual(nomes(listar_minhas_lojas(self.outro_gestor)), ['Loja Sul'])

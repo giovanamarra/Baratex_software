@@ -16,4 +16,5 @@ urlpatterns = [
         name='entrar',
     ),
     path('', contas.inicio, name='inicio'),
+    path('lojas/<int:pk>/editar/', contas.editar_loja, name='editar_loja'),
 ]
