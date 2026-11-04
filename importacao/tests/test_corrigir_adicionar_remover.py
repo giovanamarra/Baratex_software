@@ -113,6 +113,21 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual([oferta.caixa for oferta in catalogo.ofertas()], [12, 24, 12])
 
+    def test_confirmacao_e_recusada_com_oferta_sem_preco_maior_que_zero(self):
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', '7,50'),
+            CartaoFicticio('1003', 'Rodo Ficticio', '***,**'),  # mascarado, como no real
+            CartaoFicticio('1004', 'Pa Ficticia', '0,00'),
+        ])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+
+        with self.assertRaisesMessage(
+            ErroDeNegocio, 'Informe um preço maior que zero antes de confirmar. Ofertas sem preço: 1003, 1004.'
+        ):
+            confirmar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual([r.pk for r in listar_revisoes_em_andamento(self.gestora)], [revisao.pk])
+
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
         valores = {

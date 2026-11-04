@@ -107,9 +107,7 @@ def _desconto_valido(texto):
 def confirmar_revisao(gestor, revisao_id):
     revisao = _revisao_em_andamento(gestor, revisao_id)
     ofertas = revisao.ofertas_propostas()
-    sem_caixa = [oferta.codigo for oferta in ofertas if oferta.caixa is None]
-    if sem_caixa:
-        raise ErroDeNegocio(f'Informe a Caixa antes de confirmar. Ofertas sem Caixa: {", ".join(sem_caixa)}.')
+    _exigir_revisao_completa(ofertas)
     # O Catálogo aponta para o mesmo arquivo guardado na Revisão: ele vira o arquivo de origem.
     # Transação única: se uma Oferta falhar, nem o Catálogo nem a marcação da Revisão ficam salvos.
     with transaction.atomic():
@@ -124,6 +122,21 @@ def confirmar_revisao(gestor, revisao_id):
         revisao.catalogo = catalogo
         revisao.save()
     return catalogo
+
+
+def _exigir_revisao_completa(ofertas):
+    """Recusa a confirmação listando, de uma vez, tudo o que falta (spec, Revisão)."""
+    problemas = []
+    sem_caixa = [oferta.codigo for oferta in ofertas if oferta.caixa is None]
+    if sem_caixa:
+        problemas.append(f'Informe a Caixa antes de confirmar. Ofertas sem Caixa: {", ".join(sem_caixa)}.')
+    sem_preco = [oferta.codigo for oferta in ofertas if oferta.preco_impresso is None or oferta.preco_impresso <= 0]
+    if sem_preco:
+        problemas.append(
+            f'Informe um preço maior que zero antes de confirmar. Ofertas sem preço: {", ".join(sem_preco)}.'
+        )
+    if problemas:
+        raise ErroDeNegocio(' '.join(problemas))
 
 
 def abandonar_revisao(gestor, revisao_id):

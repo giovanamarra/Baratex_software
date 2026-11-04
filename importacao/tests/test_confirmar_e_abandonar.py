@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_fornecedor
 from catalogos.models import Oferta
@@ -18,6 +18,7 @@ from importacao.casos_de_uso import (
     abandonar_revisao,
     confirmar_revisao,
     iniciar_importacao,
+    informar_condicoes_do_catalogo,
     listar_revisoes_em_andamento,
 )
 
@@ -164,9 +165,14 @@ class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
         fornecedor = cadastrar_fornecedor(gestora, 'Fornecedor Alfa')
         cartoes = [
             CartaoFicticio('1001', 'Balde Ficticio', '7,50'),
-            CartaoFicticio('1002', 'Rodo Ficticio', '-5,00'),  # o banco recusa preço negativo
+            CartaoFicticio('1002', 'Rodo Ficticio', '11,00'),
         ]
         revisao = iniciar_importacao(gestora, fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes)))
+        informar_condicoes_do_catalogo(gestora, revisao.pk, '0')
+        # A Revisão está completa, então a falha tem de vir do banco: um gatilho (só no SQLite de
+        # teste) recusa gravar a Oferta 1002 depois de o Catálogo já ter sido criado. Decisão da
+        # usuária no ticket 06, porque a validação da confirmação passou a cobrir o preço negativo.
+        self.recusar_no_banco_a_oferta_de_codigo('1002')
 
         with self.assertRaises(IntegrityError):
             confirmar_revisao(gestora, revisao.pk)
@@ -175,3 +181,18 @@ class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
         # Ainda não há caso de uso que liste Ofertas (a busca é do ticket 09): olho o modelo direto.
         self.assertFalse(Oferta.objects.exists())
         self.assertEqual([r.pk for r in listar_revisoes_em_andamento(gestora)], [revisao.pk])
+
+    def recusar_no_banco_a_oferta_de_codigo(self, codigo):
+        assert codigo.isalnum()  # o SQLite não aceita parâmetro em gatilho; o valor vai direto no SQL
+        tabela = Oferta._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"CREATE TRIGGER falha_simulada BEFORE INSERT ON {tabela} WHEN NEW.codigo = '{codigo}' "
+                "BEGIN SELECT RAISE(ABORT, 'falha simulada ao gravar a Oferta'); END"
+            )
+        # O TransactionTestCase limpa os dados entre testes, mas não o esquema: o gatilho sai no fim.
+        self.addCleanup(self._apagar_gatilho)
+
+    def _apagar_gatilho(self):
+        with connection.cursor() as cursor:
+            cursor.execute('DROP TRIGGER IF EXISTS falha_simulada')
