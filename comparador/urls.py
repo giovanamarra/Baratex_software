@@ -5,6 +5,7 @@ from django.urls import path
 from catalogos import views as catalogos
 from contas import views as contas
 from contas.formularios import FormularioDeEntrada
+from importacao import views as importacao
 
 # Toda página tem nome: o teste de login obrigatório percorre esta lista.
 urlpatterns = [
@@ -20,4 +21,6 @@ urlpatterns = [
     path('', contas.inicio, name='inicio'),
     path('lojas/<int:pk>/editar/', contas.editar_loja, name='editar_loja'),
     path('fornecedores/', catalogos.fornecedores, name='fornecedores'),
+    path('importar/', importacao.importar, name='importar'),
+    path('revisoes/<int:pk>/', importacao.revisao, name='revisao'),
 ]

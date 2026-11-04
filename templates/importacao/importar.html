@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block titulo %}Importar Catálogo{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Importar Catálogo</h1>
+  <p class="texto-secundario">Escolha o Fornecedor e envie o arquivo. Nada é salvo antes da Revisão.</p>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível importar:</strong> {{ erro }}</p>{% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="fornecedor">Fornecedor</label>
+      <select id="fornecedor" name="fornecedor" required>
+        <option value="">Escolha o Fornecedor</option>
+        {% for fornecedor in fornecedores %}
+        <option value="{{ fornecedor.pk }}"{% if fornecedor_escolhido == fornecedor.pk|stringformat:"s" %} selected{% endif %}>{{ fornecedor.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label for="arquivo">Arquivo do Catálogo</label>
+      <input id="arquivo" name="arquivo" type="file" accept=".pdf,application/pdf" required>
+    </div>
+    <button class="botao botao--primario" type="submit">Importar</button>
+  </form>
+</section>
+
+<section class="cartao">
+  <h2>As minhas Revisões em andamento</h2>
+  <ul class="lista">
+    {% for revisao in revisoes %}
+    <li class="lista__item">
+      <span>{{ revisao.fornecedor.nome }}</span>
+      <a class="botao botao--secundario" href="{% url 'revisao' revisao.pk %}">Retomar</a>
+    </li>
+    {% empty %}
+    <li class="lista__item texto-secundario">Nenhuma Revisão em andamento.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
