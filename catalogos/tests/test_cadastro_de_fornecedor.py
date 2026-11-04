@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, listar_fornecedores
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 
 
@@ -28,3 +29,11 @@ class CadastroDeFornecedorTests(TestCase):
         cadastrar_fornecedor(self.gestora, '  Fornecedor Beta  ')
 
         self.assertEqual(nomes(listar_fornecedores(self.gestora)), ['Fornecedor Beta'])
+
+    def test_fornecedor_sem_nome_e_recusado(self):
+        for nome_vazio in ['', '   ']:
+            with self.subTest(nome=nome_vazio):
+                with self.assertRaisesMessage(ErroDeNegocio, 'Informe o nome do Fornecedor.'):
+                    cadastrar_fornecedor(self.gestora, nome_vazio)
+
+        self.assertEqual(nomes(listar_fornecedores(self.gestora)), [])
