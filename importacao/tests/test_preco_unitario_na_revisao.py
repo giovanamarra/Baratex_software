@@ -79,3 +79,12 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
 
         self.assertEqual(precos_unitarios(ofertas), [Decimal('9.50')])
         self.assertEqual(catalogo.desconto, Decimal('5'))
+
+    def test_aliquota_impressa_no_cartao_nao_muda_o_preco_unitario(self):
+        # Os cartões reais do Layout A trazem "+ N% ipi" ou "sem ipi"; o ADR-0005 ignora impostos.
+        revisao = self.iniciar([
+            CartaoFicticio('1001', 'Balde Ficticio', '10,00', ipi='+10,0% ipi'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '10,00', ipi='sem ipi'),
+        ])
+
+        self.assertEqual(precos_unitarios(revisao.ofertas_propostas()), [Decimal('10.00'), Decimal('10.00')])
