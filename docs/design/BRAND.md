@@ -23,7 +23,7 @@ Derivadas para a interface (não estão no manual; mantêm o contraste mínimo W
 | `--bx-texto-2` | `#3F5246` | Texto secundário em fundo claro |
 | `--bx-texto-claro` | `#C7D8CB` | Texto secundário em fundo verde |
 | `--bx-borda` | `#D8DCD5` | Bordas e divisórias |
-| `--bx-limao-claro` | `#E3FFB8` | Linha selecionada ou melhor Oferta numa tabela |
+| `--bx-limao-claro` | `#E3FFB8` | Linha selecionada numa tabela. Nunca para destacar a "melhor" Oferta: o sistema não elege vencedora (ADR-0003) |
 | `--bx-erro` | `#B3261E` | Erros de regra de negócio e recusas |
 | `--bx-alerta-fundo` / `--bx-alerta` | `#FFF4D6` / `#7A4F00` | Marcas de conferência na Revisão e alerta de Teto de compra |
 
