@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.utils import timezone
 
-from catalogos.casos_de_uso import registrar_catalogo
+from catalogos.casos_de_uso import guardar_conteudo, registrar_catalogo
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from extracao.extrair import extrair_ofertas
 from importacao.models import OfertaProposta, Revisao
@@ -135,7 +135,8 @@ def _desconto_valido(texto):
     return desconto
 
 
-def confirmar_revisao(gestor, revisao_id):
+def confirmar_revisao(gestor, revisao_id, hoje=None):
+    """`hoje` é o dia registrado no histórico do Conteúdo; injetável nos testes."""
     revisao = _revisao_em_andamento(gestor, revisao_id)
     ofertas = revisao.ofertas_propostas()
     _exigir_revisao_completa(revisao, ofertas)
@@ -150,6 +151,11 @@ def confirmar_revisao(gestor, revisao_id):
             revisao.desconto,
             ofertas,
         )
+        for oferta in ofertas:
+            if oferta.conteudo_definido is not None:
+                guardar_conteudo(
+                    gestor, revisao.fornecedor, oferta.codigo, oferta.conteudo_definido, hoje or timezone.localdate()
+                )
         revisao.catalogo = catalogo
         revisao.save()
     return catalogo

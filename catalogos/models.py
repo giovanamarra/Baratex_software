@@ -32,7 +32,11 @@ class Catalogo(models.Model):
         verbose_name_plural = 'Catálogos'
 
     def ofertas(self):
-        return list(self.ofertas_do_catalogo.order_by('ordem'))
+        ofertas = list(self.ofertas_do_catalogo.order_by('ordem'))
+        guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para o Catálogo inteiro
+        for oferta in ofertas:
+            oferta._conteudo = conteudo_guardado(guardados, oferta.codigo)
+        return ofertas
 
 
 class Oferta(models.Model):
@@ -57,9 +61,44 @@ class Oferta(models.Model):
             ),
         ]
 
-    # O Conteúdo começa em 1 (história 42); o ticket 07 passa a guardá-lo por Fornecedor + código.
-    conteudo = 1
+    @property
+    def conteudo(self):
+        # Guardado por Fornecedor + código, não por Oferta: vale para todos os Catálogos do Fornecedor.
+        if not hasattr(self, '_conteudo'):
+            self._conteudo = conteudo_guardado(conteudos_guardados(self.catalogo.fornecedor_id), self.codigo)
+        return self._conteudo
 
     @property
     def preco_unitario(self):
         return calcular_preco_unitario(self.preco_impresso, self.catalogo.desconto, self.conteudo)
+
+
+class AlteracaoDeConteudo(models.Model):
+    """Registro de cada mudança do Conteúdo de um Fornecedor + código (ADR-0007, auditoria).
+
+    O Conteúdo atual é o valor novo da alteração mais recente; sem alteração, vale 1 (história 42).
+    """
+
+    fornecedor = models.ForeignKey(Fornecedor, on_delete=models.PROTECT, related_name='alteracoes_de_conteudo')
+    codigo = models.CharField(max_length=100)
+    gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+')
+    data = models.DateField()
+    valor_anterior = models.PositiveIntegerField()
+    valor_novo = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = 'Alteração de Conteúdo'
+        verbose_name_plural = 'Alterações de Conteúdo'
+
+
+CONTEUDO_PADRAO = 1
+
+
+def conteudos_guardados(fornecedor_id):
+    """Conteúdo atual de cada código do Fornecedor que já teve o Conteúdo definido."""
+    alteracoes = AlteracaoDeConteudo.objects.filter(fornecedor_id=fornecedor_id).order_by('pk')
+    return dict(alteracoes.values_list('codigo', 'valor_novo'))  # a mais recente vence
+
+
+def conteudo_guardado(guardados, codigo):
+    return guardados.get(codigo, CONTEUDO_PADRAO)

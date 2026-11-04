@@ -1,6 +1,13 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
-from catalogos.models import Catalogo, Fornecedor, Oferta
+from catalogos.models import (
+    AlteracaoDeConteudo,
+    Catalogo,
+    Fornecedor,
+    Oferta,
+    conteudo_guardado,
+    conteudos_guardados,
+)
 from comparador.erros import ErroDeNegocio
 
 
@@ -36,6 +43,19 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
         for ordem, oferta in enumerate(ofertas)
     )
     return catalogo
+
+
+def guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje):
+    """Guarda o Conteúdo de um Fornecedor + código, registrando quem mudou e quando (ADR-0007)."""
+    anterior = conteudo_guardado(conteudos_guardados(fornecedor.pk), codigo)
+    AlteracaoDeConteudo.objects.create(
+        fornecedor=fornecedor, codigo=codigo, gestor=gestor, data=hoje, valor_anterior=anterior, valor_novo=conteudo
+    )
+
+
+def historico_do_conteudo(gestor, fornecedor, codigo):
+    """Alterações do Conteúdo de um Fornecedor + código, da mais recente para a mais antiga."""
+    return AlteracaoDeConteudo.objects.filter(fornecedor=fornecedor, codigo=codigo).order_by('-pk')
 
 
 def obter_catalogo(gestor, catalogo_id):
