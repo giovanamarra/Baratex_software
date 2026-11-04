@@ -51,8 +51,7 @@ def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
 def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impresso, caixa):
     """Os valores chegam como a gestora digitou: preço "1.234,56" ou "9,90"; Caixa "24"; vazio = ausente."""
     oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
-    oferta.codigo = codigo.strip()
-    oferta.descricao = descricao.strip()
+    oferta.codigo, oferta.descricao = _codigo_e_descricao(codigo, descricao)
     oferta.preco_impresso = _preco_digitado(preco_impresso)
     oferta.caixa = _caixa_digitada(caixa)
     oferta.save()
@@ -64,12 +63,13 @@ CAMINHO_MANUAL = 'manual'
 def adicionar_oferta_proposta(gestor, revisao_id, codigo, descricao, preco_impresso, caixa):
     """Oferta digitada pela gestora, para um item que a extração não encontrou (história 35)."""
     revisao = _revisao_em_andamento(gestor, revisao_id)
+    codigo, descricao = _codigo_e_descricao(codigo, descricao)
     ultima = revisao.ofertas.order_by('-ordem').first()
     return OfertaProposta.objects.create(
         revisao=revisao,
         ordem=ultima.ordem + 1 if ultima else 0,
-        codigo=codigo.strip(),
-        descricao=descricao.strip(),
+        codigo=codigo,
+        descricao=descricao,
         preco_impresso=_preco_digitado(preco_impresso),
         caixa=_caixa_digitada(caixa),
         caminho=CAMINHO_MANUAL,
@@ -78,6 +78,14 @@ def adicionar_oferta_proposta(gestor, revisao_id, codigo, descricao, preco_impre
 
 def remover_oferta_proposta(gestor, oferta_id):
     _oferta_proposta_em_andamento(gestor, oferta_id).delete()
+
+
+def _codigo_e_descricao(codigo, descricao):
+    """Oferta sem código ou sem descrição não pode existir: o código liga Conteúdo e Produto."""
+    codigo, descricao = codigo.strip(), descricao.strip()
+    if not codigo or not descricao:
+        raise ErroDeNegocio('Informe o código e a descrição da Oferta.')
+    return codigo, descricao
 
 
 def _preco_digitado(texto):

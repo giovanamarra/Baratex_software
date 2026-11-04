@@ -171,6 +171,26 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual(self.ofertas(revisao)[0].caixa, 24)
 
+    def test_oferta_sem_codigo_ou_sem_descricao_e_recusada_ao_adicionar_ou_corrigir(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio')])
+        balde = self.ofertas(revisao)[0]
+        tentativas = {
+            'adicionar sem código': lambda: adicionar_oferta_proposta(
+                self.gestora, revisao.pk, codigo='  ', descricao='Esponja Ficticia', preco_impresso='3,40', caixa='60'
+            ),
+            'adicionar sem descrição': lambda: adicionar_oferta_proposta(
+                self.gestora, revisao.pk, codigo='2001', descricao='', preco_impresso='3,40', caixa='60'
+            ),
+            'corrigir apagando o código': lambda: self.corrigir(balde, codigo=''),
+        }
+
+        for tentativa, acao in tentativas.items():
+            with self.subTest(tentativa=tentativa):
+                with self.assertRaisesMessage(ErroDeNegocio, 'Informe o código e a descrição da Oferta.'):
+                    acao()
+
+        self.assertEqual([(oferta.codigo, oferta.descricao) for oferta in self.ofertas(revisao)], [('1001', 'Balde Ficticio')])
+
     def corrigir(self, oferta, **mudancas):
         """Corrige só os campos pedidos, repetindo os outros como estão."""
         valores = {
