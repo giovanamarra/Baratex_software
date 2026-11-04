@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from catalogos.preco_unitario import calcular_preco_unitario
+
 
 class Revisao(models.Model):
     """Revisão em andamento: rascunho da Importação. Não é Catálogo até ser confirmada (spec, Revisão)."""
@@ -36,3 +38,10 @@ class OfertaProposta(models.Model):
     class Meta:
         verbose_name = 'Oferta proposta'
         verbose_name_plural = 'Ofertas propostas'
+
+    # O Conteúdo começa em 1 (história 42); o ticket 07 passa a guardá-lo por Fornecedor + código.
+    conteudo = 1
+
+    @property
+    def preco_unitario(self):
+        return calcular_preco_unitario(self.preco_impresso, self.conteudo)
