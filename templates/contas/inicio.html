@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
-{% block titulo %}Início{% endblock %}
+{% block titulo %}As minhas Lojas{% endblock %}
 
 {% block conteudo %}
-<h1>As minhas Lojas</h1>
-<ul>
-  {% for loja in lojas %}
-  <li>{{ loja.nome }} <a href="{% url 'editar_loja' loja.pk %}">Renomear</a></li>
-  {% empty %}
-  <li>Nenhuma Loja cadastrada para você. Peça ao responsável pela instalação.</li>
-  {% endfor %}
-</ul>
+<section class="cartao">
+  <h1>As minhas Lojas</h1>
+  <ul class="lista">
+    {% for loja in lojas %}
+    <li class="lista__item">
+      <span>{{ loja.nome }}</span>
+      <a class="botao botao--secundario" href="{% url 'editar_loja' loja.pk %}">Renomear</a>
+    </li>
+    {% empty %}
+    <li class="lista__item texto-secundario">Nenhuma Loja cadastrada para você. Peça ao responsável pela instalação.</li>
+    {% endfor %}
+  </ul>
+</section>
 {% endblock %}

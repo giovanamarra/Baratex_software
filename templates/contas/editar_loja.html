@@ -3,15 +3,19 @@
 {% block titulo %}Renomear Loja{% endblock %}
 
 {% block conteudo %}
-<h1>Renomear Loja</h1>
-{% if erro %}<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> {{ erro }}</p>{% endif %}
-<form method="post">
-  {% csrf_token %}
-  <p>
-    <label for="nome">Nome da Loja</label>
-    <input id="nome" name="nome" type="text" value="{{ nome }}" maxlength="200">
-  </p>
-  <button type="submit">Salvar</button>
-  <a href="{% url 'inicio' %}">Cancelar</a>
-</form>
+<section class="cartao">
+  <h1>Renomear Loja</h1>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> {{ erro }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="nome">Nome da Loja</label>
+      <input id="nome" name="nome" type="text" value="{{ nome }}" maxlength="200">
+    </div>
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Salvar</button>
+      <a class="botao botao--secundario" href="{% url 'inicio' %}">Cancelar</a>
+    </div>
+  </form>
+</section>
 {% endblock %}

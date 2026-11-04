@@ -1,0 +1,18 @@
+:root {
+  --bx-verde: #003D1E;
+  --bx-limao: #9CFF00;
+  --bx-cinza: #EFEFEF;
+  --bx-preto: #1D1D1B;
+  --bx-branco: #FFFFFF;
+  --bx-verde-2: #0B5230;
+  --bx-verde-texto: #2E7D00;
+  --bx-texto-2: #3F5246;
+  --bx-texto-claro: #C7D8CB;
+  --bx-borda: #D8DCD5;
+  --bx-limao-claro: #E3FFB8;
+  --bx-erro: #B3261E;
+  --bx-alerta-fundo: #FFF4D6;
+  --bx-alerta: #7A4F00;
+  --bx-fonte: "Archivo", Arial, sans-serif;
+  --bx-raio: 12px;
+}

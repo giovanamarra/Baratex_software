@@ -1,0 +1,220 @@
+/* Estilo base. Só usa as variáveis de tokens.css (docs/design/BRAND.md). */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bx-cinza);
+  color: var(--bx-verde);
+  font-family: var(--bx-fonte);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+h1,
+h2 {
+  margin: 0 0 1rem;
+  font-weight: 700;
+  color: var(--bx-verde);
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+a {
+  color: var(--bx-verde-texto);
+}
+
+/* Barra de navegação */
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--bx-verde);
+}
+
+.barra__logo img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+
+.barra__link {
+  color: var(--bx-branco);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.barra__link:hover {
+  text-decoration: underline;
+}
+
+.barra__sair {
+  margin: 0 0 0 auto;
+}
+
+/* Conteúdo em cartões brancos */
+
+main {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.cartao {
+  padding: 1.5rem;
+  background: var(--bx-branco);
+  border: 1px solid var(--bx-borda);
+  border-radius: var(--bx-raio);
+}
+
+.cartao > :last-child {
+  margin-bottom: 0;
+}
+
+.texto-secundario {
+  color: var(--bx-texto-2);
+}
+
+/* Formulários */
+
+.campo {
+  margin: 0 0 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  max-width: 24rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--bx-verde);
+  font: inherit;
+  background: var(--bx-branco);
+  border: 1px solid var(--bx-borda);
+  border-radius: 8px;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Botões: primário verde com texto branco; secundário branco com borda e texto verdes */
+
+.botao {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--bx-verde);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.botao--primario {
+  color: var(--bx-branco);
+  background: var(--bx-verde);
+}
+
+.botao--primario:hover {
+  background: var(--bx-verde-2);
+  border-color: var(--bx-verde-2);
+}
+
+.botao--secundario {
+  color: var(--bx-verde);
+  background: var(--bx-branco);
+}
+
+/* Foco: contorno de 3px limão. O halo verde mantém o foco visível também em fundo claro. */
+
+:focus-visible {
+  outline: 3px solid var(--bx-limao);
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px var(--bx-verde);
+}
+
+/* Erros: cor e texto, nunca só a cor */
+
+.erro,
+.errorlist {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  color: var(--bx-erro);
+  background: var(--bx-branco);
+  border: 1px solid var(--bx-erro);
+  border-left-width: 6px;
+  border-radius: 8px;
+}
+
+.errorlist {
+  list-style: none;
+}
+
+/* Listas e tabelas */
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--bx-borda);
+}
+
+.lista__item:last-child {
+  border-bottom: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+}
+
+thead th {
+  color: var(--bx-branco);
+  font-weight: 600;
+  background: var(--bx-verde);
+}
+
+tbody tr:nth-child(odd) {
+  background: var(--bx-branco);
+}
+
+tbody tr:nth-child(even) {
+  background: var(--bx-cinza);
+}
