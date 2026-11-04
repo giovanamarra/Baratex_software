@@ -58,6 +58,24 @@ def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impress
     oferta.save()
 
 
+CAMINHO_MANUAL = 'manual'
+
+
+def adicionar_oferta_proposta(gestor, revisao_id, codigo, descricao, preco_impresso, caixa):
+    """Oferta digitada pela gestora, para um item que a extração não encontrou (história 35)."""
+    revisao = _revisao_em_andamento(gestor, revisao_id)
+    ultima = revisao.ofertas.order_by('-ordem').first()
+    return OfertaProposta.objects.create(
+        revisao=revisao,
+        ordem=ultima.ordem + 1 if ultima else 0,
+        codigo=codigo.strip(),
+        descricao=descricao.strip(),
+        preco_impresso=_preco_digitado(preco_impresso),
+        caixa=_caixa_digitada(caixa),
+        caminho=CAMINHO_MANUAL,
+    )
+
+
 def _preco_digitado(texto):
     texto = texto.strip()
     if not texto:

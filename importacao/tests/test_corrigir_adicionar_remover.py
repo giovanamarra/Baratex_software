@@ -5,6 +5,7 @@ from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
 from importacao.casos_de_uso import (
+    adicionar_oferta_proposta,
     corrigir_oferta_proposta,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
@@ -45,3 +46,18 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             ],
         )
         self.assertEqual(obter_revisao(self.gestora, revisao.pk).desconto, Decimal('10'))
+
+    def test_adicionar_uma_oferta_a_mao_faz_ela_aparecer_com_o_caminho_manual(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
+
+        adicionar_oferta_proposta(
+            self.gestora, revisao.pk, codigo='2001', descricao='Esponja Ficticia', preco_impresso='3,40', caixa='60'
+        )
+
+        self.assertEqual(
+            [resumo(oferta) for oferta in self.ofertas(revisao)],
+            [
+                ('1001', 'Balde Ficticio', Decimal('7.50'), 24, 'grade de cartões'),
+                ('2001', 'Esponja Ficticia', Decimal('3.40'), 60, 'manual'),
+            ],
+        )
