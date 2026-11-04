@@ -9,6 +9,10 @@ class Revisao(models.Model):
     fornecedor = models.ForeignKey('catalogos.Fornecedor', on_delete=models.PROTECT)
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
     iniciada_em = models.DateField()  # vira a data do Catálogo (história 15)
+    # Preenchido ao confirmar. Sem Catálogo, a Revisão está em andamento.
+    catalogo = models.OneToOneField(
+        'catalogos.Catalogo', on_delete=models.PROTECT, null=True, related_name='revisao'
+    )
 
     class Meta:
         verbose_name = 'Revisão'

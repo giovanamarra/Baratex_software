@@ -5,7 +5,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_for
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, resumo
-from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao
+from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, listar_revisoes_em_andamento
 
 
 class ConfirmarRevisaoTests(TesteComArquivosEnviados):
@@ -81,3 +81,11 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
             [resumo(oferta) for oferta in catalogos[1].ofertas()],
             [('1001', 'Balde Ficticio', Decimal('7.50'), 24, 'grade de cartões')],
         )
+
+    def test_revisao_confirmada_sai_das_revisoes_em_andamento(self):
+        confirmada = self.iniciar()
+        em_andamento = self.iniciar()
+
+        confirmar_revisao(self.gestora, confirmada.pk)
+
+        self.assertEqual([revisao.pk for revisao in listar_revisoes_em_andamento(self.gestora)], [em_andamento.pk])

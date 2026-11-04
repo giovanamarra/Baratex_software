@@ -42,13 +42,15 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
 def confirmar_revisao(gestor, revisao_id):
     revisao = Revisao.objects.get(pk=revisao_id)
     # O Catálogo aponta para o mesmo arquivo guardado na Revisão: ele vira o arquivo de origem.
-    return registrar_catalogo(
+    revisao.catalogo = registrar_catalogo(
         gestor, revisao.fornecedor, revisao.iniciada_em, revisao.arquivo, revisao.ofertas_propostas()
     )
+    revisao.save()
+    return revisao.catalogo
 
 
 def listar_revisoes_em_andamento(gestor):
-    return Revisao.objects.filter(gestor=gestor)
+    return Revisao.objects.filter(gestor=gestor, catalogo__isnull=True)
 
 
 def obter_revisao(gestor, revisao_id):
