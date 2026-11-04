@@ -52,6 +52,13 @@ def confirmar_revisao(gestor, revisao_id):
     return catalogo
 
 
+def abandonar_revisao(gestor, revisao_id):
+    revisao = Revisao.objects.get(pk=revisao_id)
+    arquivo = revisao.arquivo
+    revisao.delete()  # leva junto as Ofertas propostas
+    arquivo.delete(save=False)
+
+
 def listar_revisoes_em_andamento(gestor):
     return Revisao.objects.filter(gestor=gestor, catalogo__isnull=True)
 

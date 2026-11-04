@@ -13,10 +13,15 @@ from importacao.auxiliares_de_teste import (
     arquivo_enviado,
     resumo,
 )
-from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, listar_revisoes_em_andamento
+from importacao.casos_de_uso import (
+    abandonar_revisao,
+    confirmar_revisao,
+    iniciar_importacao,
+    listar_revisoes_em_andamento,
+)
 
 
-class ConfirmarRevisaoTests(TesteComArquivosEnviados):
+class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
     def setUp(self):
         self.gestora = criar_gestor('gestora')
         self.fornecedor = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
@@ -97,6 +102,17 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
         confirmar_revisao(self.gestora, confirmada.pk)
 
         self.assertEqual([revisao.pk for revisao in listar_revisoes_em_andamento(self.gestora)], [em_andamento.pk])
+
+    def test_abandonar_nao_cria_catalogo_tira_a_revisao_da_lista_e_apaga_o_arquivo(self):
+        revisao = self.iniciar()
+        armazenamento, nome_do_arquivo = revisao.arquivo.storage, revisao.arquivo.name
+        self.assertTrue(armazenamento.exists(nome_do_arquivo))
+
+        abandonar_revisao(self.gestora, revisao.pk)
+
+        self.assertFalse(armazenamento.exists(nome_do_arquivo))
+        self.assertEqual(list(listar_revisoes_em_andamento(self.gestora)), [])
+        self.assertEqual(list(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)), [])
 
 
 class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
