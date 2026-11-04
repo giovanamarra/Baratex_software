@@ -53,3 +53,13 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '12,00', caixa='48')])
 
         self.assertEqual(precos_unitarios(revisao.ofertas_propostas()), [Decimal('12.00')])
+
+    def test_desconto_e_aplicado_uma_vez_so_sobre_o_preco_impresso(self):
+        # História 25: o preço impresso nunca é alterado, então o desconto não acumula.
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '8,00')])
+
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+
+        ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
+        self.assertEqual([(o.preco_impresso, o.preco_unitario) for o in ofertas], [(Decimal('8.00'), Decimal('7.20'))])
