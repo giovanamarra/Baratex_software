@@ -64,3 +64,20 @@ class ConfirmarRevisaoTests(TesteComArquivosEnviados):
             [(catalogo.data, catalogo.fornecedor.nome) for catalogo in catalogos],
             [(date(2026, 10, 10), 'Fornecedor Alfa')],
         )
+
+    def test_duas_importacoes_em_dias_diferentes_geram_dois_catalogos_e_o_primeiro_fica_intacto(self):
+        primeira = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')], hoje=date(2026, 10, 10))
+        confirmar_revisao(self.gestora, primeira.pk)
+        segunda = self.iniciar(
+            [CartaoFicticio('1001', 'Balde Ficticio', '8,20'), CartaoFicticio('1002', 'Rodo Ficticio', '11,00')],
+            hoje=date(2026, 10, 11),
+        )
+        confirmar_revisao(self.gestora, segunda.pk)
+
+        catalogos = list(listar_catalogos_do_fornecedor(self.gestora, self.fornecedor))
+
+        self.assertEqual([catalogo.data for catalogo in catalogos], [date(2026, 10, 11), date(2026, 10, 10)])
+        self.assertEqual(
+            [resumo(oferta) for oferta in catalogos[1].ofertas()],
+            [('1001', 'Balde Ficticio', Decimal('7.50'), 24, 'grade de cartões')],
+        )

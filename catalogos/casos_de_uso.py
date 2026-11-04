@@ -37,7 +37,8 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, ofertas):
 
 
 def listar_catalogos_do_fornecedor(gestor, fornecedor):
-    return Catalogo.objects.filter(fornecedor=fornecedor)
+    # Mais recente primeiro; no mesmo dia, o último confirmado primeiro.
+    return Catalogo.objects.filter(fornecedor=fornecedor).order_by('-data', '-pk')
 
 
 def _fornecedor_com_o_mesmo_nome(nome):
