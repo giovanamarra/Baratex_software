@@ -104,6 +104,15 @@ class IniciarImportacaoTests(TesteComArquivosEnviados):
         with self.assertRaisesMessage(AcessoNegado, 'Esta Revisão é de outro Gestor.'):
             obter_revisao(outro_gestor, revisao_da_gestora.pk)
 
+    def test_arquivo_enviado_fica_guardado_com_a_revisao(self):
+        conteudo = catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')])
+        revisao = iniciar_importacao(self.gestora, self.fornecedor, arquivo_enviado(conteudo))
+
+        guardada = obter_revisao(self.gestora, revisao.pk)
+
+        with guardada.arquivo.open('rb') as arquivo:
+            self.assertEqual(arquivo.read(), conteudo)
+
     def iniciar_com_um_cartao(self, gestor):
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')]))
         return iniciar_importacao(gestor, self.fornecedor, catalogo)

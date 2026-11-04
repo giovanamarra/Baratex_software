@@ -9,8 +9,9 @@ from importacao.models import OfertaProposta, Revisao
 
 def iniciar_importacao(gestor, fornecedor, arquivo):
     ofertas = extrair_ofertas(arquivo)
+    arquivo.seek(0)
     with transaction.atomic():
-        revisao = Revisao.objects.create(gestor=gestor, fornecedor=fornecedor)
+        revisao = Revisao.objects.create(gestor=gestor, fornecedor=fornecedor, arquivo=arquivo)
         OfertaProposta.objects.bulk_create(
             OfertaProposta(
                 revisao=revisao,

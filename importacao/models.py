@@ -7,6 +7,7 @@ class Revisao(models.Model):
 
     gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='revisoes')
     fornecedor = models.ForeignKey('catalogos.Fornecedor', on_delete=models.PROTECT)
+    arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
 
     class Meta:
         verbose_name = 'Revisão'
