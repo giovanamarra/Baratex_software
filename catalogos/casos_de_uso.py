@@ -1,6 +1,6 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
-from catalogos.models import Catalogo, Fornecedor
+from catalogos.models import Catalogo, Fornecedor, Oferta
 from comparador.erros import ErroDeNegocio
 
 
@@ -16,6 +16,24 @@ def cadastrar_fornecedor(gestor, nome):
 
 def listar_fornecedores(gestor):
     return Fornecedor.objects.all()
+
+
+def registrar_catalogo(gestor, fornecedor, arquivo, ofertas):
+    """Cria o Catálogo e as suas Ofertas. Chamado pela Importação ao confirmar a Revisão."""
+    catalogo = Catalogo.objects.create(gestor=gestor, fornecedor=fornecedor, arquivo=arquivo)
+    Oferta.objects.bulk_create(
+        Oferta(
+            catalogo=catalogo,
+            ordem=ordem,
+            codigo=oferta.codigo,
+            descricao=oferta.descricao,
+            preco_impresso=oferta.preco_impresso,
+            caixa=oferta.caixa,
+            caminho=oferta.caminho,
+        )
+        for ordem, oferta in enumerate(ofertas)
+    )
+    return catalogo
 
 
 def listar_catalogos_do_fornecedor(gestor, fornecedor):
