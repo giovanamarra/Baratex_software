@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from contas.auxiliares_de_teste import criar_gestor, criar_loja, nomes
-from contas.casos_de_uso import listar_minhas_lojas
+from contas.casos_de_uso import listar_minhas_lojas, renomear_loja
 
 
 class LojasDoGestorTests(TestCase):
@@ -16,4 +16,11 @@ class LojasDoGestorTests(TestCase):
     def test_listar_as_minhas_lojas_devolve_so_as_lojas_do_gestor(self):
         self.assertCountEqual(
             nomes(listar_minhas_lojas(self.gestora)), ['Loja Centro', 'Loja Norte']
+        )
+
+    def test_dono_renomeia_a_propria_loja(self):
+        renomear_loja(self.gestora, self.loja_centro, 'Loja Praça')
+
+        self.assertCountEqual(
+            nomes(listar_minhas_lojas(self.gestora)), ['Loja Praça', 'Loja Norte']
         )
