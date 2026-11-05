@@ -116,3 +116,24 @@ class TelasAbremTests(TesteComArquivosEnviados):
             with self.subTest(texto=texto):
                 self.assertContains(resposta, texto)
         self.assertContains(resposta, f'href="{reverse("buscar_ofertas")}"')  # "Buscar" na barra de navegação
+
+    def test_buscar_com_mais_de_200_resultados_avisa_para_refinar_a_busca(self):
+        revisao = self.importar([CartaoFicticio(str(c), f'Item Ficticio {c}', '9,90') for c in range(1000, 1201)])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        confirmar_revisao(self.gestora, revisao.pk)
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'ficticio'})
+
+        self.assertContains(resposta, 'Mostrando 200 de 201 Ofertas. Refine a busca.')
+
+    def test_buscar_sem_resultado_diz_que_nenhuma_oferta_foi_encontrada(self):
+        self.catalogo_confirmado()
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'inexistente'})
+
+        self.assertContains(resposta, 'Nenhuma Oferta encontrada.')
+
+    def test_buscar_sem_texto_e_sem_fornecedor_mostra_o_erro_em_portugues(self):
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': ''})
+
+        self.assertContains(resposta, 'Digite um código ou parte da descrição, ou escolha um Fornecedor.')
