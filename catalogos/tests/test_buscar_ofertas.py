@@ -167,6 +167,15 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual((len(resultado.ofertas), resultado.total), (1, 1))
 
+    def test_com_so_vigentes_o_total_conta_so_as_ofertas_vigentes(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15)
+
+        vigentes = buscar_ofertas(self.gestora, '1001')
+        todas = buscar_ofertas(self.gestora, '1001', so_vigentes=False)
+
+        self.assertEqual((vigentes.total, todas.total), (1, 2))
+
     def test_o_preco_unitario_do_resultado_usa_o_conteudo_e_o_desconto_do_catalogo(self):
         self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], DIA_01, desconto='10')
         definir_conteudo(self.gestora, self.alfa, '1001', '3', hoje=DIA_15)
