@@ -3,7 +3,7 @@ from django.db import models
 
 from catalogos.models import conteudo_guardado, conteudos_guardados
 from catalogos.preco_unitario import calcular_preco_unitario
-from importacao.marcas import fora_do_padrao, mediana_dos_precos, unidade_ambigua
+from importacao.marcas import fora_do_padrao, mediana_dos_precos, pecas_citadas, unidade_ambigua
 
 
 class Revisao(models.Model):
@@ -83,3 +83,9 @@ class OfertaProposta(models.Model):
         if unidade_ambigua(self.descricao):
             marcas.append('unidade ambígua')
         return marcas
+
+    @property
+    def sugestao_de_conteudo(self):
+        """Conteúdo sugerido quando a descrição cita peças. Só sugere: nunca muda o Conteúdo (história 42)."""
+        citadas = pecas_citadas(self.descricao)
+        return citadas[1] if citadas else None

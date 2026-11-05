@@ -34,6 +34,26 @@ def unidade_ambigua(descricao):
     return bool(set(re.findall(r'[A-Z0-9]+', _sem_acentos_em_maiusculas(descricao))) & PALAVRAS_DE_UNIDADE_AMBIGUA)
 
 
+# Padrões de quantidade de peças, procurados na descrição sem acentos e em maiúsculas.
+PADROES_DE_PECAS = {
+    'C/3': re.compile(r'\bC/\s*(\d+)\b'),
+    'COM 3 PEÇAS': re.compile(r'\bCOM (\d+) PECAS?\b'),
+    '3 PÇS/PCS': re.compile(r'\b(\d+)\s*PCS?\b'),
+    '3 UNID': re.compile(r'\b(\d+)\s*UNID\w*'),
+}
+
+
+def pecas_citadas(descricao):
+    """(padrão, quantidade) da primeira quantidade de peças maior que 1 citada na descrição, ou None."""
+    texto = _sem_acentos_em_maiusculas(descricao)
+    for nome, padrao in PADROES_DE_PECAS.items():
+        for encontrado in padrao.finditer(texto):
+            quantidade = int(encontrado.group(1))
+            if quantidade > 1:
+                return nome, quantidade
+    return None
+
+
 def _sem_acentos_em_maiusculas(texto):
     decomposto = unicodedata.normalize('NFKD', texto.upper())
     return ''.join(letra for letra in decomposto if not unicodedata.combining(letra))

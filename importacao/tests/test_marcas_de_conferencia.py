@@ -64,3 +64,27 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
 
         ambiguas = [codigo for codigo, marcas in self.marcas(revisao).items() if 'unidade ambígua' in marcas]
         self.assertEqual(ambiguas, ['2001', '2002', '2003', '2004', '2005', '2006'])
+
+    def test_descricao_que_cita_quantidade_de_pecas_gera_sugestao_de_conteudo(self):
+        descricoes = {
+            '3001': 'Tesoura Ficticia C/3',
+            '3002': 'Faca Ficticia COM 4 PEÇAS',
+            '3003': 'Copo Ficticio 6 PÇS',
+            '3004': 'Prato Ficticio 2 PCS',
+            '3005': 'Pincel Ficticio 12 UNID',
+            '3006': 'Balde Ficticio C/ Tampa',  # "com tampa": não é quantidade
+            '3007': 'Rodo Ficticio 1 PC',  # 1 peça não muda nada
+            '3008': 'Regua Ficticia 30 CM',
+        }
+        revisao = self.importar([CartaoFicticio(codigo, descricao) for codigo, descricao in descricoes.items()])
+
+        self.assertEqual(
+            self.sugestoes(revisao),
+            {'3001': 3, '3002': 4, '3003': 6, '3004': 2, '3005': 12, '3006': None, '3007': None, '3008': None},
+        )
+        # Sugerir não muda o Conteúdo (história 42).
+        self.assertEqual({o.conteudo for o in obter_revisao(self.gestora, revisao.pk).ofertas_propostas()}, {1})
+
+    def sugestoes(self, revisao):
+        ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
+        return {oferta.codigo: oferta.sugestao_de_conteudo for oferta in ofertas}
