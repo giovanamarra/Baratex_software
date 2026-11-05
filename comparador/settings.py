@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'contas',
     'catalogos',
     'importacao',
+    'manutencao',
 ]
 
 # O Gestor é o usuário do sistema desde a primeira migração (trocar depois é caro).
