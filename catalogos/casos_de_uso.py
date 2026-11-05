@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from catalogos.busca import normalizar, texto_de_busca
@@ -93,10 +94,20 @@ class ResultadoDaBusca:
     ofertas: list
 
 
-def buscar_ofertas(gestor, texto):
+def buscar_ofertas(gestor, texto, so_vigentes=True):
     """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
     ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto.strip()))
+    if so_vigentes:
+        ofertas = ofertas.exclude(Exists(_do_mesmo_codigo_em_catalogo_mais_recente()))
     return ResultadoDaBusca(ofertas=list(ofertas))
+
+
+def _do_mesmo_codigo_em_catalogo_mais_recente():
+    return Oferta.objects.filter(
+        catalogo__fornecedor=OuterRef('catalogo__fornecedor'),
+        codigo=OuterRef('codigo'),
+        catalogo__data__gt=OuterRef('catalogo__data'),
+    )
 
 
 def obter_oferta(gestor, oferta_id):

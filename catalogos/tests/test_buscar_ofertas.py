@@ -71,3 +71,14 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         for digitado, esperado in casos:
             with self.subTest(digitado=digitado):
                 self.assertEqual(sorted(o.codigo for o in self.buscar(digitado)), esperado)
+
+    def test_a_busca_padrao_mostra_so_a_oferta_do_catalogo_mais_recente_do_fornecedor(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15)
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual(
+            [(o.preco_unitario, o.catalogo.data) for o in achadas],
+            [(Decimal('11.00'), DIA_15)],
+        )
