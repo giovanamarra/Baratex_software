@@ -110,7 +110,19 @@ def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
     if so_vigentes:
         ofertas = ofertas.exclude(Exists(_que_vale_mais_que_esta()))
     ofertas = ofertas.order_by('catalogo__fornecedor__nome', 'codigo', '-catalogo__data', '-pk')
-    return ResultadoDaBusca(ofertas=list(ofertas[:LIMITE_DE_RESULTADOS]), total=ofertas.count())
+    achadas = list(ofertas[:LIMITE_DE_RESULTADOS])
+    _carregar_conteudos(achadas)
+    return ResultadoDaBusca(ofertas=achadas, total=ofertas.count())
+
+
+def _carregar_conteudos(ofertas):
+    """Uma consulta por Fornecedor, em vez de uma por Oferta, para calcular o Preço unitário de cada resultado."""
+    guardados = {}
+    for oferta in ofertas:
+        fornecedor_id = oferta.catalogo.fornecedor_id
+        if fornecedor_id not in guardados:
+            guardados[fornecedor_id] = conteudos_guardados(fornecedor_id)
+        oferta._conteudo = conteudo_guardado(guardados[fornecedor_id], oferta.codigo)
 
 
 def _que_vale_mais_que_esta():
