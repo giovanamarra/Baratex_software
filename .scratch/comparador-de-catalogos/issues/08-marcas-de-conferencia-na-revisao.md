@@ -1,6 +1,6 @@
 # 08 — Marcas de conferência e contagem de preços na Revisão
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 06, 07
 Spec: [docs/spec.md](../../../docs/spec.md) (Extração › marcas de conferência; Further Notes › heurísticas)
@@ -54,3 +54,16 @@ Medida localmente com `ferramentas/conferir_catalogos_reais.py` nos 8 PDFs reais
 - **Por que sem JOGO:** no real, 30 das 32 ocorrências não citam peças e nenhuma é "JOGO DE": é brinquedo, não conjunto. **CJ** (conjunto) aparece 7 vezes, todas com número de peças.
 - **Sugestão:** ajustes medidos não ficaram abaixo de 10% sem tirar "N PÇS" (2 a 12: 11,5%; sem KIT/JOGO: 10,0%; os dois: 9,1%, com um Catálogo a 15,4%; sem "N PÇS": 1,1%). Tirar KIT contradiria o exemplo do kit de tesouras vendidas avulsas.
 - **"C/N" no Layout A:** quantidade de itens que vêm na Unidade de venda ("com N <itens>", em geral no fim da descrição), nunca igual à Caixa (0 de 17). "C/" seguido de letra (266 vezes) não é quantidade e não conta.
+
+## Comments
+
+**2026-11-05 — implementado por TDD** (commits `ab83846` a `ca03ccc`; antes, `99438e6` Caixa "³", `ee99b47` script de conferência, `1baaa9d` calibração)
+
+- **Regras** (`importacao/marcas.py`, derivadas, sem coluna): `mediana_dos_precos` (sem preço e zero não entram; menos de 5 preços = sem padrão), `fora_do_padrao` (10×, 1/10), `unidade_ambigua` (KIT, CJ, CONJUNTO, SET, PAR), `pecas_citadas` (C/N, COM N PEÇAS, N PÇS/PCS, N UNID; quantidade > 1).
+- **Na Oferta proposta:** `marcas` ("sem preço", "preço zero", "fora do padrão", "unidade ambígua"), recalculadas a cada leitura; `sugestao_de_conteudo` só com Conteúdo 1, sem decisão guardada e sem "Manter 1".
+- **Aceitar** (`aceitar_sugestao_de_conteudo`): define o Conteúdo na Revisão pelo Corrigir do ticket 07; guardado ao confirmar. Repetir não desfaz.
+- **Manter 1** (`manter_conteudo_1`; decisão da usuária): campo `decidiu_manter_conteudo_1` na Oferta proposta; ao confirmar, grava 1 → 1 no histórico (`guardar_conteudo(..., decisao_explicita=True)`). Como o Aceitar, fica na Revisão até a confirmação; abandonar descarta (decisão da usuária).
+- **Contagem:** a Extração devolve `Extracao(ofertas, precos_no_arquivo)` (`extrair_catalogo`); a Revisão guarda `precos_no_arquivo` e `ofertas_extraidas` na Importação (o arquivo não é relido a cada tela) e expõe `ofertas_que_faltam`.
+- **Confirmação:** fora do padrão, ambígua e sugestão não bloqueiam; sem preço continua bloqueando.
+- **Telas:** "unidade ambígua" na célula da descrição, marcas de preço na do preço, linha em alerta; "Sugestão: Conteúdo N" com "Aceitar" e "Manter 1" (botões secundários pequenos) na célula do Conteúdo; contagem no topo, em alerta com "Falta(m) N Oferta(s): confira o arquivo." quando M < N.
+- **Conferência no fim:** o script, agora usando as regras da aplicação, lê os mesmos números de antes (8 PDFs, 1.931 Ofertas, 1 sem preço, 2 sem Caixa) e reproduz a calibração final.
