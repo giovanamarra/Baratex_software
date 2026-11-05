@@ -20,6 +20,10 @@ class Revisao(models.Model):
     catalogo = models.OneToOneField(
         'catalogos.Catalogo', on_delete=models.PROTECT, null=True, related_name='revisao'
     )
+    # Contagem da extração (história 33), guardada na Importação: o arquivo não é relido a cada tela.
+    # Vazio quando o caminho não permite contar os preços.
+    precos_no_arquivo = models.PositiveIntegerField(null=True)
+    ofertas_extraidas = models.PositiveIntegerField(null=True)
 
     class Meta:
         verbose_name = 'Revisão'
@@ -34,6 +38,13 @@ class Revisao(models.Model):
             oferta._ha_decisao_guardada = oferta.codigo in guardados
             oferta._mediana = mediana
         return ofertas
+
+    @property
+    def ofertas_que_faltam(self):
+        """Quantos preços do arquivo não viraram Oferta (N − M); 0 quando não falta ou não dá para contar."""
+        if self.precos_no_arquivo is None or self.ofertas_extraidas is None:
+            return 0
+        return max(self.precos_no_arquivo - self.ofertas_extraidas, 0)
 
     def mediana_dos_precos(self):
         return mediana_dos_precos(self.ofertas.values_list('preco_impresso', flat=True))

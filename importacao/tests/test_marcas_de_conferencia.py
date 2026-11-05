@@ -129,6 +129,20 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
             [(1, 3)],
         )
 
+    def test_a_revisao_conta_os_precos_no_arquivo_e_as_ofertas_extraidas_e_aponta_as_que_faltam(self):
+        # O preço mascarado conta como preço no arquivo: vira Oferta sem preço (regra 4 da calibração).
+        cartoes = [CartaoFicticio('1001', 'Balde Ficticio', '9,90'), CartaoFicticio('1002', 'Rodo Ficticio', '***,**')]
+        completa = self.importar(cartoes)
+        # Um preço fora dos cartões, que o leitor não transforma em Oferta.
+        com_preco_solto = self.importar(cartoes, rodape='Frete gratis acima de R$500,00')
+
+        self.assertEqual(self.contagem(completa), (2, 2, 0))
+        self.assertEqual(self.contagem(com_preco_solto), (3, 2, 1))
+
+    def contagem(self, revisao):
+        revisao = obter_revisao(self.gestora, revisao.pk)
+        return revisao.precos_no_arquivo, revisao.ofertas_extraidas, revisao.ofertas_que_faltam
+
     def sugestoes(self, revisao):
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
         return {oferta.codigo: oferta.sugestao_de_conteudo for oferta in ofertas}

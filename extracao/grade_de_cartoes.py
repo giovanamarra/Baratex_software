@@ -39,6 +39,11 @@ def e_layout_a(pdf):
     return len(set(contagem.values())) == 1 and contagem[ROTULO_CODIGO] > 0
 
 
+def contar_precos(pdf):
+    """Ocorrências de preço ("R$...") no texto do PDF, inclusive mascaradas ("R$***,**")."""
+    return sum(1 for pagina in pdf.pages for palavra in pagina.extract_words() if palavra['text'].startswith('R$'))
+
+
 def ler_layout_a(pdf):
     ofertas = []
     for pagina in pdf.pages:

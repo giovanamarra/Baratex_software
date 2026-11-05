@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from catalogos.casos_de_uso import conteudo_digitado, guardar_conteudo, registrar_catalogo
 from comparador.erros import AcessoNegado, ErroDeNegocio
-from extracao.extrair import extrair_ofertas
+from extracao.extrair import extrair_catalogo
 from importacao.models import OfertaProposta, Revisao
 
 
@@ -18,7 +18,8 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
         raise ErroDeNegocio('Escolha o Fornecedor do Catálogo.')
     if arquivo is None:
         raise ErroDeNegocio('Escolha o arquivo do Catálogo.')
-    ofertas = extrair_ofertas(arquivo)
+    extracao = extrair_catalogo(arquivo)
+    ofertas = extracao.ofertas
     arquivo.seek(0)
     with transaction.atomic():
         revisao = Revisao.objects.create(
@@ -26,6 +27,8 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
             fornecedor=fornecedor,
             arquivo=arquivo,
             iniciada_em=hoje or timezone.localdate(),
+            precos_no_arquivo=extracao.precos_no_arquivo,
+            ofertas_extraidas=len(ofertas),
         )
         OfertaProposta.objects.bulk_create(
             OfertaProposta(
