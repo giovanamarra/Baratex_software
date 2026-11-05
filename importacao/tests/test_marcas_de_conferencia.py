@@ -38,3 +38,12 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
                 '1007': ['fora do padrão'],
             },
         )
+
+    def test_com_menos_de_5_ofertas_com_preco_nada_fica_fora_do_padrao(self):
+        # 3 preços e 2 Ofertas sem preço: as sem preço não contam para o mínimo nem para a mediana.
+        revisao = self.importar(cartoes_com_precos('9,00', '10,00', '150,00', '***,**', '***,**'))
+
+        self.assertEqual(
+            self.marcas(revisao),
+            {'1001': [], '1002': [], '1003': [], '1004': ['sem preço'], '1005': ['sem preço']},
+        )
