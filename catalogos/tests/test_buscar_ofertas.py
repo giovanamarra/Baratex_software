@@ -101,3 +101,16 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         achadas = self.buscar('1001')
 
         self.assertEqual([o.preco_unitario for o in achadas], [Decimal('9.90')])
+
+    def test_o_filtro_por_fornecedor_mostra_so_as_ofertas_dele(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01, fornecedor=self.alfa)
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,00')], DIA_01, fornecedor=self.beta)
+
+        com_filtro = self.buscar('1001', fornecedor=self.beta)
+        sem_filtro = self.buscar('1001')
+
+        self.assertEqual([(o.catalogo.fornecedor.nome, o.preco_unitario) for o in com_filtro], [('Beta', Decimal('9.00'))])
+        self.assertEqual(
+            sorted((o.catalogo.fornecedor.nome, o.preco_unitario) for o in sem_filtro),
+            [('Alfa', Decimal('10.00')), ('Beta', Decimal('9.00'))],
+        )

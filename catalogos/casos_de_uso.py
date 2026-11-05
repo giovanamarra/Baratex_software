@@ -95,9 +95,11 @@ class ResultadoDaBusca:
     ofertas: list
 
 
-def buscar_ofertas(gestor, texto, so_vigentes=True):
+def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
     """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
     ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto.strip()))
+    if fornecedor is not None:
+        ofertas = ofertas.filter(catalogo__fornecedor=fornecedor)
     if so_vigentes:
         ofertas = ofertas.exclude(Exists(_que_vale_mais_que_esta()))
     return ResultadoDaBusca(ofertas=list(ofertas))
