@@ -6,10 +6,18 @@ Uso (da raiz do projeto):
 
 Imprime só números por arquivo, nunca código, descrição, preço ou nome de marca: a saída pode ser
 mostrada sem expor dados reais. Os arquivos são numerados pela ordem alfabética do nome na pasta.
+
+Duas tabelas: a leitura (reconhecido, cartões, Ofertas, sem preço, sem Caixa, tempo) e a calibração
+das marcas de conferência do ticket 08 (fora do padrão, Unidade de venda ambígua, sugestão de
+Conteúdo por padrão e preços no arquivo × Ofertas extraídas).
 """
 
+import re
+import statistics
 import sys
 import time
+import unicodedata
+from collections import Counter
 from pathlib import Path
 
 import pdfplumber
@@ -21,9 +29,53 @@ from extracao.grade_de_cartoes import e_layout_a, ler_layout_a  # noqa: E402
 ASSINATURA_DE_PDF = b'%PDF'
 ROTULO_DE_CONTAGEM = 'Disponibilidade:'
 
+# Regras finais do ticket 08, calibradas com esta conferência (os números estão no ticket).
+MINIMO_DE_PRECOS_PARA_O_PADRAO = 5
+FATOR_FORA_DO_PADRAO = 10  # proposta era 5: marcava 15-17% em três Catálogos reais de faixa larga
+PALAVRAS_AMBIGUAS = {'KIT', 'CJ', 'CONJUNTO', 'SET', 'PAR'}  # sem JOGO (no real, é brinquedo); com CJ
+PADROES_DE_PECAS = {
+    'C/3': re.compile(r'\bC/\s*(\d+)\b'),
+    'COM 3 PEÇAS': re.compile(r'\bCOM (\d+) PECAS?\b'),
+    '3 PÇS/PCS': re.compile(r'\b(\d+)\s*PCS?\b'),
+    '3 UNID': re.compile(r'\b(\d+)\s*UNID\w*'),
+}
+
+
+def sem_acentos_em_maiusculas(texto):
+    decomposto = unicodedata.normalize('NFKD', texto.upper())
+    return ''.join(c for c in decomposto if not unicodedata.combining(c))
+
+
+def fora_do_padrao(ofertas):
+    precos = [oferta.preco_impresso for oferta in ofertas if oferta.preco_impresso]  # sem preço e zero não entram
+    if len(precos) < MINIMO_DE_PRECOS_PARA_O_PADRAO:
+        return 0
+    mediana = statistics.median(precos)
+    return sum(1 for p in precos if p > mediana * FATOR_FORA_DO_PADRAO or p < mediana / FATOR_FORA_DO_PADRAO)
+
+
+def ambigua(descricao):
+    palavras = set(re.findall(r'[A-Z0-9]+', sem_acentos_em_maiusculas(descricao)))
+    return bool(palavras & PALAVRAS_AMBIGUAS)
+
+
+def padrao_de_pecas(descricao):
+    """O primeiro padrão que cita uma quantidade maior que 1, ou None."""
+    texto = sem_acentos_em_maiusculas(descricao)
+    for nome, padrao in PADROES_DE_PECAS.items():
+        for encontrado in padrao.finditer(texto):
+            if int(encontrado.group(1)) > 1:
+                return nome
+    return None
+
+
+def precos_no_arquivo(pdf):
+    """Ocorrências de "R$" no texto do PDF, e quantas delas são preço mascarado ("R$***,**")."""
+    textos = [p['text'] for pagina in pdf.pages for p in pagina.extract_words() if p['text'].startswith('R$')]
+    return len(textos), sum(1 for texto in textos if '*' in texto)
+
 
 def conferir(arquivo):
-    """Números de um arquivo: reconhecido, cartões, Ofertas, sem preço, sem Caixa e tempo."""
     if arquivo.read_bytes()[: len(ASSINATURA_DE_PDF)] != ASSINATURA_DE_PDF:
         return {'pdf': False}
     inicio = time.perf_counter()
@@ -44,11 +96,21 @@ def conferir(arquivo):
                 sem_preco=sum(1 for oferta in ofertas if oferta.preco_impresso is None),
                 sem_caixa=sum(1 for oferta in ofertas if oferta.caixa is None),
             )
+            numeros['segundos'] = time.perf_counter() - inicio
+            precos, mascarados = precos_no_arquivo(pdf)
+            numeros.update(
+                fora_do_padrao=fora_do_padrao(ofertas),
+                ambiguas=sum(1 for oferta in ofertas if ambigua(oferta.descricao)),
+                sugestoes=Counter(filter(None, (padrao_de_pecas(oferta.descricao) for oferta in ofertas))),
+                precos_no_arquivo=precos,
+                mascarados=mascarados,
+            )
+            return numeros
     numeros['segundos'] = time.perf_counter() - inicio
     return numeros
 
 
-def linha(indice, numeros):
+def linha_de_leitura(indice, numeros):
     rotulo = f'arquivo {indice:02d}'
     if not numeros['pdf']:
         return f'{rotulo}  não é PDF'
@@ -60,22 +122,43 @@ def linha(indice, numeros):
     )
 
 
+def percentual(parte, todo):
+    return f'{parte} ({100 * parte / todo:.1f}%)' if todo else str(parte)
+
+
+def linha_de_calibracao(rotulo, numeros):
+    sugestoes = numeros['sugestoes']
+    por_padrao = ', '.join(f'{nome}: {sugestoes[nome]}' for nome in PADROES_DE_PECAS if sugestoes[nome])
+    return (
+        f'{rotulo}  Ofertas: {numeros["ofertas"]:4d}  fora do padrão: {percentual(numeros["fora_do_padrao"], numeros["ofertas"])}  '
+        f'ambígua: {percentual(numeros["ambiguas"], numeros["ofertas"])}  '
+        f'sugestão: {percentual(sum(sugestoes.values()), numeros["ofertas"])}{f" [{por_padrao}]" if por_padrao else ""}  '
+        f'preços no arquivo: {numeros["precos_no_arquivo"]} (mascarados: {numeros["mascarados"]})'
+    )
+
+
 def main(pasta):
     arquivos = sorted(caminho for caminho in Path(pasta).iterdir() if caminho.is_file())
-    total = dict.fromkeys(('reconhecidos', 'cartoes', 'ofertas', 'sem_preco', 'sem_caixa', 'segundos'), 0)
-    for indice, arquivo in enumerate(arquivos, start=1):
-        numeros = conferir(arquivo)
-        print(linha(indice, numeros))
-        total['segundos'] += numeros.get('segundos', 0)
-        if numeros.get('reconhecido'):
-            total['reconhecidos'] += 1
-            for chave in ('cartoes', 'ofertas', 'sem_preco', 'sem_caixa'):
-                total[chave] += numeros[chave]
+    resultados = [(indice, conferir(arquivo)) for indice, arquivo in enumerate(arquivos, start=1)]
+    lidos = [(indice, numeros) for indice, numeros in resultados if numeros.get('reconhecido')]
+
+    print('Leitura')
+    for indice, numeros in resultados:
+        print(linha_de_leitura(indice, numeros))
+    total = {chave: sum(n[chave] for _, n in lidos) for chave in ('cartoes', 'ofertas', 'sem_preco', 'sem_caixa')}
     print(
-        f'total  arquivos: {len(arquivos)}  reconhecidos: {total["reconhecidos"]}  cartões: {total["cartoes"]}  '
+        f'total  arquivos: {len(arquivos)}  reconhecidos: {len(lidos)}  cartões: {total["cartoes"]}  '
         f'Ofertas: {total["ofertas"]}  sem preço: {total["sem_preco"]}  sem Caixa: {total["sem_caixa"]}  '
-        f'tempo: {total["segundos"]:.1f} s'
+        f'tempo: {sum(n.get("segundos", 0) for _, n in resultados):.1f} s'
     )
+
+    print('\nCalibração das marcas (ticket 08)')
+    for indice, numeros in lidos:
+        print(linha_de_calibracao(f'arquivo {indice:02d}', numeros))
+    soma = {chave: sum(n[chave] for _, n in lidos) for chave in
+            ('ofertas', 'fora_do_padrao', 'ambiguas', 'precos_no_arquivo', 'mascarados')}
+    soma['sugestoes'] = sum((n['sugestoes'] for _, n in lidos), Counter())
+    print(linha_de_calibracao('total     ', soma))
 
 
 if __name__ == '__main__':
