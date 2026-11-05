@@ -55,6 +55,8 @@ class Oferta(models.Model):
     class Meta:
         verbose_name = 'Oferta'
         verbose_name_plural = 'Ofertas'
+        # A vigência compara cada Oferta com as de mesmo código em outros Catálogos (ver buscar_ofertas).
+        indexes = [models.Index(fields=['codigo'], name='oferta_codigo_idx')]
         constraints = [
             # Preço impresso pode faltar (é mascarado em alguns Catálogos), mas nunca é negativo.
             models.CheckConstraint(
