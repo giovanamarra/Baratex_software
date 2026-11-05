@@ -144,12 +144,14 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
 
     def test_teto_usa_a_mesma_leitura_de_preco_do_resto_do_sistema(self):
         # No Brasil o ponto separa milhar: "1.500" pode ser mil e quinhentos ou um real e cinquenta.
+        definir_teto(self.gestora, '5,00')
         with self.assertRaises(ErroDeNegocio) as erro:
             definir_teto(self.gestora, '1.500')
         self.assertEqual(
             erro.exception.mensagem,
             'Use vírgula para os centavos: 1.500,00 para mil e quinhentos, 1,50 para um real e cinquenta.',
         )
+        self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))  # o recusado não apaga o anterior
 
         for digitado, valor in [('1.500,00', Decimal('1500.00')), ('12.5', Decimal('12.5')), ('7', Decimal('7'))]:
             with self.subTest(digitado=digitado):
