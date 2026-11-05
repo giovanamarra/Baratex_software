@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor
+from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, definir_conteudo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
@@ -166,3 +166,11 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         resultado = buscar_ofertas(self.gestora, 'ficticio')
 
         self.assertEqual((len(resultado.ofertas), resultado.total), (1, 1))
+
+    def test_o_preco_unitario_do_resultado_usa_o_conteudo_e_o_desconto_do_catalogo(self):
+        self.importar([CartaoFicticio('1001', 'Kit 3 Tesouras Ficticias', '9,00')], DIA_01, desconto='10')
+        definir_conteudo(self.gestora, self.alfa, '1001', '3', hoje=DIA_15)
+
+        achadas = self.buscar('tesouras')
+
+        self.assertEqual([o.preco_unitario for o in achadas], [Decimal('2.70')])
