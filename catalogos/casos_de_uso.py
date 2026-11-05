@@ -90,9 +90,13 @@ def historico_do_conteudo(gestor, fornecedor, codigo):
     return AlteracaoDeConteudo.objects.filter(fornecedor=fornecedor, codigo=codigo).order_by('-pk')
 
 
+LIMITE_DE_RESULTADOS = 200
+
+
 @dataclass
 class ResultadoDaBusca:
-    ofertas: list
+    ofertas: list  # no máximo LIMITE_DE_RESULTADOS
+    total: int  # quantas Ofertas a busca encontrou, inclusive as que ficaram de fora do limite
 
 
 def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
@@ -105,7 +109,8 @@ def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
         ofertas = ofertas.filter(catalogo__fornecedor=fornecedor)
     if so_vigentes:
         ofertas = ofertas.exclude(Exists(_que_vale_mais_que_esta()))
-    return ResultadoDaBusca(ofertas=list(ofertas))
+    ofertas = ofertas.order_by('catalogo__fornecedor__nome', 'codigo', '-catalogo__data', '-pk')
+    return ResultadoDaBusca(ofertas=list(ofertas[:LIMITE_DE_RESULTADOS]), total=ofertas.count())
 
 
 def _que_vale_mais_que_esta():

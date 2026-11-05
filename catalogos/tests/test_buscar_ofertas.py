@@ -150,3 +150,19 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
 
         self.assertEqual(self.buscar('inexistente'), [])
+
+    def test_devolve_no_maximo_200_ofertas_e_o_total_de_ofertas_encontradas(self):
+        self.importar(
+            [CartaoFicticio(str(codigo), f'Item Ficticio {codigo}', '10,00') for codigo in range(1000, 1201)], DIA_01
+        )
+
+        resultado = buscar_ofertas(self.gestora, 'ficticio')
+
+        self.assertEqual((len(resultado.ofertas), resultado.total), (200, 201))
+
+    def test_com_menos_de_200_resultados_o_total_e_o_numero_de_ofertas_devolvidas(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00'), CartaoFicticio('1002', 'Rodo', '9,00')], DIA_01)
+
+        resultado = buscar_ofertas(self.gestora, 'ficticio')
+
+        self.assertEqual((len(resultado.ofertas), resultado.total), (1, 1))
