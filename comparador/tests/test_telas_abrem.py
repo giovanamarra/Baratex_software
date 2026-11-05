@@ -152,3 +152,20 @@ class TelasAbremTests(TesteComArquivosEnviados):
         resposta = self.client.post(link, {'conteudo': '3'})
 
         self.assertRedirects(resposta, busca)
+
+    def test_definir_conteudo_aberto_a_partir_do_catalogo_volta_para_o_catalogo(self):
+        catalogo = self.catalogo_confirmado()
+        link = self.link_de_definir_conteudo(self.client.get(reverse('catalogo', kwargs={'pk': catalogo.pk})))
+
+        resposta = self.client.post(link, {'conteudo': '3'})
+
+        self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': catalogo.pk}))
+
+    def test_definir_conteudo_ignora_um_endereco_de_volta_que_nao_e_do_sistema(self):
+        catalogo = self.catalogo_confirmado()
+        oferta = catalogo.ofertas()[0]
+        url = reverse('definir_conteudo', kwargs={'pk': oferta.pk})
+
+        resposta = self.client.post(f'{url}?voltar=https://exemplo.invalido/', {'conteudo': '3'})
+
+        self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': catalogo.pk}))
