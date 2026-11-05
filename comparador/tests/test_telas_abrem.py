@@ -7,6 +7,7 @@ dados de teste e mostra um texto-chave.
 import re
 from datetime import date
 from decimal import Decimal
+from urllib.parse import urlencode
 
 from django.urls import reverse
 
@@ -195,9 +196,12 @@ class TelasAbremTests(TesteComArquivosEnviados):
         oferta = catalogo.ofertas()[0]
         url = reverse('definir_conteudo', kwargs={'pk': oferta.pk})
 
-        resposta = self.client.post(f'{url}?voltar=https://exemplo.invalido/', {'conteudo': '3'})
+        for voltar in ['https://exemplo.invalido/', '//exemplo.invalido/', '/\\exemplo.invalido/',
+                       '///exemplo.invalido/', 'javascript:alert(1)']:
+            with self.subTest(voltar=voltar):
+                resposta = self.client.post(url, {'conteudo': '3'}, QUERY_STRING=urlencode({'voltar': voltar}))
 
-        self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': catalogo.pk}))
+                self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': catalogo.pk}))
 
     def test_definir_conteudo_aberto_a_partir_da_busca_oferece_voltar_a_busca(self):
         self.catalogo_confirmado()
