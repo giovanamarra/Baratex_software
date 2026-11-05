@@ -3,6 +3,7 @@
 As regras foram calibradas com os Catálogos reais; os números estão no ticket 08. Aqui, só dados inventados.
 """
 
+from datetime import date
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, historico_do_conteudo
@@ -11,10 +12,12 @@ from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
 from importacao.casos_de_uso import (
+    abandonar_revisao,
     aceitar_sugestao_de_conteudo,
     confirmar_revisao,
     informar_condicoes_do_catalogo,
     iniciar_importacao,
+    manter_conteudo_1,
     obter_revisao,
 )
 
@@ -169,6 +172,29 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         catalogo = confirmar_revisao(self.gestora, marcadas.pk)
 
         self.assertEqual(len(catalogo.ofertas()), 8)
+
+    def test_manter_1_e_decisao_explicita_guardada_ao_confirmar_e_a_sugestao_nao_reaparece(self):
+        # Decisão da usuária (2026-11-05): manter 1 entra no histórico mesmo sem mudar o valor, exceção à
+        # regra do ticket 07. Como o Aceitar, fica na Revisão até a confirmação; abandonar descarta.
+        tesoura = CartaoFicticio('3001', 'Tesoura Ficticia C/3')
+        revisao = self.importar([tesoura])
+        abandonada = self.importar([CartaoFicticio('3005', 'Copo Ficticio C/6')])
+        manter_conteudo_1(self.gestora, obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0].pk)
+        manter_conteudo_1(self.gestora, obter_revisao(self.gestora, abandonada.pk).ofertas_propostas()[0].pk)
+
+        self.assertEqual(self.sugestoes(revisao), {'3001': None})
+        self.assertEqual(list(historico_do_conteudo(self.gestora, self.fornecedor, '3001')), [])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        confirmar_revisao(self.gestora, revisao.pk, hoje=date(2026, 3, 3))
+        abandonar_revisao(self.gestora, abandonada.pk)
+
+        self.assertEqual(
+            [(r.gestor.get_username(), r.data, r.valor_anterior, r.valor_novo)
+             for r in historico_do_conteudo(self.gestora, self.fornecedor, '3001')],
+            [('gestora', date(2026, 3, 3), 1, 1)],
+        )
+        seguinte = self.importar([tesoura, CartaoFicticio('3005', 'Copo Ficticio C/6')])
+        self.assertEqual(self.sugestoes(seguinte), {'3001': None, '3005': 6})
 
     def contagem(self, revisao):
         revisao = obter_revisao(self.gestora, revisao.pk)

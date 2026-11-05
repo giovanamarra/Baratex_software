@@ -85,6 +85,13 @@ def aceitar_sugestao_de_conteudo(gestor, oferta_id):
     )
 
 
+def manter_conteudo_1(gestor, oferta_id):
+    """Recusar a sugestão é decidir manter 1: entra no histórico ao confirmar, mesmo sem mudar o valor."""
+    oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
+    oferta.decidiu_manter_conteudo_1 = True
+    oferta.save()
+
+
 CAMINHO_MANUAL = 'manual'
 
 
@@ -175,7 +182,11 @@ def confirmar_revisao(gestor, revisao_id, hoje=None):
             ofertas,
         )
         for oferta in ofertas:
-            if oferta.conteudo_definido is not None:
+            if oferta.decidiu_manter_conteudo_1 and oferta.conteudo == 1:
+                guardar_conteudo(
+                    gestor, revisao.fornecedor, oferta.codigo, 1, hoje or timezone.localdate(), decisao_explicita=True
+                )
+            elif oferta.conteudo_definido is not None:
                 guardar_conteudo(
                     gestor, revisao.fornecedor, oferta.codigo, oferta.conteudo_definido, hoje or timezone.localdate()
                 )

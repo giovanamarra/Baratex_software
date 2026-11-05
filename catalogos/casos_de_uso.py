@@ -47,13 +47,14 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
     return catalogo
 
 
-def guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje):
+def guardar_conteudo(gestor, fornecedor, codigo, conteudo, hoje, decisao_explicita=False):
     """Guarda o Conteúdo de um Fornecedor + código, registrando quem mudou e quando (ADR-0007).
 
-    Sem mudança de valor, não há registro: o histórico lista só alterações.
+    Sem mudança de valor, não há registro: o histórico lista só alterações. A exceção é a decisão
+    explícita de manter o valor ("Manter 1" na sugestão de Conteúdo, decisão da usuária no ticket 08).
     """
     anterior = conteudo_guardado(conteudos_guardados(fornecedor.pk), codigo)
-    if conteudo == anterior:
+    if conteudo == anterior and not decisao_explicita:
         return
     AlteracaoDeConteudo.objects.create(
         fornecedor=fornecedor, codigo=codigo, gestor=gestor, data=hoje, valor_anterior=anterior, valor_novo=conteudo

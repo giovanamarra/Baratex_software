@@ -62,6 +62,10 @@ class OfertaProposta(models.Model):
     caminho = models.CharField(max_length=30)
     # Conteúdo definido pela gestora nesta Revisão. Fica só aqui até a confirmação; vazio = não mexeu.
     conteudo_definido = models.PositiveIntegerField(null=True)
+    # "Manter 1" na sugestão de Conteúdo: decisão explícita, guardada no histórico ao confirmar mesmo sem
+    # mudar o valor (decisão da usuária, ticket 08). Diferente de conteudo_definido = 1, que o formulário
+    # de Corrigir reenvia sem ser decisão.
+    decidiu_manter_conteudo_1 = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = 'Oferta proposta'
@@ -104,7 +108,7 @@ class OfertaProposta(models.Model):
         """
         if not hasattr(self, '_ha_decisao_guardada'):
             self._ha_decisao_guardada = self.codigo in conteudos_guardados(self.revisao.fornecedor_id)
-        if self.conteudo != 1 or self._ha_decisao_guardada:
+        if self.conteudo != 1 or self._ha_decisao_guardada or self.decidiu_manter_conteudo_1:
             return None
         citadas = pecas_citadas(self.descricao)
         return citadas[1] if citadas else None
