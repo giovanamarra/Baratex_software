@@ -2,14 +2,15 @@
 
 Status: ready-for-agent
 Type: task
-Blocked by: 25
-Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › confirmação recusada com página não conferida)
-ADRs: ADR-0006 (conferência ao lado da imagem é obrigatória e não pode ser pulada em lote)
-User stories: 28, 29
+Blocked by: 25, 34
+Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › confirmação recusada com página não conferida; Revisão › Fotos)
+ADRs: ADR-0006 (conferência ao lado da imagem é obrigatória e não pode ser pulada em lote), ADR-0011 (item 2: a foto recortada pela LLM passa pela conferência)
+User stories: 28, 29, 117 (fotos recortadas pela LLM)
+Atualizado em 2026-11-05 (ADR-0009, 0010, 0011)
 
 ## O que entrega
 
-A gestora confere cada página lida pela LLM com a imagem original ao lado. A confirmação só passa depois que todas as páginas foram conferidas, para um preço errado mas plausível não passar despercebido.
+A gestora confere cada página lida pela LLM com a imagem original ao lado, inclusive as fotos recortadas. A confirmação só passa depois que todas as páginas foram conferidas, para um preço errado mas plausível, ou a foto do item vizinho, não passar despercebido.
 
 ## Critérios de aceite
 
@@ -18,6 +19,9 @@ A gestora confere cada página lida pela LLM com a imagem original ao lado. A co
 - A confirmação é recusada enquanto houver página lida pela LLM sem conferência.
 - Preço errado plausível: o fake devolve 12,90 para uma Oferta que no Catálogo fictício custa 21,90. A Oferta aparece com 12,90 e sem marca automática. A gestora corrige para 21,90 e marca a página, e só então a confirmação passa.
 - Ofertas adicionadas à mão, ou de outros caminhos, não exigem conferência de página.
+- **Fotos recortadas** (117): na conferência, cada Oferta da página aparece com a foto recortada pela LLM, ao lado da imagem da página. A gestora troca ou tira a foto errada pelo caso de uso do ticket 34, sem sair da conferência.
+- Foto errada: o fake devolve para a Oferta 1002 a área da foto da Oferta 1003. A gestora troca a foto, marca a página, e a confirmação passa com a foto trocada.
+- Trocar ou tirar a foto não marca a página como conferida; marcar a página continua sendo um passo à parte.
 
 ## Erros (mensagens em português)
 
@@ -26,5 +30,5 @@ A gestora confere cada página lida pela LLM com a imagem original ao lado. A co
 
 ## O que o teste precisa
 
-- **Fake da LLM** com respostas fixas para um PDF fictício de 5 páginas sem texto, incluindo o preço errado plausível.
+- **Fake da LLM** com respostas fixas para um PDF fictício de 5 páginas sem texto, incluindo o preço errado plausível e a área de foto trocada entre duas Ofertas.
 - Nenhum teste chama a API real.

@@ -2,10 +2,11 @@
 
 Status: ready-for-agent
 Type: task
-Blocked by: 02, 09
+Blocked by: 02, 09, 31
 Spec: [docs/spec.md](../../../docs/spec.md) (Pedidos; Modelo de dados › Pedido)
-ADRs: ADR-0007 (Pedido é do Gestor; só Lojas dele), ADR-0004 (Ofertas vigentes de vários Catálogos do mesmo Fornecedor)
-User stories: 5, 74, 75, 77, 79, 80, 99
+ADRs: ADR-0007 (Pedido é do Gestor; só Lojas dele), ADR-0004 (Ofertas vigentes de vários Catálogos do mesmo Fornecedor), ADR-0009 (data do Catálogo ao incluir)
+User stories: 5, 74, 75, 77, 79, 80, 99, 107 (ao incluir)
+Atualizado em 2026-11-05 (ADR-0009, 0010, 0011)
 
 ## O que entrega
 
@@ -14,7 +15,8 @@ A gestora cria um Pedido para um Fornecedor, adiciona Ofertas vigentes de qualqu
 ## Critérios de aceite
 
 - Criar Pedido (Gestor, Fornecedor) gera um Pedido desse Gestor, com a data de criação (74).
-- Adicionar ao Pedido Ofertas vigentes de dois Catálogos diferentes do mesmo Fornecedor, inclusive de um Catálogo importado por outro Gestor (75, 99).
+- Adicionar ao Pedido Ofertas vigentes de dois Catálogos diferentes do mesmo Fornecedor, inclusive de um Catálogo importado por outro Gestor (75, 99). "Vigente" segue a regra do ticket 31 (Catálogo de data mais recente; mesma data, o confirmado por último).
+- Ao escolher a Oferta para incluir, a tela mostra a data do Catálogo de cada Oferta, como foi informada (107).
 - Definir as quantidades de uma linha (Caixas por Loja, todas as Lojas de uma vez) guarda a quantidade em Unidades de venda: 2 Caixas de 48 → 96 (77).
 - Ver o Pedido mostra, por Loja, as Unidades de venda e o valor (80):
   - valor da linha = Unidades de venda × preço impresso;
@@ -39,3 +41,5 @@ A gestora cria um Pedido para um Fornecedor, adiciona Ofertas vigentes de qualqu
 ## Fora deste ticket
 
 - Editar e remover linhas, observação, lista de Pedidos, privacidade e Teto no Pedido (16). Fracionamento (17). Exportação (18).
+- Linha cuja Oferta deixou de ser vigente depois de incluída (40).
+- Desconto por arquivo de preços no total da Loja (37: até lá, o desconto de cada linha é o do seu Catálogo).

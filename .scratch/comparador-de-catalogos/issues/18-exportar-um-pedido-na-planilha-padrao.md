@@ -6,6 +6,7 @@ Blocked by: 16
 Spec: [docs/spec.md](../../../docs/spec.md) (Exportação de Pedidos; Implementation Decisions › Exportação; Testing Decisions › Exportação)
 ADRs: ADR-0004 (formato único da gestora), ADR-0005 (preço sem impostos)
 User stories: 85 (um Pedido), 86, 88, 89, 90, 91, 92, 93, 94
+Atualizado em 2026-11-05 (ADR-0009, 0010, 0011)
 
 ## O que entrega
 
@@ -44,5 +45,8 @@ A gestora exporta um Pedido num arquivo Excel com a estrutura e as fórmulas da 
 ## Fora deste ticket
 
 - Vários Pedidos e blocos por desconto distinto (19).
+- Oferta sem código, com a coluna `CÓD.` vazia (88): a Oferta sem código só existe a partir do ticket 35, que acrescenta esse critério à exportação.
+- Desconto do arquivo de preços da linha, em vez do desconto do Catálogo (37).
+- A exportação não é bloqueada por linha que deixou de ser vigente (40).
 - Aparência idêntica, título da planilha, linha de preço médio e totais entre Lojas que existem na planilha da gestora mas não estão no spec nem no ADR-0004.
 - Formato de cada Fornecedor; reimportar planilhas editadas (Out of Scope).
