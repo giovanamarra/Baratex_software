@@ -11,6 +11,7 @@ from catalogos.casos_de_uso import (
     buscar_ofertas,
     cadastrar_fornecedor,
     definir_conteudo,
+    definir_teto,
     historico_do_conteudo,
     listar_catalogos_do_fornecedor,
     listar_fornecedores,
@@ -55,7 +56,18 @@ def buscar(request):
 
 
 def teto_de_compra(request):
-    return render(request, 'catalogos/teto_de_compra.html', {'teto': obter_teto(request.user)})
+    contexto = {'digitado': ''}
+    if request.method == 'POST':
+        contexto['digitado'] = request.POST.get('teto', '')
+        try:
+            definir_teto(request.user, contexto['digitado'])
+        except ErroDeNegocio as erro:
+            contexto['erro'] = erro.mensagem
+        else:
+            messages.success(request, 'Teto de compra salvo. Vale para todas as Ofertas, a partir de agora.')
+            return redirect('teto_de_compra')
+    contexto['teto'] = obter_teto(request.user)
+    return render(request, 'catalogos/teto_de_compra.html', contexto)
 
 
 def catalogos_do_fornecedor(request, pk):

@@ -6,10 +6,11 @@ dados de teste e mostra um texto-chave.
 
 import re
 from datetime import date
+from decimal import Decimal
 
 from django.urls import reverse
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, definir_teto
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, definir_teto, obter_teto
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -189,3 +190,12 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertContains(sem_teto, 'Nenhum Teto de compra definido')
         self.assertContains(com_teto, 'Teto de compra atual: <strong>R$ 5,00</strong>')
         self.assertContains(com_teto, 'name="teto"')
+
+    def test_teto_de_compra_salva_pelo_caso_de_uso_e_mostra_o_erro_de_um_valor_recusado(self):
+        salvo = self.client.post(reverse('teto_de_compra'), {'teto': '5,00'})
+        recusado = self.client.post(reverse('teto_de_compra'), {'teto': '0'})
+
+        self.assertRedirects(salvo, reverse('teto_de_compra'))
+        self.assertContains(recusado, 'O Teto de compra precisa ser maior que zero.')
+        self.assertContains(recusado, 'Teto de compra atual: <strong>R$ 5,00</strong>')
+        self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))
