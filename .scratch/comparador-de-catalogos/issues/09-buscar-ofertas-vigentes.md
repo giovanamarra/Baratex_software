@@ -1,6 +1,6 @@
 # 09 — Buscar Ofertas vigentes com Preço unitário
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 05, 07
 Spec: [docs/spec.md](../../../docs/spec.md) (Ofertas vigentes e busca; Modelo de dados › Oferta vigente; Base comum do grupo)
@@ -36,3 +36,13 @@ A gestora acha qualquer Oferta por código ou trecho da descrição, em todos os
 ## Fora deste ticket
 
 - Destaque do Teto de compra (10). Foto (14). Produto do resultado (12).
+
+## Comments
+
+**Resolução (2026-11-05)**
+
+- **Caso de uso:** `buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True)` devolve `ResultadoDaBusca(ofertas, total)`; `ofertas` tem no máximo `LIMITE_DE_RESULTADOS` (200), ordenadas por Fornecedor, código e Catálogo mais recente.
+- **Busca sem maiúsculas e sem acentos:** a Oferta guarda `busca` (código, quebra de linha e descrição, normalizados por `catalogos/busca.py`), preenchido em `registrar_catalogo`. A migração 0009 preenche as Ofertas existentes; a 0010 cria o índice em `codigo`.
+- **Oferta vigente:** calculada no banco, sem gravar o Preço unitário. Dentro de um Fornecedor + código o Conteúdo é o mesmo, então o desempate do mesmo dia compara preço impresso × (100 − desconto). Se o valor empatar, vale o Catálogo confirmado por último.
+- **Tela:** "Buscar" na barra; campo de texto, filtro de Fornecedor, "Mostrar também Ofertas antigas"; tabela com "Definir Conteúdo"; avisos de limite, de lista vazia e de erro.
+- **Medição com 100 mil Ofertas** (20 Fornecedores × 5 Catálogos × 1.000 códigos próprios, SQLite): trecho comum, só vigentes ~150 ms; letra "a" (casa com todas), só vigentes ~420 ms; sem filtro de vigência ~35 ms. Pior caso artificial, com todos os Fornecedores repetindo os mesmos códigos (100 Ofertas por código): ~1,9 s num trecho comum e ~7,4 s com a letra "a".
