@@ -8,7 +8,7 @@ from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, informar_condicoes_do_catalogo
+from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, informar_condicoes_do_catalogo, obter_revisao
 
 DIA = date(2026, 3, 2)
 
@@ -84,3 +84,27 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
         com_teto_6 = self.destaques_da_busca()
 
         self.assertEqual((com_teto_5, com_teto_6), ([('1001', True)], [('1001', False)]))
+
+
+    def revisao_com(self, cartoes):
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+        return iniciar_importacao(self.gestora, self.alfa, arquivo, hoje=DIA)
+
+    def destaques_da_revisao(self, revisao):
+        return [(o.codigo, o.acima_do_teto) for o in obter_revisao(self.gestora, revisao.pk).ofertas_propostas()]
+
+    def test_na_revisao_so_o_preco_unitario_acima_do_teto_e_destacado_e_acompanha_o_desconto(self):
+        revisao = self.revisao_com([
+            CartaoFicticio('1001', 'Item Ficticio A', '5,01'),
+            CartaoFicticio('1002', 'Item Ficticio B', '5,00'),
+        ])
+        definir_teto(self.gestora, '5,00')
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        sem_desconto = self.destaques_da_revisao(revisao)
+
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')  # 5,01 vira 4,51
+
+        self.assertEqual(
+            (sem_desconto, self.destaques_da_revisao(revisao)),
+            ([('1001', True), ('1002', False)], [('1001', False), ('1002', False)]),
+        )

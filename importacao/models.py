@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.db import models
 
-from catalogos.models import conteudo_guardado, conteudos_guardados
-from catalogos.preco_unitario import calcular_preco_unitario
+from catalogos.models import conteudo_guardado, conteudos_guardados, teto_atual
+from catalogos.preco_unitario import acima_do_teto, calcular_preco_unitario
 from importacao.marcas import fora_do_padrao, mediana_dos_precos, pecas_citadas, unidade_ambigua
 
 
@@ -33,7 +33,9 @@ class Revisao(models.Model):
         ofertas = list(self.ofertas.order_by('ordem'))
         guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para a Revisão inteira
         mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
+        teto = teto_atual()
         for oferta in ofertas:
+            oferta._teto = teto
             oferta._conteudo_guardado = conteudo_guardado(guardados, oferta.codigo)
             oferta._ha_decisao_guardada = oferta.codigo in guardados
             oferta._mediana = mediana
@@ -83,6 +85,13 @@ class OfertaProposta(models.Model):
     @property
     def preco_unitario(self):
         return calcular_preco_unitario(self.preco_impresso, self.revisao.desconto, self.conteudo)
+
+    @property
+    def acima_do_teto(self):
+        # Derivado do Preço unitário na consulta, nunca gravado (ticket 10).
+        if not hasattr(self, '_teto'):
+            self._teto = teto_atual()
+        return acima_do_teto(self.preco_unitario, self._teto)
 
     @property
     def marcas(self):
