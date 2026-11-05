@@ -1,7 +1,8 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
+import re
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.db.models import DecimalField, Exists, ExpressionWrapper, F, OuterRef, Q
 from django.db.models.functions import Coalesce
@@ -155,9 +156,39 @@ def _valor_antes_do_conteudo(preco_impresso, desconto):
     return ExpressionWrapper(preco * (100 - Coalesce(percentual, 0)), output_field=DecimalField())
 
 
+# Sem vírgula, um ponto seguido de exatamente 3 dígitos parece separador de milhar.
+PONTO_DE_MILHAR = re.compile(r'\.\d{3}(?!\d)')
+
+
+def preco_digitado(texto, nome='O preço'):
+    """Preço como a gestora digitou: "9,90", "1.234,56" ou "12.5". Vazio devolve None (ausente).
+
+    `nome` abre a mensagem de recusa ("O preço", "O Teto de compra").
+    """
+    texto = texto.strip()
+    if not texto:
+        return None
+    if ',' in texto:  # formato brasileiro: ponto separa milhar, vírgula separa centavos
+        texto = texto.replace('.', '').replace(',', '.')
+    elif PONTO_DE_MILHAR.search(texto):  # "1.500" pode ser mil e quinhentos ou 1,50: ambíguo
+        raise ErroDeNegocio(
+            'Use vírgula para os centavos: 1.500,00 para mil e quinhentos, 1,50 para um real e cinquenta.'
+        )
+    try:
+        preco = Decimal(texto)
+    except InvalidOperation:
+        preco = None
+    if preco is None or not preco.is_finite() or preco <= 0:
+        raise ErroDeNegocio(f'{nome} precisa ser maior que zero.')
+    return preco
+
+
 def definir_teto(gestor, valor):
     """O Teto é um valor único do grupo: definir de novo substitui o anterior. `valor` vem como a gestora digitou."""
-    TetoDeCompra.objects.update_or_create(pk=1, defaults={'valor': Decimal(valor.replace(',', '.'))})
+    teto = preco_digitado(valor, nome='O Teto de compra')
+    if teto is None:
+        raise ErroDeNegocio('O Teto de compra precisa ser maior que zero.')
+    TetoDeCompra.objects.update_or_create(pk=1, defaults={'valor': teto})
 
 
 def obter_teto(gestor):

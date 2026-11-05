@@ -108,3 +108,27 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
             (sem_desconto, self.destaques_da_revisao(revisao)),
             ([('1001', True), ('1002', False)], [('1001', False), ('1002', False)]),
         )
+
+    def test_teto_vazio_zero_ou_negativo_e_recusado_e_o_teto_anterior_continua(self):
+        definir_teto(self.gestora, '5,00')
+
+        for digitado in ['', '   ', '0', '0,00', '-5,00', 'abc']:
+            with self.subTest(digitado=digitado):
+                with self.assertRaises(ErroDeNegocio) as erro:
+                    definir_teto(self.gestora, digitado)
+                self.assertEqual(erro.exception.mensagem, 'O Teto de compra precisa ser maior que zero.')
+        self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))
+
+    def test_teto_usa_a_mesma_leitura_de_preco_do_resto_do_sistema(self):
+        # No Brasil o ponto separa milhar: "1.500" pode ser mil e quinhentos ou um real e cinquenta.
+        with self.assertRaises(ErroDeNegocio) as erro:
+            definir_teto(self.gestora, '1.500')
+        self.assertEqual(
+            erro.exception.mensagem,
+            'Use vírgula para os centavos: 1.500,00 para mil e quinhentos, 1,50 para um real e cinquenta.',
+        )
+
+        for digitado, valor in [('1.500,00', Decimal('1500.00')), ('12.5', Decimal('12.5')), ('7', Decimal('7'))]:
+            with self.subTest(digitado=digitado):
+                definir_teto(self.gestora, digitado)
+                self.assertEqual(obter_teto(self.gestora), valor)

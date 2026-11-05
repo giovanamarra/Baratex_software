@@ -1,12 +1,11 @@
 """Casos de uso do módulo Importação e Revisão. As telas e os testes entram por aqui."""
 
-import re
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 from django.utils import timezone
 
-from catalogos.casos_de_uso import conteudo_digitado, guardar_conteudo, registrar_catalogo
+from catalogos.casos_de_uso import conteudo_digitado, guardar_conteudo, preco_digitado, registrar_catalogo
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from extracao.extrair import extrair_catalogo
 from importacao.models import OfertaProposta, Revisao
@@ -59,7 +58,7 @@ def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impress
     """
     oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
     oferta.codigo, oferta.descricao = _codigo_e_descricao(codigo, descricao)
-    oferta.preco_impresso = _preco_digitado(preco_impresso)
+    oferta.preco_impresso = preco_digitado(preco_impresso)
     oferta.caixa = _caixa_digitada(caixa)
     oferta.conteudo_definido = conteudo_digitado(conteudo)
     oferta.save()
@@ -105,7 +104,7 @@ def adicionar_oferta_proposta(gestor, revisao_id, codigo, descricao, preco_impre
         ordem=ultima.ordem + 1 if ultima else 0,
         codigo=codigo,
         descricao=descricao,
-        preco_impresso=_preco_digitado(preco_impresso),
+        preco_impresso=preco_digitado(preco_impresso),
         caixa=_caixa_digitada(caixa),
         caminho=CAMINHO_MANUAL,
     )
@@ -121,29 +120,6 @@ def _codigo_e_descricao(codigo, descricao):
     if not codigo or not descricao:
         raise ErroDeNegocio('Informe o código e a descrição da Oferta.')
     return codigo, descricao
-
-
-# Sem vírgula, um ponto seguido de exatamente 3 dígitos parece separador de milhar.
-PONTO_DE_MILHAR = re.compile(r'\.\d{3}(?!\d)')
-
-
-def _preco_digitado(texto):
-    texto = texto.strip()
-    if not texto:
-        return None
-    if ',' in texto:  # formato brasileiro: ponto separa milhar, vírgula separa centavos
-        texto = texto.replace('.', '').replace(',', '.')
-    elif PONTO_DE_MILHAR.search(texto):  # "1.500" pode ser mil e quinhentos ou 1,50: ambíguo
-        raise ErroDeNegocio(
-            'Use vírgula para os centavos: 1.500,00 para mil e quinhentos, 1,50 para um real e cinquenta.'
-        )
-    try:
-        preco = Decimal(texto)
-    except InvalidOperation:
-        preco = None
-    if preco is None or not preco.is_finite() or preco <= 0:
-        raise ErroDeNegocio('O preço precisa ser maior que zero.')
-    return preco
 
 
 def _caixa_digitada(texto):
