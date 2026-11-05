@@ -8,6 +8,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from catalogos.casos_de_uso import (
     LIMITE_DE_RESULTADOS,
+    ResultadoDaBusca,
     buscar_ofertas,
     cadastrar_fornecedor,
     definir_conteudo,
@@ -48,6 +49,10 @@ def buscar(request):
     }
     if request.GET:
         fornecedor = fornecedores.filter(pk=fornecedor_escolhido).first() if fornecedor_escolhido.isdecimal() else None
+        if fornecedor_escolhido and fornecedor is None:
+            # Endereço editado à mão: um Fornecedor que não existe não tem Ofertas.
+            contexto['resultado'] = ResultadoDaBusca(ofertas=[], total=0)
+            return render(request, 'catalogos/buscar.html', contexto)
         try:
             contexto['resultado'] = buscar_ofertas(request.user, texto, fornecedor=fornecedor, so_vigentes=not antigas)
         except ErroDeNegocio as erro:

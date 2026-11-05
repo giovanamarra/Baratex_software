@@ -148,6 +148,17 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertContains(resposta, 'R$ 9,00')
         self.assertNotContains(resposta, 'R$ 10,00')
 
+    def test_buscar_com_um_fornecedor_que_nao_existe_nao_encontra_nenhuma_oferta(self):
+        self.catalogo_confirmado()
+
+        for fornecedor in [str(self.fornecedor.pk + 1000), 'abc']:
+            for texto in ['balde', '']:
+                with self.subTest(fornecedor=fornecedor, texto=texto):
+                    resposta = self.client.get(reverse('buscar_ofertas'), {'texto': texto, 'fornecedor': fornecedor})
+
+                    self.assertContains(resposta, 'Nenhuma Oferta encontrada.')
+                    self.assertNotContains(resposta, 'Balde Ficticio')
+
     def test_buscar_mostra_o_formulario_preenchido_com_os_filtros_da_busca(self):
         self.catalogo_confirmado()
 
