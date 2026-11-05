@@ -121,6 +121,15 @@ select {
   gap: 0.75rem;
 }
 
+/* Caixa de marcar com o texto ao lado (ex.: "Mostrar também Ofertas antigas") */
+
+.campo--marcar label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+}
+
 /* Botões: primário verde com texto branco; secundário branco com borda e texto verdes;
    perigo (ação destrutiva) branco com borda e texto de erro, nunca no estilo primário */
 

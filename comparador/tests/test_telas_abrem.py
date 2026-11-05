@@ -103,3 +103,16 @@ class TelasAbremTests(TesteComArquivosEnviados):
         resposta = self.client.get(reverse('historico_do_conteudo', kwargs={'pk': balde.pk}))
 
         self.assertContains(resposta, '04/03/2026')
+
+    def test_buscar_abre_e_mostra_o_formulario_e_os_resultados_com_definir_conteudo(self):
+        self.catalogo_confirmado()
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'balde'})
+
+        for texto in [
+            'Mostrar também Ofertas antigas', 'Todos os Fornecedores', 'Fornecedor Alfa', 'Balde Ficticio',
+            'R$ 9,90', '02/03/2026', 'Definir Conteúdo',
+        ]:
+            with self.subTest(texto=texto):
+                self.assertContains(resposta, texto)
+        self.assertContains(resposta, f'href="{reverse("buscar_ofertas")}"')  # "Buscar" na barra de navegação

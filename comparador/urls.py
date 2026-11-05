@@ -29,6 +29,7 @@ urlpatterns = [
         catalogos.historico_do_conteudo_da_oferta,
         name='historico_do_conteudo',
     ),
+    path('buscar/', catalogos.buscar, name='buscar_ofertas'),
     path('importar/', importacao.importar, name='importar'),
     path('revisoes/<int:pk>/', importacao.revisao, name='revisao'),
     path('revisoes/<int:pk>/condicoes/', importacao.informar_condicoes, name='informar_condicoes_do_catalogo'),

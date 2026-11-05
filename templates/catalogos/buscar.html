@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load formatos %}
+
+{% block titulo %}Buscar Ofertas{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Buscar Ofertas</h1>
+  <p class="texto-secundario">Procure por código ou parte da descrição, em todos os Catálogos do grupo. Maiúsculas e acentos não importam.</p>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível buscar:</strong> {{ erro }}</p>{% endif %}
+  <form method="get">
+    <div class="campo">
+      <label for="texto">Código ou descrição</label>
+      <input id="texto" name="texto" type="text" value="{{ texto }}" autofocus>
+    </div>
+    <div class="campo">
+      <label for="fornecedor">Fornecedor</label>
+      <select id="fornecedor" name="fornecedor">
+        <option value="">Todos os Fornecedores</option>
+        {% for fornecedor in fornecedores %}
+        <option value="{{ fornecedor.pk }}"{% if fornecedor_escolhido == fornecedor.pk|stringformat:"s" %} selected{% endif %}>{{ fornecedor.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo campo--marcar">
+      <label for="antigas"><input id="antigas" name="antigas" type="checkbox" value="1"{% if antigas %} checked{% endif %}> Mostrar também Ofertas antigas</label>
+    </div>
+    <button class="botao botao--primario" type="submit">Buscar</button>
+  </form>
+</section>
+
+{% if resultado %}
+<section class="cartao">
+  <h2>Resultados</h2>
+  {% if resultado.total > limite %}
+  <p class="atencao"><strong>Atenção:</strong> Mostrando {{ limite }} de {{ resultado.total }} Ofertas. Refine a busca.</p>
+  {% endif %}
+  <div class="tabela-rolavel">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Descrição</th>
+          <th scope="col" class="numero">Preço unitário</th>
+          <th scope="col" class="numero">Caixa</th>
+          <th scope="col">Fornecedor</th>
+          <th scope="col">Catálogo de</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for oferta in resultado.ofertas %}
+        <tr>
+          <td>{{ oferta.codigo }}</td>
+          <td>{{ oferta.descricao }}</td>
+          <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}</td>
+          <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<span class="texto-secundario">sem Caixa</span>{% endif %}</td>
+          <td>{{ oferta.catalogo.fornecedor.nome }}</td>
+          <td><a href="{% url 'catalogo' oferta.catalogo_id %}">{{ oferta.catalogo.data|date:"d/m/Y" }}</a></td>
+          <td><a class="botao botao--secundario botao--pequeno" href="{% url 'definir_conteudo' oferta.pk %}">Definir Conteúdo</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="texto-secundario">Nenhuma Oferta encontrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

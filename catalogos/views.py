@@ -5,6 +5,8 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 
 from catalogos.casos_de_uso import (
+    LIMITE_DE_RESULTADOS,
+    buscar_ofertas,
     cadastrar_fornecedor,
     definir_conteudo,
     historico_do_conteudo,
@@ -28,6 +30,25 @@ def fornecedores(request):
             contexto = {'nome': nome, 'erro': erro.mensagem}
     contexto['fornecedores'] = listar_fornecedores(request.user).order_by('nome')
     return render(request, 'catalogos/fornecedores.html', contexto)
+
+
+def buscar(request):
+    """Busca nos Catálogos de todos os Fornecedores. A tela só chama o caso de uso; sem parâmetros, só mostra o formulário."""
+    fornecedores = listar_fornecedores(request.user).order_by('nome')
+    texto = request.GET.get('texto', '')
+    fornecedor_escolhido = request.GET.get('fornecedor', '')
+    antigas = request.GET.get('antigas') == '1'
+    contexto = {
+        'fornecedores': fornecedores, 'texto': texto, 'fornecedor_escolhido': fornecedor_escolhido,
+        'antigas': antigas, 'limite': LIMITE_DE_RESULTADOS,
+    }
+    if request.GET:
+        fornecedor = fornecedores.filter(pk=fornecedor_escolhido).first() if fornecedor_escolhido.isdecimal() else None
+        try:
+            contexto['resultado'] = buscar_ofertas(request.user, texto, fornecedor=fornecedor, so_vigentes=not antigas)
+        except ErroDeNegocio as erro:
+            contexto['erro'] = erro.mensagem
+    return render(request, 'catalogos/buscar.html', contexto)
 
 
 def catalogos_do_fornecedor(request, pk):
