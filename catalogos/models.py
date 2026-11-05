@@ -34,8 +34,10 @@ class Catalogo(models.Model):
     def ofertas(self):
         ofertas = list(self.ofertas_do_catalogo.order_by('ordem'))
         guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para o Catálogo inteiro
+        teto = teto_atual()  # idem para o destaque do Teto
         for oferta in ofertas:
             oferta._conteudo = conteudo_guardado(guardados, oferta.codigo)
+            oferta._teto = teto
         return ofertas
 
 

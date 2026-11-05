@@ -1,7 +1,7 @@
 {% comment %}
 Tabela de Ofertas, usada na Revisão (com_acoes: Corrigir e Remover por linha) e no Catálogo
 (acoes_de_conteudo: Definir Conteúdo e Histórico por linha).
-Linhas sem preço válido ou sem Caixa usam o estilo de alerta, sempre com texto.
+Linhas sem preço válido, sem Caixa ou acima do Teto de compra usam o estilo de alerta, sempre com texto.
 {% endcomment %}
 <div class="tabela-rolavel">
   <table>
@@ -19,7 +19,7 @@ Linhas sem preço válido ou sem Caixa usam o estilo de alerta, sempre com texto
     </thead>
     <tbody>
       {% for oferta in ofertas %}
-      <tr{% if oferta.marcas or oferta.caixa is None or com_acoes and oferta.acima_do_teto %} class="linha--alerta"{% endif %}>
+      <tr{% if oferta.marcas or oferta.caixa is None or oferta.acima_do_teto %} class="linha--alerta"{% endif %}>
         <td>{{ oferta.codigo }}</td>
         <td>
           {{ oferta.descricao }}
@@ -29,7 +29,7 @@ Linhas sem preço válido ou sem Caixa usam o estilo de alerta, sempre com texto
           {% if oferta.preco_impresso is not None %}R$ {{ oferta.preco_impresso|floatformat:"2g" }}{% endif %}
           {% for marca in oferta.marcas %}{% if marca != "unidade ambígua" %}<strong class="alerta">{{ marca }}</strong>{% endif %}{% endfor %}
         </td>
-        <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}{% if com_acoes and oferta.acima_do_teto %} <strong class="alerta">acima do Teto</strong>{% endif %}</td>
+        <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}{% if oferta.acima_do_teto %} <strong class="alerta">acima do Teto</strong>{% endif %}</td>
         <td class="numero">
           {{ oferta.conteudo }}
           {% if com_acoes and oferta.sugestao_de_conteudo %}

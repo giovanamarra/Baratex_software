@@ -269,6 +269,20 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertIn('linha--alerta', linha_do_balde.group(0))
         self.assertIn('acima do Teto', linha_do_balde.group(0))
 
+    def test_catalogo_confirmado_destaca_com_o_texto_acima_do_teto_so_a_oferta_acima_do_teto(self):
+        catalogo = self.confirmar([
+            CartaoFicticio('1001', 'Balde Ficticio', '9,90'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '4,00'),
+        ])
+        definir_teto(self.gestora, '5,00')
+
+        resposta = self.client.get(reverse('catalogo', kwargs={'pk': catalogo.pk}))
+
+        self.assertContains(resposta, 'acima do Teto', count=1)
+        linha_do_balde = re.search(r'<tr[^>]*>(?:(?!</tr>).)*Balde Ficticio.*?</tr>', resposta.content.decode(), re.S)
+        self.assertIn('linha--alerta', linha_do_balde.group(0))
+        self.assertIn('acima do Teto', linha_do_balde.group(0))
+
     def test_revisao_destaca_com_o_texto_acima_do_teto_so_a_oferta_acima_do_teto(self):
         revisao = self.importar([
             CartaoFicticio('1001', 'Balde Ficticio', '9,90'),
