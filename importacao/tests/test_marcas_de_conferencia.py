@@ -6,6 +6,7 @@ As regras foram calibradas com os Catálogos reais; os números estão no ticket
 from decimal import Decimal
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, historico_do_conteudo
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
@@ -149,6 +150,25 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
 
         marcas = self.marcas(revisao)
         self.assertEqual((marcas['1006'], marcas['1001']), ([], ['fora do padrão']))
+
+    def test_fora_do_padrao_ambigua_e_sugestao_nao_impedem_a_confirmacao_mas_sem_preco_continua_impedindo(self):
+        cartoes = [
+            *cartoes_com_precos('9,00', '10,00', '10,00', '11,00', '12,00', '150,00'),  # 1006: fora do padrão
+            CartaoFicticio('2001', 'Kit Tesouras Ficticias'),  # unidade ambígua
+            CartaoFicticio('3001', 'Tesoura Ficticia C/3'),  # sugestão de Conteúdo
+        ]
+        sem_preco = self.importar([*cartoes, CartaoFicticio('1003', 'Pa Ficticia', '***,**')])
+        marcadas = self.importar(cartoes)
+        for revisao in (sem_preco, marcadas):
+            informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+
+        with self.assertRaisesMessage(
+            ErroDeNegocio, 'Informe um preço maior que zero antes de confirmar. Ofertas sem preço: 1003.'
+        ):
+            confirmar_revisao(self.gestora, sem_preco.pk)
+        catalogo = confirmar_revisao(self.gestora, marcadas.pk)
+
+        self.assertEqual(len(catalogo.ofertas()), 8)
 
     def contagem(self, revisao):
         revisao = obter_revisao(self.gestora, revisao.pk)
