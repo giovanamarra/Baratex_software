@@ -16,3 +16,8 @@ def calcular_preco_unitario(preco_impresso, desconto, conteudo):
         return None
     fator = 1 - (desconto or 0) / CEM
     return (preco_impresso * fator / conteudo).quantize(CENTAVO, rounding=ROUND_HALF_UP)
+
+
+def acima_do_teto(preco_unitario, teto):
+    """Só o Preço unitário acima do Teto é destacado; igual ao Teto não. Sem Teto ou sem preço, nada é destacado."""
+    return teto is not None and preco_unitario is not None and preco_unitario > teto

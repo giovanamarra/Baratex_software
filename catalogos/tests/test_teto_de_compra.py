@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, definir_teto, obter_teto
+from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, definir_conteudo, definir_teto, obter_teto
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
@@ -17,6 +17,17 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
     def setUp(self):
         self.gestora = criar_gestor('gestora')
         self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
+
+    def importar(self, cartoes, desconto='0', dia=DIA):
+        """Importa e confirma um Catálogo fictício do Layout A do Fornecedor Alfa."""
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+        revisao = iniciar_importacao(self.gestora, self.alfa, arquivo, hoje=dia)
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, desconto)
+        return confirmar_revisao(self.gestora, revisao.pk, hoje=dia)
+
+    def destaques_da_busca(self):
+        """(código, acima do Teto) de cada Oferta da busca, na ordem dos códigos."""
+        return [(o.codigo, o.acima_do_teto) for o in buscar_ofertas(self.gestora, 'ficticio').ofertas]
 
     def test_definir_o_teto_guarda_um_unico_valor_e_definir_de_novo_substitui(self):
         self.assertIsNone(obter_teto(self.gestora))
@@ -33,3 +44,15 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
         definir_teto(self.gestora, '5,00')
 
         self.assertEqual(obter_teto(outro), Decimal('5.00'))
+
+    def test_so_o_preco_unitario_acima_do_teto_e_destacado(self):
+        self.importar([
+            CartaoFicticio('1001', 'Item Ficticio A', '5,01'),
+            CartaoFicticio('1002', 'Item Ficticio B', '5,00'),
+            CartaoFicticio('1003', 'Item Ficticio C', '4,99'),
+        ])
+        definir_teto(self.gestora, '5,00')
+
+        self.assertEqual(
+            self.destaques_da_busca(), [('1001', True), ('1002', False), ('1003', False)]
+        )

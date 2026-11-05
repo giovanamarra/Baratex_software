@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from catalogos.preco_unitario import calcular_preco_unitario
+from catalogos.preco_unitario import acima_do_teto, calcular_preco_unitario
 
 
 class Fornecedor(models.Model):
@@ -76,6 +76,13 @@ class Oferta(models.Model):
     def preco_unitario(self):
         return calcular_preco_unitario(self.preco_impresso, self.catalogo.desconto, self.conteudo)
 
+    @property
+    def acima_do_teto(self):
+        # Derivado na consulta, nunca gravado: mudar o Teto muda o destaque sem nenhum outro passo.
+        if not hasattr(self, '_teto'):
+            self._teto = teto_atual()
+        return acima_do_teto(self.preco_unitario, self._teto)
+
 
 class AlteracaoDeConteudo(models.Model):
     """Registro de cada mudança do Conteúdo de um Fornecedor + código (ADR-0007, auditoria).
@@ -104,6 +111,11 @@ class TetoDeCompra(models.Model):
     class Meta:
         verbose_name = 'Teto de compra'
         verbose_name_plural = 'Teto de compra'
+
+
+def teto_atual():
+    """O Teto de compra do grupo, ou None quando ainda não foi definido."""
+    return TetoDeCompra.objects.values_list('valor', flat=True).first()
 
 
 CONTEUDO_PADRAO = 1

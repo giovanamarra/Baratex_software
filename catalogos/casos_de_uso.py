@@ -16,6 +16,7 @@ from catalogos.models import (
     TetoDeCompra,
     conteudo_guardado,
     conteudos_guardados,
+    teto_atual,
 )
 from comparador.erros import ErroDeNegocio
 
@@ -119,8 +120,10 @@ def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
 
 def _carregar_conteudos(ofertas):
     """Uma consulta por Fornecedor, em vez de uma por Oferta, para calcular o Preço unitário de cada resultado."""
+    teto = teto_atual()
     guardados = {}
     for oferta in ofertas:
+        oferta._teto = teto
         fornecedor_id = oferta.catalogo.fornecedor_id
         if fornecedor_id not in guardados:
             guardados[fornecedor_id] = conteudos_guardados(fornecedor_id)
@@ -159,7 +162,7 @@ def definir_teto(gestor, valor):
 
 def obter_teto(gestor):
     """O Teto de compra do grupo, ou None quando ainda não foi definido (então nada é destacado)."""
-    return TetoDeCompra.objects.values_list('valor', flat=True).first()
+    return teto_atual()
 
 
 def obter_oferta(gestor, oferta_id):
