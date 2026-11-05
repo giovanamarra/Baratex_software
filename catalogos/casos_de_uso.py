@@ -157,6 +157,9 @@ def _valor_antes_do_conteudo(preco_impresso, desconto):
     return ExpressionWrapper(preco * (100 - Coalesce(percentual, 0)), output_field=DecimalField())
 
 
+# O maior valor que cabe nas colunas de preço (12 dígitos, 2 casas); acima disso o banco recusa a gravação.
+MAIOR_PRECO = Decimal('9999999999.99')
+
 # Sem vírgula, um ponto seguido de exatamente 3 dígitos parece separador de milhar.
 PONTO_DE_MILHAR = re.compile(r'\.\d{3}(?!\d)')
 
@@ -181,6 +184,8 @@ def preco_digitado(texto, nome='O preço'):
         preco = None
     if preco is None or not preco.is_finite() or preco <= 0:
         raise ErroDeNegocio(f'{nome} precisa ser maior que zero.')
+    if preco > MAIOR_PRECO:
+        raise ErroDeNegocio(f'{nome} é grande demais. Confira se digitou o valor certo.')
     return preco
 
 

@@ -119,6 +119,18 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
                 self.assertEqual(erro.exception.mensagem, 'O Teto de compra precisa ser maior que zero.')
         self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))
 
+    def test_teto_grande_demais_e_recusado_e_o_teto_anterior_continua(self):
+        definir_teto(self.gestora, '5,00')
+
+        for digitado in ['10.000.000.000,00', '99999999999999,99']:
+            with self.subTest(digitado=digitado):
+                with self.assertRaises(ErroDeNegocio) as erro:
+                    definir_teto(self.gestora, digitado)
+                self.assertEqual(
+                    erro.exception.mensagem, 'O Teto de compra é grande demais. Confira se digitou o valor certo.'
+                )
+        self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))
+
     def test_teto_usa_a_mesma_leitura_de_preco_do_resto_do_sistema(self):
         # No Brasil o ponto separa milhar: "1.500" pode ser mil e quinhentos ou um real e cinquenta.
         with self.assertRaises(ErroDeNegocio) as erro:

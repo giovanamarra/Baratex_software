@@ -159,6 +159,21 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('7.50'))
 
+    def test_corrigir_com_preco_grande_demais_e_recusado_e_o_maior_que_cabe_e_aceito(self):
+        revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
+        balde = self.ofertas(revisao)[0]
+
+        for preco in ['10.000.000.000,00', '9.999.999.999,999', '99999999999999,99']:
+            with self.subTest(preco=preco):
+                with self.assertRaisesMessage(
+                    ErroDeNegocio, 'O preço é grande demais. Confira se digitou o valor certo.'
+                ):
+                    self.corrigir(balde, preco_impresso=preco)
+        self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('7.50'))
+
+        self.corrigir(balde, preco_impresso='9.999.999.999,99')
+        self.assertEqual(self.ofertas(revisao)[0].preco_impresso, Decimal('9999999999.99'))
+
     def test_preco_com_ponto_de_milhar_sem_virgula_e_recusado_por_ser_ambiguo(self):
         # No Brasil o ponto separa milhar: "1.500" pode ser mil e quinhentos ou um real e cinquenta.
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')])
