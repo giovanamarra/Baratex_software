@@ -119,6 +119,34 @@ class TelasAbremTests(TesteComArquivosEnviados):
                 self.assertContains(resposta, texto)
         self.assertContains(resposta, f'href="{reverse("buscar_ofertas")}"')  # "Buscar" na barra de navegação
 
+    def confirmar(self, cartoes, hoje=date(2026, 3, 2), fornecedor=None):
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+        revisao = iniciar_importacao(self.gestora, fornecedor or self.fornecedor, arquivo, hoje=hoje)
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        return confirmar_revisao(self.gestora, revisao.pk)
+
+    def test_buscar_com_ofertas_antigas_marcado_mostra_tambem_as_antigas(self):
+        self.confirmar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], hoje=date(2026, 3, 1))
+        self.confirmar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], hoje=date(2026, 3, 15))
+
+        so_vigentes = self.client.get(reverse('buscar_ofertas'), {'texto': 'balde'})
+        com_antigas = self.client.get(reverse('buscar_ofertas'), {'texto': 'balde', 'antigas': '1'})
+
+        self.assertContains(so_vigentes, 'R$ 11,00')
+        self.assertNotContains(so_vigentes, 'R$ 10,00')
+        self.assertContains(com_antigas, 'R$ 11,00')
+        self.assertContains(com_antigas, 'R$ 10,00')
+
+    def test_buscar_com_um_fornecedor_escolhido_mostra_so_as_ofertas_dele(self):
+        beta = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        self.confirmar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')])
+        self.confirmar([CartaoFicticio('1001', 'Balde Ficticio', '9,00')], fornecedor=beta)
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'balde', 'fornecedor': beta.pk})
+
+        self.assertContains(resposta, 'R$ 9,00')
+        self.assertNotContains(resposta, 'R$ 10,00')
+
     def test_buscar_com_mais_de_200_resultados_avisa_para_refinar_a_busca(self):
         revisao = self.importar([CartaoFicticio(str(c), f'Item Ficticio {c}', '9,90') for c in range(1000, 1201)])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
