@@ -50,10 +50,10 @@
       </thead>
       <tbody>
         {% for oferta in resultado.ofertas %}
-        <tr>
+        <tr{% if oferta.acima_do_teto %} class="linha--alerta"{% endif %}>
           <td>{{ oferta.codigo }}</td>
           <td>{{ oferta.descricao }}</td>
-          <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}</td>
+          <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}{% if oferta.acima_do_teto %} <strong class="alerta">acima do Teto</strong>{% endif %}</td>
           <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<span class="texto-secundario">sem Caixa</span>{% endif %}</td>
           <td>{{ oferta.catalogo.fornecedor.nome }}</td>
           <td><a href="{% url 'catalogo' oferta.catalogo_id %}">{{ oferta.catalogo.data|date:"d/m/Y" }}</a></td>

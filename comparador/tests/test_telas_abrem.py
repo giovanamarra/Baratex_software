@@ -199,3 +199,19 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertContains(recusado, 'O Teto de compra precisa ser maior que zero.')
         self.assertContains(recusado, 'Teto de compra atual: <strong>R$ 5,00</strong>')
         self.assertEqual(obter_teto(self.gestora), Decimal('5.00'))
+
+    def test_buscar_destaca_com_o_texto_acima_do_teto_so_a_oferta_acima_do_teto(self):
+        revisao = self.importar([
+            CartaoFicticio('1001', 'Balde Ficticio', '9,90'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '4,00'),
+        ])
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        confirmar_revisao(self.gestora, revisao.pk)
+        definir_teto(self.gestora, '5,00')
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'ficticio'})
+
+        self.assertContains(resposta, 'acima do Teto', count=1)
+        linha_do_balde = re.search(r'<tr[^>]*>(?:(?!</tr>).)*Balde Ficticio.*?</tr>', resposta.content.decode(), re.S)
+        self.assertIn('linha--alerta', linha_do_balde.group(0))
+        self.assertIn('acima do Teto', linha_do_balde.group(0))
