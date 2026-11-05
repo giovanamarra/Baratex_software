@@ -22,8 +22,8 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.fornecedor = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
         self.client.login(username='gestora', password=SENHA_DE_TESTE)
 
-    def importar(self, cartoes, hoje=date(2026, 3, 2)):
-        catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
+    def importar(self, cartoes, hoje=date(2026, 3, 2), **opcoes_do_pdf):
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes, **opcoes_do_pdf))
         return iniciar_importacao(self.gestora, self.fornecedor, catalogo, hoje=hoje)
 
     def catalogo_confirmado(self):
@@ -48,16 +48,31 @@ class TelasAbremTests(TesteComArquivosEnviados):
 
         self.assertContains(resposta, 'Retomar')
 
-    def test_revisao_abre_e_mostra_as_ofertas_com_a_marca(self):
-        revisao = self.importar([
-            CartaoFicticio('1001', 'Balde Ficticio', '9,90'),
-            CartaoFicticio('1002', 'Rodo Ficticio', '***,**'),  # mascarado, como no real
-        ])
+    def test_revisao_abre_e_mostra_as_ofertas_com_cada_marca_e_a_contagem(self):
+        revisao = self.importar(
+            [
+                CartaoFicticio('1001', 'Balde Ficticio', '9,90'),
+                CartaoFicticio('1002', 'Rodo Ficticio', '***,**'),  # mascarado, como no real
+                CartaoFicticio('1003', 'Pa Ficticia', '10,00', caixa='***'),
+                CartaoFicticio('1004', 'Escova Ficticia', '11,00'),
+                CartaoFicticio('1005', 'Esponja Ficticia', '12,00'),
+                CartaoFicticio('1006', 'Lixeira Ficticia', '150,00'),
+                CartaoFicticio('2001', 'Kit Tesouras Ficticias', '10,00'),
+                CartaoFicticio('3001', 'Tesoura Ficticia C/3', '9,00'),
+            ],
+            rodape='Frete gratis acima de R$500,00',  # um preço que não vira Oferta
+        )
 
         resposta = self.client.get(reverse('revisao', kwargs={'pk': revisao.pk}))
 
-        self.assertContains(resposta, 'Balde Ficticio')
-        self.assertContains(resposta, 'sem preço')
+        for texto in [
+            'Balde Ficticio', 'sem preço', 'sem Caixa', 'fora do padrão', 'unidade ambígua',
+            'Sugestão: Conteúdo 3', 'Aceitar', 'Manter 1',
+            'Preços no arquivo: <strong>9</strong> · Ofertas extraídas: <strong>8</strong>',
+            'Falta 1 Oferta: confira o arquivo.',
+        ]:
+            with self.subTest(texto=texto):
+                self.assertContains(resposta, texto)
 
     def test_catalogos_do_fornecedor_abre_e_mostra_a_data_do_catalogo(self):
         self.catalogo_confirmado()

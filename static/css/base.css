@@ -222,6 +222,22 @@ table tbody tr.linha--alerta {
   margin-left: 0.25rem;
 }
 
+/* Sugestão de Conteúdo na Revisão: texto e botões pequenos, sem cor de alerta (não é problema) */
+
+.sugestao {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  color: var(--bx-texto-2);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.contagem {
+  margin: 0 0 1rem;
+}
+
 /* Atenção antes de uma ação de efeito amplo (ex.: Conteúdo fora da Revisão): cores de alerta e o
    texto "Atenção:", nunca só a cor (BRAND.md) */
 

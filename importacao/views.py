@@ -9,12 +9,14 @@ from catalogos.casos_de_uso import listar_fornecedores
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from importacao.casos_de_uso import (
     abandonar_revisao,
+    aceitar_sugestao_de_conteudo,
     adicionar_oferta_proposta,
     confirmar_revisao,
     corrigir_oferta_proposta,
     informar_condicoes_do_catalogo,
     iniciar_importacao,
     listar_revisoes_em_andamento,
+    manter_conteudo_1,
     obter_oferta_proposta,
     obter_revisao,
     remover_oferta_proposta,
@@ -159,6 +161,30 @@ def remover_oferta(request, pk):
         messages.error(request, erro.mensagem)
         return redirect('importar')
     return render(request, 'importacao/remover_oferta.html', {'oferta': oferta})
+
+
+@require_POST
+def aceitar_sugestao(request, pk):
+    return _decidir_sugestao(request, pk, aceitar_sugestao_de_conteudo, 'Sugestão de Conteúdo aceita para a Oferta {}.')
+
+
+@require_POST
+def manter_1(request, pk):
+    return _decidir_sugestao(request, pk, manter_conteudo_1, 'Conteúdo 1 mantido para a Oferta {}.')
+
+
+def _decidir_sugestao(request, pk, caso_de_uso, aviso):
+    """Aceitar ou Manter 1: a decisão fica na Revisão e só é guardada ao confirmar (ticket 07)."""
+    try:
+        oferta = obter_oferta_proposta(request.user, pk)
+        caso_de_uso(request.user, pk)
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except ErroDeNegocio as erro:
+        messages.error(request, erro.mensagem)
+        return redirect('importar')
+    messages.success(request, aviso.format(oferta.codigo))
+    return redirect('revisao', pk=oferta.revisao_id)
 
 
 def _valores_digitados(request):

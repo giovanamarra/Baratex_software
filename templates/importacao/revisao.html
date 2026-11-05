@@ -12,6 +12,14 @@
   {% include "catalogos/_tabela_de_ofertas.html" %}
   {% else %}
   <p class="texto-secundario">{{ ofertas|length }} Ofertas propostas, Importação de {{ revisao.iniciada_em|date:"d/m/Y" }}. Nada é salvo como Catálogo antes da confirmação.</p>
+  {% if revisao.precos_no_arquivo is not None %}
+  {% with faltam=revisao.ofertas_que_faltam %}
+  <p class="contagem{% if faltam %} atencao{% endif %}"{% if faltam %} role="alert"{% endif %}>
+    Preços no arquivo: <strong>{{ revisao.precos_no_arquivo }}</strong> · Ofertas extraídas: <strong>{{ revisao.ofertas_extraidas }}</strong>
+    {% if faltam %}<br><strong>Falta{{ faltam|pluralize:"m" }} {{ faltam }} Oferta{{ faltam|pluralize }}: confira o arquivo.</strong>{% endif %}
+  </p>
+  {% endwith %}
+  {% endif %}
   <form method="post" action="{% url 'informar_condicoes_do_catalogo' revisao.pk %}" class="acoes acoes--antes-da-tabela">
     {% csrf_token %}
     <div class="campo campo--em-linha">

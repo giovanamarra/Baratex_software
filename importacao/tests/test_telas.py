@@ -90,3 +90,20 @@ class TelasDeImportacaoTests(TesteComArquivosEnviados):
 
         ofertas = obter_revisao(gestora, revisao.pk).ofertas_propostas()
         self.assertEqual([(oferta.codigo, oferta.preco_impresso) for oferta in ofertas], [('1001', Decimal('10.00'))])
+
+    def test_outro_gestor_nao_aceita_nem_recusa_a_sugestao_de_conteudo_pela_url(self):
+        gestora = criar_gestor('gestora')
+        criar_gestor('outro-gestor')
+        fornecedor = cadastrar_fornecedor(gestora, 'Fornecedor Alfa')
+        catalogo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('3001', 'Tesoura Ficticia C/3')]))
+        revisao = iniciar_importacao(gestora, fornecedor, catalogo)
+        tesoura = revisao.ofertas_propostas()[0]
+        self.client.login(username='outro-gestor', password=SENHA_DE_TESTE)
+
+        for rota in ('aceitar_sugestao_de_conteudo', 'manter_conteudo_1'):
+            with self.subTest(rota=rota):
+                resposta = self.client.post(reverse(rota, kwargs={'pk': tesoura.pk}))
+                self.assertContains(resposta, 'Esta Revisão é de outro Gestor.', status_code=403)
+
+        tesoura = obter_revisao(gestora, revisao.pk).ofertas_propostas()[0]
+        self.assertEqual((tesoura.conteudo, tesoura.sugestao_de_conteudo), (1, 3))

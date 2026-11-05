@@ -21,13 +21,31 @@ Linhas sem preço válido ou sem Caixa usam o estilo de alerta, sempre com texto
       {% for oferta in ofertas %}
       <tr{% if oferta.marcas or oferta.caixa is None %} class="linha--alerta"{% endif %}>
         <td>{{ oferta.codigo }}</td>
-        <td>{{ oferta.descricao }}</td>
+        <td>
+          {{ oferta.descricao }}
+          {% if "unidade ambígua" in oferta.marcas %}<strong class="alerta">unidade ambígua</strong>{% endif %}
+        </td>
         <td class="numero">
           {% if oferta.preco_impresso is not None %}R$ {{ oferta.preco_impresso|floatformat:"2g" }}{% endif %}
-          {% for marca in oferta.marcas %}<strong class="alerta">{{ marca }}</strong>{% endfor %}
+          {% for marca in oferta.marcas %}{% if marca != "unidade ambígua" %}<strong class="alerta">{{ marca }}</strong>{% endif %}{% endfor %}
         </td>
         <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}</td>
-        <td class="numero">{{ oferta.conteudo }}</td>
+        <td class="numero">
+          {{ oferta.conteudo }}
+          {% if com_acoes and oferta.sugestao_de_conteudo %}
+          <div class="sugestao">
+            <span>Sugestão: Conteúdo {{ oferta.sugestao_de_conteudo }}</span>
+            <div class="acoes acoes--na-linha">
+              <form method="post" action="{% url 'aceitar_sugestao_de_conteudo' oferta.pk %}">
+                {% csrf_token %}<button class="botao botao--secundario botao--pequeno" type="submit">Aceitar</button>
+              </form>
+              <form method="post" action="{% url 'manter_conteudo_1' oferta.pk %}">
+                {% csrf_token %}<button class="botao botao--secundario botao--pequeno" type="submit">Manter 1</button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+        </td>
         <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<strong class="alerta">sem Caixa</strong>{% endif %}</td>
         <td>{{ oferta.caminho }}</td>
         {% if com_acoes %}
