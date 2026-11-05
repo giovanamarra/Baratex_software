@@ -7,8 +7,14 @@ from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, definir
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, informar_condicoes_do_catalogo
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.casos_de_uso import (
+    adicionar_oferta_proposta,
+    confirmar_revisao,
+    iniciar_importacao,
+    informar_condicoes_do_catalogo,
+    obter_revisao,
+)
 
 DIA_01 = date(2026, 3, 1)
 DIA_15 = date(2026, 3, 15)
@@ -166,6 +172,22 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         resultado = buscar_ofertas(self.gestora, 'ficticio')
 
         self.assertEqual((len(resultado.ofertas), resultado.total), (1, 1))
+
+    def test_oferta_adicionada_a_mao_ou_corrigida_na_revisao_e_achada_pelo_que_foi_confirmado(self):
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio', '10,00')]))
+        revisao = iniciar_importacao(self.gestora, self.alfa, arquivo, hoje=DIA_01)
+        balde = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0]
+        corrigir(self.gestora, balde, descricao='Bacia Plástica')
+        adicionar_oferta_proposta(
+            self.gestora, revisao.pk, codigo='2001', descricao='Escova Ácida', preco_impresso='3,40', caixa='60'
+        )
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        confirmar_revisao(self.gestora, revisao.pk, hoje=DIA_01)
+
+        casos = [('plastica', ['1001']), ('ACIDA', ['2001']), ('balde', [])]
+        for digitado, esperado in casos:
+            with self.subTest(digitado=digitado):
+                self.assertEqual([o.codigo for o in self.buscar(digitado)], esperado)
 
     def test_com_so_vigentes_o_total_conta_so_as_ofertas_vigentes(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
