@@ -1,6 +1,7 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
 from dataclasses import dataclass
+from decimal import Decimal
 
 from django.db.models import DecimalField, Exists, ExpressionWrapper, F, OuterRef, Q
 from django.db.models.functions import Coalesce
@@ -12,6 +13,7 @@ from catalogos.models import (
     Catalogo,
     Fornecedor,
     Oferta,
+    TetoDeCompra,
     conteudo_guardado,
     conteudos_guardados,
 )
@@ -148,6 +150,16 @@ def _valor_antes_do_conteudo(preco_impresso, desconto):
     preco = F(preco_impresso) if isinstance(preco_impresso, str) else preco_impresso
     percentual = F(desconto) if isinstance(desconto, str) else desconto
     return ExpressionWrapper(preco * (100 - Coalesce(percentual, 0)), output_field=DecimalField())
+
+
+def definir_teto(gestor, valor):
+    """O Teto é um valor único do grupo: definir de novo substitui o anterior. `valor` vem como a gestora digitou."""
+    TetoDeCompra.objects.update_or_create(pk=1, defaults={'valor': Decimal(valor.replace(',', '.'))})
+
+
+def obter_teto(gestor):
+    """O Teto de compra do grupo, ou None quando ainda não foi definido (então nada é destacado)."""
+    return TetoDeCompra.objects.values_list('valor', flat=True).first()
 
 
 def obter_oferta(gestor, oferta_id):

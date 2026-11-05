@@ -95,6 +95,17 @@ class AlteracaoDeConteudo(models.Model):
         verbose_name_plural = 'Alterações de Conteúdo'
 
 
+class TetoDeCompra(models.Model):
+    """Maior Preço unitário que ainda permite revender com lucro. Um único valor para o grupo (ADR-0007):
+    há no máximo uma linha, e definir de novo substitui o valor."""
+
+    valor = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Teto de compra'
+        verbose_name_plural = 'Teto de compra'
+
+
 CONTEUDO_PADRAO = 1
 
 
