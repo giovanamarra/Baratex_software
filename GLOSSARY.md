@@ -11,15 +11,31 @@ Empresa que vende produtos ao grupo. Um Fornecedor pode enviar vários Catálogo
 _Avoid_: Marca, arquivo
 
 **Catálogo**:
-Conjunto de preços enviado por um Fornecedor, datado pelo dia da sua Importação, em PDF, planilha ou imagem. Se fotos e preços chegam em arquivos separados, o Catálogo é o arquivo de preços. Um documento sem preços não é um Catálogo.
+Conjunto de preços enviado por um Fornecedor, com a data do Catálogo informada pela gestora. Chega num arquivo do Catálogo e, quando esse arquivo não traz preços ou o Fornecedor manda os preços à parte, em uma ou mais planilhas de preços que o completam na mesma Importação.
 _Avoid_: Tabela, lista de preços, arquivo
+
+**Arquivo do Catálogo**:
+O primeiro arquivo de um Catálogo, de preferência um PDF: pode trazer fotos, descrições e preços, ou só fotos e descrições. É de onde vem a foto da Oferta.
+_Avoid_: Catálogo de fotos, PDF
+
+**Planilha de preços**:
+Arquivo em tabela que completa um Catálogo com os preços. Quando existe, é dela que saem as Ofertas.
+_Avoid_: Tabela de preços, lista
+
+**Data do Catálogo**:
+O dia, ou só o mês e o ano, a que os preços do Catálogo se referem, informado pela gestora a cada Importação. Não é o dia da Importação, que pode ser outro (um catálogo do mês anterior importado hoje).
+_Avoid_: Data de importação, data de upload, vigência
 
 **Oferta**:
 Um item de um Catálogo: algo que o Fornecedor propõe vender, com o preço daquele Catálogo.
 _Avoid_: Linha, item do catálogo
 
+**Código**:
+O que identifica um item entre os Catálogos de um mesmo Fornecedor: o código impresso pelo Fornecedor ou, quando o Catálogo não traz código, a descrição completa da Oferta.
+_Avoid_: SKU, EAN, referência
+
 **Oferta vigente**:
-A Oferta do Catálogo mais recente de um Fornecedor para um mesmo código; com dois Catálogos do mesmo dia, a de menor preço. É a que entra na comparação; as anteriores formam o histórico de preço.
+A Oferta do Catálogo de data do Catálogo mais recente de um Fornecedor para um mesmo código, mesmo que o preço tenha subido; com a mesma data, a do Catálogo confirmado por último. O menor Preço unitário só desempata o mesmo código repetido dentro de um Catálogo. É a que entra na comparação; as anteriores formam o histórico de preço.
 _Avoid_: Oferta atual, preço atual
 
 **Produto**:
@@ -31,11 +47,11 @@ A forma como um Catálogo organiza suas Ofertas na página. Um mesmo Fornecedor 
 _Avoid_: Formato, modelo
 
 **Perfil do Fornecedor**:
-Conjunto único de regras de um Fornecedor que os Catálogos não informam, definidas pela gestora e válidas para todas as Ofertas dele, como o Fracionamento e, para Catálogos em tabela, quais colunas são código, descrição, preço e Caixa.
+Conjunto único de regras de um Fornecedor que os Catálogos não informam, definidas pela gestora e válidas para todas as Ofertas dele, como o Fracionamento e, para cada formato de planilha que ele usa, quais colunas são código, descrição, preço e Caixa.
 _Avoid_: Cadastro, configuração
 
 **Condições do Catálogo**:
-Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto percentual além do que já está impresso (por exemplo, 3%). É resposta obrigatória a cada Importação: sem desconto, a gestora informa 0. Não existe em Catálogos com várias colunas de preço, porque neles vale sempre a menor.
+Valores informados pela gestora a cada Importação, que valem só para aquele Catálogo e não alteram os preços impressos. Hoje, o desconto percentual além do que já está impresso (por exemplo, 3%), um para cada arquivo de onde saem as Ofertas. É resposta obrigatória a cada Importação: sem desconto, a gestora informa 0.
 _Avoid_: Parâmetros, ajustes
 
 ### Preços e quantidades

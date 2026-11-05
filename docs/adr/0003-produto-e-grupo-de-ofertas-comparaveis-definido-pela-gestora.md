@@ -9,7 +9,7 @@ O briefing pedia um jeito de dizer que "esta Oferta é o mesmo produto que aquel
 ## Regras
 
 - O vínculo entre Oferta e Produto é manual: a gestora busca e liga.
-- O vínculo fica guardado por Fornecedor + código do Fornecedor. Uma Oferta com o mesmo código em um Catálogo novo já chega ligada.
+- O vínculo fica guardado por Fornecedor + código do Fornecedor. Uma Oferta com o mesmo código em um Catálogo novo já chega ligada. Quando o Catálogo não traz código, o código é a descrição normalizada (ADR-0010).
 - Só vira Produto o que a gestora quer acompanhar. As demais Ofertas continuam pesquisáveis, mas não entram na comparação nem no histórico por Produto.
 - A comparação mostra as Ofertas do Produto lado a lado, ordenadas por Preço unitário, com descrição e foto. O sistema não elege um vencedor, porque os itens podem ser apenas semelhantes.
 - O Teto de compra não pertence ao Produto: hoje é um valor único para toda mercadoria.

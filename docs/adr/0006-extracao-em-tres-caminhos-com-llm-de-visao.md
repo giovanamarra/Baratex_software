@@ -1,6 +1,8 @@
 ---
-status: accepted
+status: accepted, em parte substituído pelo ADR-0010 e pelo ADR-0011
 ---
+
+> **Partes substituídas.** Pelo ADR-0010: "o arquivo de preços é o Catálogo", "documento sem preço continua não sendo importável" e "nesses Catálogos a Importação não pergunta desconto". Agora o desconto é sempre perguntado, por arquivo de preços, e um Catálogo sem preço é completado por planilhas de preços. Pelo ADR-0011: a foto deixa de ser só da grade de cartões. Os três caminhos e as regras de Revisão continuam valendo.
 
 # Extração de catálogos em três caminhos, incluindo LLM com visão, sempre com Revisão
 
