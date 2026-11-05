@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass
 
-from django.db.models import Exists, OuterRef
+from django.db.models import DecimalField, Exists, ExpressionWrapper, F, OuterRef, Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from catalogos.busca import normalizar, texto_de_busca
@@ -98,16 +99,33 @@ def buscar_ofertas(gestor, texto, so_vigentes=True):
     """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
     ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto.strip()))
     if so_vigentes:
-        ofertas = ofertas.exclude(Exists(_do_mesmo_codigo_em_catalogo_mais_recente()))
+        ofertas = ofertas.exclude(Exists(_que_vale_mais_que_esta()))
     return ResultadoDaBusca(ofertas=list(ofertas))
 
 
-def _do_mesmo_codigo_em_catalogo_mais_recente():
-    return Oferta.objects.filter(
+def _que_vale_mais_que_esta():
+    """Ofertas do mesmo Fornecedor + código que ganham da Oferta de fora (OuterRef) como vigente.
+
+    Ganha a de Catálogo mais recente; no mesmo dia, a de menor Preço unitário (GLOSSARY). O Conteúdo é o
+    mesmo para o Fornecedor + código, então comparar preço impresso × (100 − desconto) ordena igual ao Preço
+    unitário, sem gravá-lo. No empate de valor, vale o Catálogo confirmado por último.
+    """
+    de_fora = OuterRef('catalogo__data')
+    valor = _valor_antes_do_conteudo('preco_impresso', 'catalogo__desconto')
+    valor_de_fora = _valor_antes_do_conteudo(OuterRef('preco_impresso'), OuterRef('catalogo__desconto'))
+    return Oferta.objects.annotate(valor_do_desempate=valor).filter(
+        Q(catalogo__data__gt=de_fora)
+        | Q(catalogo__data=de_fora, valor_do_desempate__lt=valor_de_fora)
+        | Q(catalogo__data=de_fora, valor_do_desempate=valor_de_fora, catalogo__pk__gt=OuterRef('catalogo__pk')),
         catalogo__fornecedor=OuterRef('catalogo__fornecedor'),
         codigo=OuterRef('codigo'),
-        catalogo__data__gt=OuterRef('catalogo__data'),
     )
+
+
+def _valor_antes_do_conteudo(preco_impresso, desconto):
+    preco = F(preco_impresso) if isinstance(preco_impresso, str) else preco_impresso
+    percentual = F(desconto) if isinstance(desconto, str) else desconto
+    return ExpressionWrapper(preco * (100 - Coalesce(percentual, 0)), output_field=DecimalField())
 
 
 def obter_oferta(gestor, oferta_id):
