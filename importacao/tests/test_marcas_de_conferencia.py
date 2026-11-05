@@ -3,11 +3,14 @@
 As regras foram calibradas com os Catálogos reais; os números estão no ticket 08. Aqui, só dados inventados.
 """
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo
+from decimal import Decimal
+
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, historico_do_conteudo
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
 from importacao.casos_de_uso import (
+    aceitar_sugestao_de_conteudo,
     confirmar_revisao,
     informar_condicoes_do_catalogo,
     iniciar_importacao,
@@ -109,6 +112,22 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
 
         # Só a 3003 continua sem decisão e com Conteúdo 1; a 3004 teve o Conteúdo definido nesta Revisão.
         self.assertEqual(self.sugestoes(seguinte), {'3001': None, '3002': None, '3003': 6, '3004': None})
+
+    def test_aceitar_a_sugestao_define_o_conteudo_que_fica_guardado_ao_confirmar(self):
+        revisao = self.importar([CartaoFicticio('3001', 'Tesoura Ficticia C/3', '9,00')])
+        tesoura = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0]
+
+        aceitar_sugestao_de_conteudo(self.gestora, tesoura.pk)
+        aceitar_sugestao_de_conteudo(self.gestora, tesoura.pk)  # repetir o clique não desfaz nada
+
+        aceita = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0]
+        self.assertEqual((aceita.conteudo, aceita.preco_unitario, aceita.sugestao_de_conteudo), (3, Decimal('3.00'), None))
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        confirmar_revisao(self.gestora, revisao.pk)
+        self.assertEqual(
+            [(r.valor_anterior, r.valor_novo) for r in historico_do_conteudo(self.gestora, self.fornecedor, '3001')],
+            [(1, 3)],
+        )
 
     def sugestoes(self, revisao):
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()

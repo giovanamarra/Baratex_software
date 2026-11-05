@@ -62,6 +62,26 @@ def corrigir_oferta_proposta(gestor, oferta_id, codigo, descricao, preco_impress
     oferta.save()
 
 
+def aceitar_sugestao_de_conteudo(gestor, oferta_id):
+    """Aceitar a sugestão é definir o Conteúdo na Revisão (ticket 07): só fica guardado ao confirmar.
+
+    Sem sugestão (já aceita, por exemplo), não faz nada.
+    """
+    oferta = _oferta_proposta_em_andamento(gestor, oferta_id)
+    sugestao = oferta.sugestao_de_conteudo
+    if sugestao is None:
+        return
+    corrigir_oferta_proposta(
+        gestor,
+        oferta_id,
+        codigo=oferta.codigo,
+        descricao=oferta.descricao,
+        preco_impresso='' if oferta.preco_impresso is None else str(oferta.preco_impresso),
+        caixa='' if oferta.caixa is None else str(oferta.caixa),
+        conteudo=str(sugestao),
+    )
+
+
 CAMINHO_MANUAL = 'manual'
 
 
