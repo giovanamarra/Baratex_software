@@ -74,7 +74,7 @@ def catalogo(request, pk):
 def definir_conteudo_da_oferta(request, pk):
     """Fora da Revisão: o Conteúdo vale para o Fornecedor + código da Oferta, em todos os Catálogos."""
     oferta = _oferta(request, pk)
-    contexto = {'oferta': oferta, 'conteudo': str(oferta.conteudo)}
+    contexto = {'oferta': oferta, 'conteudo': str(oferta.conteudo), 'voltar_para': _para_onde_voltar(request)}
     if request.method == 'POST':
         contexto['conteudo'] = request.POST.get('conteudo', '')
         try:

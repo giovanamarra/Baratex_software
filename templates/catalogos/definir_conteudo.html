@@ -16,7 +16,11 @@
     </div>
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Salvar Conteúdo</button>
+      {% if voltar_para %}
+      <a class="botao botao--secundario" href="{{ voltar_para }}">Voltar à busca</a>
+      {% else %}
       <a class="botao botao--secundario" href="{% url 'catalogo' oferta.catalogo_id %}">Voltar ao Catálogo</a>
+      {% endif %}
       <a href="{% url 'historico_do_conteudo' oferta.pk %}">Ver o histórico do Conteúdo</a>
     </div>
   </form>

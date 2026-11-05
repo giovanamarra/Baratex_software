@@ -169,3 +169,13 @@ class TelasAbremTests(TesteComArquivosEnviados):
         resposta = self.client.post(f'{url}?voltar=https://exemplo.invalido/', {'conteudo': '3'})
 
         self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': catalogo.pk}))
+
+    def test_definir_conteudo_aberto_a_partir_da_busca_oferece_voltar_a_busca(self):
+        self.catalogo_confirmado()
+        busca = reverse('buscar_ofertas') + '?texto=balde'
+        link = self.link_de_definir_conteudo(self.client.get(busca))
+
+        resposta = self.client.get(link)
+
+        self.assertContains(resposta, f'<a class="botao botao--secundario" href="{busca}">Voltar à busca</a>', html=True)
+        self.assertNotContains(resposta, 'Voltar ao Catálogo')
