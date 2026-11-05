@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block titulo %}Algo deu errado{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Algo deu errado</h1>
+  <p class="erro" role="alert"><strong>Não foi possível concluir:</strong> o sistema encontrou um defeito e não terminou o que você pediu.</p>
+  <p>Volte e confira se o que você fazia ficou gravado, e tente de novo. Se o erro voltar, anote o que você estava fazendo e avise quem cuida da instalação: o detalhe do erro ficou na janela do terminal em que o sistema foi iniciado.</p>
+  <a class="botao botao--secundario" href="{% url 'inicio' %}">Voltar para o início</a>
+</section>
+{% endblock %}
