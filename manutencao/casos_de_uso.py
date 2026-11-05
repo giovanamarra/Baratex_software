@@ -1,18 +1,66 @@
 """Backup e restauração da instalação (ticket 11).
 
 Chamados pelos comandos `fazer_backup` e `restaurar_backup` do manage.py.
+
+O .zip leva o banco (`banco.sqlite3`) e a pasta de arquivos inteira, com as subpastas (`arquivos/...`).
+O banco é copiado pela API de backup do SQLite, nunca copiando o arquivo .sqlite3 direto: assim o backup
+funciona com o sistema aberto.
 """
 
+import sqlite3
+import tempfile
 import zipfile
 from pathlib import Path
 
+from django.conf import settings
+from django.db import connection
 from django.utils import timezone
+
+BANCO = 'banco.sqlite3'
+ARQUIVOS = 'arquivos/'
 
 
 def fazer_backup(pasta_destino, agora=None):
     """Gera, na pasta de destino, um único .zip com o banco e a pasta de arquivos inteira."""
     agora = agora or timezone.localtime()
     backup = Path(pasta_destino) / f'backup-comparador-{agora:%Y-%m-%d_%H-%M-%S}.zip'
-    with zipfile.ZipFile(backup, 'w', zipfile.ZIP_DEFLATED):
-        pass
+    pasta_de_arquivos = Path(settings.MEDIA_ROOT)
+    with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(backup, 'w', zipfile.ZIP_DEFLATED) as zip_:
+        copia_do_banco = Path(temporaria) / BANCO
+        _copiar_banco(_conexao_sqlite(), copia_do_banco)
+        zip_.write(copia_do_banco, BANCO)
+        if pasta_de_arquivos.exists():
+            for arquivo in sorted(pasta_de_arquivos.rglob('*')):
+                if arquivo.is_file():
+                    zip_.write(arquivo, ARQUIVOS + arquivo.relative_to(pasta_de_arquivos).as_posix())
     return backup
+
+
+def restaurar_backup(arquivo):
+    """Traz de volta o banco e a pasta de arquivos de um backup."""
+    pasta_de_arquivos = Path(settings.MEDIA_ROOT)
+    with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(arquivo) as zip_:
+        zip_.extract(BANCO, temporaria)
+        origem = sqlite3.connect(Path(temporaria) / BANCO)
+        try:
+            origem.backup(_conexao_sqlite())
+        finally:
+            origem.close()
+        for nome in zip_.namelist():
+            if nome.startswith(ARQUIVOS) and not nome.endswith('/'):
+                destino = pasta_de_arquivos / nome.removeprefix(ARQUIVOS)
+                destino.parent.mkdir(parents=True, exist_ok=True)
+                destino.write_bytes(zip_.read(nome))
+
+
+def _conexao_sqlite():
+    connection.ensure_connection()
+    return connection.connection
+
+
+def _copiar_banco(conexao, caminho):
+    copia = sqlite3.connect(caminho)
+    try:
+        conexao.backup(copia)
+    finally:
+        copia.close()
