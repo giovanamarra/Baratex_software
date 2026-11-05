@@ -42,6 +42,10 @@ Não há autocadastro nem recuperação de senha: só o Responsável cria Gestor
 
 Os testes entram pelos casos de uso de cada módulo (por exemplo, `catalogos/casos_de_uso.py`) e usam o banco de teste do Django. Nenhum teste chama serviços externos.
 
+## Skills adaptadas
+
+A skill `tdd` (`.claude/skills/tdd/`) vem do pacote mattpocock/skills e foi adaptada em 2026-11-05 para ler as referências uma vez por sessão e não chamar a skill `codebase-design`, que não está instalada. Motivo: reduzir custo de contexto nas sessões longas de TDD. Uma atualização do pacote desfaz essa adaptação.
+
 ## Conferir o leitor com os Catálogos reais
 
 Os Catálogos reais ficam fora do repositório (a pasta `catalogos-exemplo/` está no `.gitignore`) e nunca entram nos testes. Para conferir, na sua máquina, que o leitor do Layout A continua lendo os arquivos reais:
