@@ -114,3 +114,19 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             sorted((o.catalogo.fornecedor.nome, o.preco_unitario) for o in sem_filtro),
             [('Alfa', Decimal('10.00')), ('Beta', Decimal('9.00'))],
         )
+
+    def test_oferta_sem_produto_aparece_na_busca(self):
+        # O Produto só nasce no ticket 12: aqui nenhuma Oferta está ligada a um.
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
+
+        achadas = self.buscar('balde')
+
+        self.assertEqual([o.codigo for o in achadas], ['1001'])
+
+    def test_catalogo_importado_por_outro_gestor_aparece_na_busca_de_quem_busca(self):
+        gestor_b = criar_gestor('gestor-b')
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01, gestor=gestor_b)
+
+        achadas = buscar_ofertas(self.gestora, '1001').ofertas
+
+        self.assertEqual([(o.codigo, o.catalogo.gestor.get_username()) for o in achadas], [('1001', 'gestor-b')])
