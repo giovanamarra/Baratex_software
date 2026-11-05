@@ -12,11 +12,8 @@ das marcas de conferência do ticket 08 (fora do padrão, Unidade de venda ambí
 Conteúdo por padrão e preços no arquivo × Ofertas extraídas).
 """
 
-import re
-import statistics
 import sys
 import time
-import unicodedata
 from collections import Counter
 from pathlib import Path
 
@@ -24,49 +21,29 @@ import pdfplumber
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# As mesmas regras da aplicação (ticket 08): o script mede o código de verdade, não uma cópia.
 from extracao.grade_de_cartoes import e_layout_a, ler_layout_a  # noqa: E402
+from importacao.marcas import (  # noqa: E402
+    PADROES_DE_PECAS,
+    fora_do_padrao as preco_fora_do_padrao,
+    mediana_dos_precos,
+    pecas_citadas,
+    unidade_ambigua as ambigua,
+)
 
 ASSINATURA_DE_PDF = b'%PDF'
 ROTULO_DE_CONTAGEM = 'Disponibilidade:'
 
-# Regras finais do ticket 08, calibradas com esta conferência (os números estão no ticket).
-MINIMO_DE_PRECOS_PARA_O_PADRAO = 5
-FATOR_FORA_DO_PADRAO = 10  # proposta era 5: marcava 15-17% em três Catálogos reais de faixa larga
-PALAVRAS_AMBIGUAS = {'KIT', 'CJ', 'CONJUNTO', 'SET', 'PAR'}  # sem JOGO (no real, é brinquedo); com CJ
-PADROES_DE_PECAS = {
-    'C/3': re.compile(r'\bC/\s*(\d+)\b'),
-    'COM 3 PEÇAS': re.compile(r'\bCOM (\d+) PECAS?\b'),
-    '3 PÇS/PCS': re.compile(r'\b(\d+)\s*PCS?\b'),
-    '3 UNID': re.compile(r'\b(\d+)\s*UNID\w*'),
-}
-
-
-def sem_acentos_em_maiusculas(texto):
-    decomposto = unicodedata.normalize('NFKD', texto.upper())
-    return ''.join(c for c in decomposto if not unicodedata.combining(c))
-
 
 def fora_do_padrao(ofertas):
-    precos = [oferta.preco_impresso for oferta in ofertas if oferta.preco_impresso]  # sem preço e zero não entram
-    if len(precos) < MINIMO_DE_PRECOS_PARA_O_PADRAO:
-        return 0
-    mediana = statistics.median(precos)
-    return sum(1 for p in precos if p > mediana * FATOR_FORA_DO_PADRAO or p < mediana / FATOR_FORA_DO_PADRAO)
-
-
-def ambigua(descricao):
-    palavras = set(re.findall(r'[A-Z0-9]+', sem_acentos_em_maiusculas(descricao)))
-    return bool(palavras & PALAVRAS_AMBIGUAS)
+    mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
+    return sum(1 for oferta in ofertas if preco_fora_do_padrao(oferta.preco_impresso, mediana))
 
 
 def padrao_de_pecas(descricao):
-    """O primeiro padrão que cita uma quantidade maior que 1, ou None."""
-    texto = sem_acentos_em_maiusculas(descricao)
-    for nome, padrao in PADROES_DE_PECAS.items():
-        for encontrado in padrao.finditer(texto):
-            if int(encontrado.group(1)) > 1:
-                return nome
-    return None
+    """O nome do padrão que cita peças (para a contagem por padrão), ou None."""
+    citadas = pecas_citadas(descricao)
+    return citadas[0] if citadas else None
 
 
 def precos_no_arquivo(pdf):
