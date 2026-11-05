@@ -148,6 +148,27 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertContains(resposta, 'R$ 9,00')
         self.assertNotContains(resposta, 'R$ 10,00')
 
+    def test_buscar_mostra_o_formulario_preenchido_com_os_filtros_da_busca(self):
+        self.catalogo_confirmado()
+
+        resposta = self.client.get(
+            reverse('buscar_ofertas'), {'texto': 'balde', 'fornecedor': self.fornecedor.pk, 'antigas': '1'}
+        )
+
+        self.assertContains(resposta, '<input id="texto" name="texto" type="text" value="balde" autofocus>', html=True)
+        self.assertContains(
+            resposta, f'<option value="{self.fornecedor.pk}" selected>Fornecedor Alfa</option>', html=True
+        )
+        self.assertContains(resposta, '<input id="antigas" name="antigas" type="checkbox" value="1" checked>', html=True)
+
+    def test_buscar_com_exatamente_200_resultados_nao_avisa_do_limite(self):
+        self.confirmar([CartaoFicticio(str(c), f'Item Ficticio {c}', '9,90') for c in range(1000, 1200)])
+
+        resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'ficticio'})
+
+        self.assertContains(resposta, 'Item Ficticio 1199')
+        self.assertNotContains(resposta, 'Refine a busca')
+
     def test_buscar_com_mais_de_200_resultados_avisa_para_refinar_a_busca(self):
         revisao = self.importar([CartaoFicticio(str(c), f'Item Ficticio {c}', '9,90') for c in range(1000, 1201)])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
