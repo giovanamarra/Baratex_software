@@ -3,7 +3,7 @@ from django.db import models
 
 from catalogos.models import conteudo_guardado, conteudos_guardados
 from catalogos.preco_unitario import calcular_preco_unitario
-from importacao.marcas import fora_do_padrao, mediana_dos_precos
+from importacao.marcas import fora_do_padrao, mediana_dos_precos, unidade_ambigua
 
 
 class Revisao(models.Model):
@@ -80,4 +80,6 @@ class OfertaProposta(models.Model):
         marcas = []
         if fora_do_padrao(self.preco_impresso, self._mediana):
             marcas.append('fora do padrão')
+        if unidade_ambigua(self.descricao):
+            marcas.append('unidade ambígua')
         return marcas

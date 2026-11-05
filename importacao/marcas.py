@@ -3,7 +3,11 @@
 As regras foram calibradas com os Catálogos reais; os números estão no ticket 08.
 """
 
+import re
 import statistics
+import unicodedata
+
+PALAVRAS_DE_UNIDADE_AMBIGUA = {'KIT', 'CJ', 'CONJUNTO', 'SET', 'PAR'}
 
 FATOR_FORA_DO_PADRAO = 10
 MINIMO_DE_PRECOS_PARA_O_PADRAO = 5
@@ -23,3 +27,13 @@ def fora_do_padrao(preco, mediana):
     if not preco or mediana is None:
         return False
     return preco > mediana * FATOR_FORA_DO_PADRAO or preco < mediana / FATOR_FORA_DO_PADRAO
+
+
+def unidade_ambigua(descricao):
+    """A descrição tem KIT, CJ, CONJUNTO, SET ou PAR como palavra inteira, sem olhar maiúsculas e acentos."""
+    return bool(set(re.findall(r'[A-Z0-9]+', _sem_acentos_em_maiusculas(descricao))) & PALAVRAS_DE_UNIDADE_AMBIGUA)
+
+
+def _sem_acentos_em_maiusculas(texto):
+    decomposto = unicodedata.normalize('NFKD', texto.upper())
+    return ''.join(letra for letra in decomposto if not unicodedata.combining(letra))

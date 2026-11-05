@@ -47,3 +47,20 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
             self.marcas(revisao),
             {'1001': [], '1002': [], '1003': [], '1004': ['sem preço'], '1005': ['sem preço']},
         )
+
+    def test_descricao_com_kit_cj_conjunto_set_ou_par_como_palavra_inteira_fica_com_unidade_ambigua(self):
+        descricoes = {
+            '2001': 'Kit Tesouras Ficticias',
+            '2002': 'cj panelas ficticias',  # minúsculas
+            '2003': 'Conjunto Potes Ficticios',
+            '2004': 'Set Copos Ficticios',
+            '2005': 'Par Luvas Ficticias',
+            '2006': 'Kít Escovas Ficticias',  # com acento
+            '2007': 'Kitchenette Ficticia',  # KIT dentro de outra palavra
+            '2008': 'Parafuso Ficticio',  # PAR dentro de outra palavra
+            '2009': 'Jogo Tabuleiro Ficticio',  # JOGO saiu da lista na calibração (ticket 08)
+        }
+        revisao = self.importar([CartaoFicticio(codigo, descricao) for codigo, descricao in descricoes.items()])
+
+        ambiguas = [codigo for codigo, marcas in self.marcas(revisao).items() if 'unidade ambígua' in marcas]
+        self.assertEqual(ambiguas, ['2001', '2002', '2003', '2004', '2005', '2006'])
