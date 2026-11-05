@@ -16,6 +16,7 @@ from catalogos.casos_de_uso import (
     listar_fornecedores,
     obter_catalogo,
     obter_oferta,
+    obter_teto,
 )
 from catalogos.models import Catalogo, Oferta
 from comparador.erros import ErroDeNegocio
@@ -51,6 +52,10 @@ def buscar(request):
         except ErroDeNegocio as erro:
             contexto['erro'] = erro.mensagem
     return render(request, 'catalogos/buscar.html', contexto)
+
+
+def teto_de_compra(request):
+    return render(request, 'catalogos/teto_de_compra.html', {'teto': obter_teto(request.user)})
 
 
 def catalogos_do_fornecedor(request, pk):

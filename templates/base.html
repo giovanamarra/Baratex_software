@@ -19,6 +19,7 @@
     <a class="barra__link" href="{% url 'inicio' %}">As minhas Lojas</a>
     <a class="barra__link" href="{% url 'fornecedores' %}">Fornecedores</a>
     <a class="barra__link" href="{% url 'buscar_ofertas' %}">Buscar</a>
+    <a class="barra__link" href="{% url 'teto_de_compra' %}">Teto de compra</a>
     <a class="barra__link" href="{% url 'importar' %}">Importar Catálogo</a>
     <form class="barra__sair" method="post" action="{% url 'sair' %}">
       {% csrf_token %}

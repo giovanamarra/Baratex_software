@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block titulo %}Teto de compra{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Teto de compra</h1>
+  <p class="texto-secundario">Maior Preço unitário que ainda permite revender com lucro. Vale para todo o grupo e para toda mercadoria. Toda Oferta com Preço unitário acima dele aparece com o aviso "acima do Teto".</p>
+  {% if teto is not None %}
+  <p>Teto de compra atual: <strong>R$ {{ teto|floatformat:"2g" }}</strong></p>
+  {% else %}
+  <p class="texto-secundario">Nenhum Teto de compra definido: nenhuma Oferta é destacada.</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="campo">
+      <label for="teto">Novo Teto de compra (R$)</label>
+      <input id="teto" name="teto" type="text" inputmode="decimal" placeholder="5,00">
+    </div>
+    <button class="botao botao--primario" type="submit">Salvar Teto</button>
+  </form>
+</section>
+{% endblock %}

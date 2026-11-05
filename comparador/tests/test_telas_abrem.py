@@ -9,7 +9,7 @@ from datetime import date
 
 from django.urls import reverse
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, definir_teto
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -179,3 +179,13 @@ class TelasAbremTests(TesteComArquivosEnviados):
 
         self.assertContains(resposta, f'<a class="botao botao--secundario" href="{busca}">Voltar à busca</a>', html=True)
         self.assertNotContains(resposta, 'Voltar ao Catálogo')
+
+    def test_teto_de_compra_abre_e_mostra_o_valor_atual_e_o_campo_para_defini_lo(self):
+        sem_teto = self.client.get(reverse('teto_de_compra'))
+        definir_teto(self.gestora, '5,00')
+
+        com_teto = self.client.get(reverse('teto_de_compra'))
+
+        self.assertContains(sem_teto, 'Nenhum Teto de compra definido')
+        self.assertContains(com_teto, 'Teto de compra atual: <strong>R$ 5,00</strong>')
+        self.assertContains(com_teto, 'name="teto"')
