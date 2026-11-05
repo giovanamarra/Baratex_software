@@ -82,3 +82,14 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             [(o.preco_unitario, o.catalogo.data) for o in achadas],
             [(Decimal('11.00'), DIA_15)],
         )
+
+    def test_sem_so_vigentes_mostra_tambem_as_ofertas_antigas(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15)
+
+        achadas = self.buscar('1001', so_vigentes=False)
+
+        self.assertEqual(
+            sorted((o.preco_unitario, o.catalogo.data) for o in achadas),
+            [(Decimal('10.00'), DIA_01), (Decimal('11.00'), DIA_15)],
+        )
