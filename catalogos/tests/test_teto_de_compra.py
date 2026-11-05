@@ -56,3 +56,31 @@ class TetoDeCompraTests(TesteComArquivosEnviados):
         self.assertEqual(
             self.destaques_da_busca(), [('1001', True), ('1002', False), ('1003', False)]
         )
+
+    def test_sem_teto_definido_nenhuma_oferta_e_destacada(self):
+        self.importar([CartaoFicticio('1001', 'Item Ficticio A', '500,00')])
+
+        self.assertEqual(self.destaques_da_busca(), [('1001', False)])
+
+    def test_o_destaque_usa_o_preco_unitario_com_desconto_e_nao_o_preco_impresso(self):
+        self.importar([CartaoFicticio('1001', 'Item Ficticio A', '5,50')], desconto='10')  # 4,95
+        definir_teto(self.gestora, '5,00')
+
+        self.assertEqual(self.destaques_da_busca(), [('1001', False)])
+
+    def test_o_destaque_usa_o_preco_unitario_com_conteudo_e_nao_o_preco_impresso(self):
+        self.importar([CartaoFicticio('1001', 'Kit 3 Item Ficticio', '9,00')])
+        definir_conteudo(self.gestora, self.alfa, '1001', '3', hoje=DIA)  # 3,00
+        definir_teto(self.gestora, '5,00')
+
+        self.assertEqual(self.destaques_da_busca(), [('1001', False)])
+
+    def test_mudar_o_teto_muda_o_destaque_na_proxima_consulta(self):
+        self.importar([CartaoFicticio('1001', 'Item Ficticio A', '5,50')])
+        definir_teto(self.gestora, '5,00')
+        com_teto_5 = self.destaques_da_busca()
+
+        definir_teto(self.gestora, '6,00')
+        com_teto_6 = self.destaques_da_busca()
+
+        self.assertEqual((com_teto_5, com_teto_6), ([('1001', True)], [('1001', False)]))
