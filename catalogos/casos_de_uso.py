@@ -1,5 +1,7 @@
 """Casos de uso do módulo Catálogos. As telas e os testes entram por aqui."""
 
+from dataclasses import dataclass
+
 from django.utils import timezone
 
 from catalogos.models import (
@@ -82,6 +84,17 @@ def conteudo_digitado(texto):
 def historico_do_conteudo(gestor, fornecedor, codigo):
     """Alterações do Conteúdo de um Fornecedor + código, da mais recente para a mais antiga."""
     return AlteracaoDeConteudo.objects.filter(fornecedor=fornecedor, codigo=codigo).order_by('-pk')
+
+
+@dataclass
+class ResultadoDaBusca:
+    ofertas: list
+
+
+def buscar_ofertas(gestor, texto):
+    """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
+    ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(codigo__contains=texto)
+    return ResultadoDaBusca(ofertas=list(ofertas))
 
 
 def obter_oferta(gestor, oferta_id):
