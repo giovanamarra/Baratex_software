@@ -49,6 +49,8 @@ class Oferta(models.Model):
     preco_impresso = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     caixa = models.PositiveIntegerField(null=True)
     caminho = models.CharField(max_length=30)
+    # Código e descrição sem acento e em minúsculas, preenchidos ao confirmar a Revisão (ver catalogos.busca).
+    busca = models.TextField(default='', editable=False)
 
     class Meta:
         verbose_name = 'Oferta'

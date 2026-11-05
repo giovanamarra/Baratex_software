@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from django.utils import timezone
 
+from catalogos.busca import normalizar, texto_de_busca
 from catalogos.models import (
     AlteracaoDeConteudo,
     Catalogo,
@@ -43,6 +44,7 @@ def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
             preco_impresso=oferta.preco_impresso,
             caixa=oferta.caixa,
             caminho=oferta.caminho,
+            busca=texto_de_busca(oferta.codigo, oferta.descricao),
         )
         for ordem, oferta in enumerate(ofertas)
     )
@@ -93,7 +95,7 @@ class ResultadoDaBusca:
 
 def buscar_ofertas(gestor, texto):
     """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
-    ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(codigo__contains=texto)
+    ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto.strip()))
     return ResultadoDaBusca(ofertas=list(ofertas))
 
 

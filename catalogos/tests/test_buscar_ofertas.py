@@ -53,3 +53,21 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             [achado(o) for o in achadas],
             [('1001', 'Balde Ficticio', Decimal('9.90'), 24, 'Alfa', DIA_01)],
         )
+
+    def test_acha_por_trecho_da_descricao_sem_diferenciar_maiusculas_nem_acentos(self):
+        self.importar([
+            CartaoFicticio('1001', 'Cesta Plástica Média', '9,90'),
+            CartaoFicticio('1002', 'Vassoura Ficticia', '12,00'),
+            CartaoFicticio('1003', 'Lixeira Plastica Pequena', '8,00'),
+        ], DIA_01)
+
+        casos = [
+            ('plastica', ['1001', '1003']),
+            ('PLÁSTICA', ['1001', '1003']),
+            ('Plástica', ['1001', '1003']),
+            ('média', ['1001']),
+            ('MEDIA', ['1001']),
+        ]
+        for digitado, esperado in casos:
+            with self.subTest(digitado=digitado):
+                self.assertEqual(sorted(o.codigo for o in self.buscar(digitado)), esperado)
