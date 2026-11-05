@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -130,3 +131,22 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         achadas = buscar_ofertas(self.gestora, '1001').ofertas
 
         self.assertEqual([(o.codigo, o.catalogo.gestor.get_username()) for o in achadas], [('1001', 'gestor-b')])
+
+    def test_texto_vazio_sem_fornecedor_e_erro_e_com_fornecedor_lista_as_ofertas_dele(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01, fornecedor=self.alfa)
+        self.importar([CartaoFicticio('2001', 'Rodo Ficticio', '9,00')], DIA_01, fornecedor=self.beta)
+
+        for vazio in ['', '   ']:
+            with self.subTest(texto=repr(vazio)):
+                with self.assertRaises(ErroDeNegocio) as erro:
+                    self.buscar(vazio)
+                self.assertEqual(
+                    erro.exception.mensagem,
+                    'Digite um código ou parte da descrição, ou escolha um Fornecedor.',
+                )
+        self.assertEqual([o.codigo for o in self.buscar('', fornecedor=self.alfa)], ['1001'])
+
+    def test_busca_sem_resultado_nao_e_erro_e_devolve_lista_vazia(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
+
+        self.assertEqual(self.buscar('inexistente'), [])

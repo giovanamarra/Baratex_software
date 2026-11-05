@@ -97,7 +97,10 @@ class ResultadoDaBusca:
 
 def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
     """Qualquer Gestor busca em todos os Catálogos do grupo (ADR-0007)."""
-    ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto.strip()))
+    texto = texto.strip()
+    if not texto and fornecedor is None:
+        raise ErroDeNegocio('Digite um código ou parte da descrição, ou escolha um Fornecedor.')
+    ofertas = Oferta.objects.select_related('catalogo__fornecedor').filter(busca__contains=normalizar(texto))
     if fornecedor is not None:
         ofertas = ofertas.filter(catalogo__fornecedor=fornecedor)
     if so_vigentes:
