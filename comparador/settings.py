@@ -10,20 +10,27 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import sys
 from pathlib import Path
+
+from comparador.ambiente import ler_configuracao
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Segredos e pastas vêm do .env, fora do git (ticket 11; modelo em .env.exemplo).
+CONFIGURACAO = ler_configuracao(BASE_DIR / '.env')
+if CONFIGURACAO.aviso:
+    print(CONFIGURACAO.aviso, file=sys.stderr)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-84a7()ka28^i#pm_iuq7(ceib#&)yd*@1$1a*ilfwmu^ob)*pn'
+SECRET_KEY = CONFIGURACAO.secret_key
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Desligado na instalação da gestora: um erro mostra a página 500, e o detalhe vai para o terminal.
+DEBUG = CONFIGURACAO.debug
 
 # Roda só no computador da gestora (ticket 11): nenhum outro endereço é atendido.
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
@@ -129,9 +136,26 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Arquivos enviados (Catálogos). Ficam fora do repositório: podem ser Catálogos reais.
+# Pasta de arquivos: arquivos de Catálogo, imagens de página e fotos/ (ADR-0011). Fica fora do
+# repositório, no computador da gestora (ticket 11), e entra inteira no backup.
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = CONFIGURACAO.pasta_de_arquivos
+
+# Chave da API da LLM: opcional até o ticket 25.
+CHAVE_DA_LLM = CONFIGURACAO.chave_da_llm
+
+# Com DEBUG desligado, o Django não mostra o erro em lugar nenhum: este registro o escreve no terminal
+# em que o sistema foi iniciado.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'terminal': {'class': 'logging.StreamHandler'},
+    },
+    'loggers': {
+        'django.request': {'handlers': ['terminal'], 'level': 'ERROR', 'propagate': False},
+    },
+}
 
 
 # Email

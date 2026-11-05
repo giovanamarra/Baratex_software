@@ -8,3 +8,5 @@ db.sqlite3
 # Arquivos enviados (podem ser Catálogos reais)
 media/
 .claude/settings.local.json
+# Segredos e pastas da instalação (modelo em .env.exemplo)
+.env
