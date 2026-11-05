@@ -96,8 +96,9 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         )
 
     def test_no_mesmo_dia_vale_a_oferta_de_menor_preco_unitario_e_nao_a_de_menor_preco_impresso(self):
-        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,50')], DIA_15, desconto='0')
+        # A mais barata é confirmada primeiro: "vale a confirmada por último" daria a de 10,50.
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15, desconto='10')
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,50')], DIA_15, desconto='0')
 
         achadas = self.buscar('1001')
 
