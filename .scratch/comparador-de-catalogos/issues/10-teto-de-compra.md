@@ -1,6 +1,6 @@
 # 10 — Teto de compra destacado na Revisão e na busca
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 09
 Spec: [docs/spec.md](../../../docs/spec.md) (Teto de compra; Modelo de dados › Teto de compra é um único valor do grupo)
@@ -32,3 +32,13 @@ A gestora define o maior Preço unitário que ainda dá lucro, e toda Oferta aci
 ## Fora deste ticket
 
 - Teto por Produto, categoria ou Loja (Out of Scope).
+
+## Comments
+
+**Resolução (2026-11-05)**
+
+- **Casos de uso:** `definir_teto(gestor, valor)` e `obter_teto(gestor)`. O Teto é uma linha única do grupo (`TetoDeCompra`, migração 0011); definir de novo substitui. Não guarda autor nem data, porque o ADR-0007 não pede auditoria do Teto.
+- **Leitura do valor:** `preco_digitado(texto, nome)` subiu da Importação para Catálogos e é a mesma leitura de preço da Revisão ("1.500" é recusado como ambíguo). Vazio, zero, negativo e texto inválido dão `O Teto de compra precisa ser maior que zero.`
+- **Destaque:** derivado na consulta (`Oferta.acima_do_teto`, `OfertaProposta.acima_do_teto`), nunca gravado. Só o Preço unitário acima do Teto; igual não. Sem Teto, nada é destacado. A busca e a Revisão carregam o Teto uma vez por consulta.
+- **Telas:** "Teto de compra" na barra (`/teto/`); "acima do Teto" em texto, com a linha em alerta, na busca e na Revisão. O Catálogo confirmado não destaca (o ticket pede só a Revisão e a busca); comparação (13) e Pedido (16) acrescentam o seu.
+- **Correção feita antes do ticket:** "Definir Conteúdo" aberto da busca volta para a busca com os mesmos filtros (`?voltar=`, só endereços do próprio sistema); aberto do Catálogo, volta ao Catálogo.

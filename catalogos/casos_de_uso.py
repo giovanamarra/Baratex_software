@@ -115,12 +115,13 @@ def buscar_ofertas(gestor, texto, fornecedor=None, so_vigentes=True):
         ofertas = ofertas.exclude(Exists(_que_vale_mais_que_esta()))
     ofertas = ofertas.order_by('catalogo__fornecedor__nome', 'codigo', '-catalogo__data', '-pk')
     achadas = list(ofertas[:LIMITE_DE_RESULTADOS])
-    _carregar_conteudos(achadas)
+    _carregar_conteudos_e_teto(achadas)
     return ResultadoDaBusca(ofertas=achadas, total=ofertas.count())
 
 
-def _carregar_conteudos(ofertas):
-    """Uma consulta por Fornecedor, em vez de uma por Oferta, para calcular o Preço unitário de cada resultado."""
+def _carregar_conteudos_e_teto(ofertas):
+    """Uma consulta por Fornecedor (Conteúdo) e uma só para o Teto, em vez de uma por Oferta, para calcular
+    o Preço unitário e o destaque de cada resultado."""
     teto = teto_atual()
     guardados = {}
     for oferta in ofertas:
