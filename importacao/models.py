@@ -31,6 +31,7 @@ class Revisao(models.Model):
         mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
         for oferta in ofertas:
             oferta._conteudo_guardado = conteudo_guardado(guardados, oferta.codigo)
+            oferta._ha_decisao_guardada = oferta.codigo in guardados
             oferta._mediana = mediana
         return ofertas
 
@@ -86,6 +87,13 @@ class OfertaProposta(models.Model):
 
     @property
     def sugestao_de_conteudo(self):
-        """Conteúdo sugerido quando a descrição cita peças. Só sugere: nunca muda o Conteúdo (história 42)."""
+        """Conteúdo sugerido quando a descrição cita peças. Só sugere: nunca muda o Conteúdo (história 42).
+
+        Só aparece com o Conteúdo ainda em 1 e sem decisão guardada para o Fornecedor + código.
+        """
+        if not hasattr(self, '_ha_decisao_guardada'):
+            self._ha_decisao_guardada = self.codigo in conteudos_guardados(self.revisao.fornecedor_id)
+        if self.conteudo != 1 or self._ha_decisao_guardada:
+            return None
         citadas = pecas_citadas(self.descricao)
         return citadas[1] if citadas else None

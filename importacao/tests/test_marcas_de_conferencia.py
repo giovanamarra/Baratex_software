@@ -3,11 +3,16 @@
 As regras foram calibradas com os Catálogos reais; os números estão no ticket 08. Aqui, só dados inventados.
 """
 
-from catalogos.casos_de_uso import cadastrar_fornecedor
+from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao, obter_revisao
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.casos_de_uso import (
+    confirmar_revisao,
+    informar_condicoes_do_catalogo,
+    iniciar_importacao,
+    obter_revisao,
+)
 
 
 def cartoes_com_precos(*precos):
@@ -84,6 +89,26 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         )
         # Sugerir não muda o Conteúdo (história 42).
         self.assertEqual({o.conteudo for o in obter_revisao(self.gestora, revisao.pk).ofertas_propostas()}, {1})
+
+    def test_sugestao_so_aparece_com_conteudo_1_e_sem_decisao_guardada_para_o_fornecedor_e_codigo(self):
+        cartoes = [
+            CartaoFicticio('3001', 'Tesoura Ficticia C/3'),
+            CartaoFicticio('3002', 'Faca Ficticia C/4'),
+            CartaoFicticio('3003', 'Copo Ficticio C/6'),
+            CartaoFicticio('3004', 'Prato Ficticio 2 PCS'),
+        ]
+        primeira = self.importar(cartoes)
+        informar_condicoes_do_catalogo(self.gestora, primeira.pk, '0')
+        confirmar_revisao(self.gestora, primeira.pk)
+        definir_conteudo(self.gestora, self.fornecedor, '3001', '3')  # decisão guardada: 3
+        definir_conteudo(self.gestora, self.fornecedor, '3002', '4')
+        definir_conteudo(self.gestora, self.fornecedor, '3002', '1')  # decisão guardada, de volta a 1
+
+        seguinte = self.importar(cartoes)
+        corrigir(self.gestora, obter_revisao(self.gestora, seguinte.pk).ofertas_propostas()[3], conteudo='2')
+
+        # Só a 3003 continua sem decisão e com Conteúdo 1; a 3004 teve o Conteúdo definido nesta Revisão.
+        self.assertEqual(self.sugestoes(seguinte), {'3001': None, '3002': None, '3003': 6, '3004': None})
 
     def sugestoes(self, revisao):
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
