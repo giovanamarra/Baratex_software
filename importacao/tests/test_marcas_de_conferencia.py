@@ -139,6 +139,17 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         self.assertEqual(self.contagem(completa), (2, 2, 0))
         self.assertEqual(self.contagem(com_preco_solto), (3, 2, 1))
 
+    def test_as_marcas_sao_recalculadas_depois_de_cada_correcao(self):
+        revisao = self.importar(cartoes_com_precos('9,00', '10,00', '10,00', '11,00', '12,00', '150,00'))
+        ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
+        self.assertEqual((self.marcas(revisao)['1006'], self.marcas(revisao)['1001']), (['fora do padrão'], []))
+
+        corrigir(self.gestora, ofertas[5], preco_impresso='15,00')  # erro de leitura corrigido
+        corrigir(self.gestora, ofertas[0], preco_impresso='0,50')  # e o contrário: agora fora do padrão
+
+        marcas = self.marcas(revisao)
+        self.assertEqual((marcas['1006'], marcas['1001']), ([], ['fora do padrão']))
+
     def contagem(self, revisao):
         revisao = obter_revisao(self.gestora, revisao.pk)
         return revisao.precos_no_arquivo, revisao.ofertas_extraidas, revisao.ofertas_que_faltam
