@@ -57,7 +57,7 @@
           <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<span class="texto-secundario">sem Caixa</span>{% endif %}</td>
           <td>{{ oferta.catalogo.fornecedor.nome }}</td>
           <td><a href="{% url 'catalogo' oferta.catalogo_id %}">{{ oferta.catalogo.data|date:"d/m/Y" }}</a></td>
-          <td><a class="botao botao--secundario botao--pequeno" href="{% url 'definir_conteudo' oferta.pk %}">Definir Conteúdo</a></td>
+          <td><a class="botao botao--secundario botao--pequeno" href="{% url 'definir_conteudo' oferta.pk %}?voltar={{ voltar|urlencode:'' }}">Definir Conteúdo</a></td>
         </tr>
         {% empty %}
         <tr><td colspan="7" class="texto-secundario">Nenhuma Oferta encontrada.</td></tr>

@@ -3,6 +3,8 @@
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from catalogos.casos_de_uso import (
     LIMITE_DE_RESULTADOS,
@@ -40,7 +42,7 @@ def buscar(request):
     antigas = request.GET.get('antigas') == '1'
     contexto = {
         'fornecedores': fornecedores, 'texto': texto, 'fornecedor_escolhido': fornecedor_escolhido,
-        'antigas': antigas, 'limite': LIMITE_DE_RESULTADOS,
+        'antigas': antigas, 'limite': LIMITE_DE_RESULTADOS, 'voltar': request.get_full_path(),
     }
     if request.GET:
         fornecedor = fornecedores.filter(pk=fornecedor_escolhido).first() if fornecedor_escolhido.isdecimal() else None
@@ -81,8 +83,16 @@ def definir_conteudo_da_oferta(request, pk):
             contexto['erro'] = erro.mensagem
         else:
             messages.success(request, f'Conteúdo do código {oferta.codigo} agora é {contexto["conteudo"].strip()}.')
-            return redirect('catalogo', pk=oferta.catalogo_id)
+            return redirect(_para_onde_voltar(request) or reverse('catalogo', kwargs={'pk': oferta.catalogo_id}))
     return render(request, 'catalogos/definir_conteudo.html', contexto)
+
+
+def _para_onde_voltar(request):
+    """Endereço de onde a gestora veio (`voltar`), se for do próprio sistema; senão, vazio."""
+    voltar = request.GET.get('voltar', '')
+    if voltar and url_has_allowed_host_and_scheme(voltar, allowed_hosts={request.get_host()}):
+        return voltar
+    return ''
 
 
 def historico_do_conteudo_da_oferta(request, pk):

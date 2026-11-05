@@ -4,6 +4,7 @@ Os casos de uso já são testados pelo seam principal; aqui só se verifica que 
 dados de teste e mostra um texto-chave.
 """
 
+import re
 from datetime import date
 
 from django.urls import reverse
@@ -137,3 +138,17 @@ class TelasAbremTests(TesteComArquivosEnviados):
         resposta = self.client.get(reverse('buscar_ofertas'), {'texto': ''})
 
         self.assertContains(resposta, 'Digite um código ou parte da descrição, ou escolha um Fornecedor.')
+
+
+    def link_de_definir_conteudo(self, resposta):
+        return re.search(r'href="([^"]*/conteudo/[^"]*)"', resposta.content.decode()).group(1)
+
+    def test_definir_conteudo_aberto_a_partir_da_busca_volta_para_a_busca_com_os_mesmos_filtros(self):
+        self.catalogo_confirmado()
+        busca = reverse('buscar_ofertas') + f'?texto=balde&fornecedor={self.fornecedor.pk}&antigas=1'
+        link = self.link_de_definir_conteudo(self.client.get(busca))
+
+        self.client.get(link)
+        resposta = self.client.post(link, {'conteudo': '3'})
+
+        self.assertRedirects(resposta, busca)
