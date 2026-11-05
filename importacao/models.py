@@ -3,6 +3,7 @@ from django.db import models
 
 from catalogos.models import conteudo_guardado, conteudos_guardados
 from catalogos.preco_unitario import calcular_preco_unitario
+from importacao.marcas import fora_do_padrao, mediana_dos_precos
 
 
 class Revisao(models.Model):
@@ -27,9 +28,14 @@ class Revisao(models.Model):
     def ofertas_propostas(self):
         ofertas = list(self.ofertas.order_by('ordem'))
         guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para a Revisão inteira
+        mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
         for oferta in ofertas:
             oferta._conteudo_guardado = conteudo_guardado(guardados, oferta.codigo)
+            oferta._mediana = mediana
         return ofertas
+
+    def mediana_dos_precos(self):
+        return mediana_dos_precos(self.ofertas.values_list('preco_impresso', flat=True))
 
 
 class OfertaProposta(models.Model):
@@ -64,9 +70,14 @@ class OfertaProposta(models.Model):
 
     @property
     def marcas(self):
-        """Marcas de conferência, em texto (o ticket 08 acrescenta as outras)."""
+        """Marcas de conferência, em texto. Recalculadas a cada leitura: corrigir a Oferta muda as marcas."""
         if self.preco_impresso is None:
             return ['sem preço']
         if self.preco_impresso == 0:
             return ['preço zero']
-        return []
+        if not hasattr(self, '_mediana'):
+            self._mediana = self.revisao.mediana_dos_precos()
+        marcas = []
+        if fora_do_padrao(self.preco_impresso, self._mediana):
+            marcas.append('fora do padrão')
+        return marcas
