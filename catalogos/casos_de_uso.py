@@ -301,7 +301,9 @@ class ImpactoDaNovaData:
     def mensagem(self):
         if self.passam_a_ser_vigentes:
             return f'Com a nova data, {self.passam_a_ser_vigentes} Ofertas deste Catálogo passam a ser vigentes.'
-        return f'Com a nova data, {self.deixam_de_ser_vigentes} Ofertas deste Catálogo deixam de ser vigentes.'
+        if self.deixam_de_ser_vigentes:
+            return f'Com a nova data, {self.deixam_de_ser_vigentes} Ofertas deste Catálogo deixam de ser vigentes.'
+        return 'Com a nova data, nenhuma Oferta deste Catálogo muda de vigência.'
 
 
 def ver_impacto_da_nova_data(gestor, catalogo_id, texto, hoje=None):

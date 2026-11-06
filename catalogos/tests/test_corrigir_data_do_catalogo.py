@@ -167,3 +167,9 @@ class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
             self.impacto(self.de_outubro, '02/11/2026').mensagem,
             'Com a nova data, 3 Ofertas deste Catálogo passam a ser vigentes.',
         )
+
+    def test_com_a_nova_data_sem_mudar_a_ordem_dos_catalogos_nenhuma_oferta_muda_de_vigencia(self):
+        self.assertEqual(
+            self.impacto(self.de_outubro, '16/10/2026').mensagem,
+            'Com a nova data, nenhuma Oferta deste Catálogo muda de vigência.',
+        )
