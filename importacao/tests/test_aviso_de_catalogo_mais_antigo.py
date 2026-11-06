@@ -2,8 +2,10 @@
 
 from datetime import date
 
+from django.urls import reverse
+
 from catalogos.casos_de_uso import cadastrar_fornecedor
-from contas.auxiliares_de_teste import criar_gestor
+from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, importar_e_confirmar
 from importacao.casos_de_uso import (
@@ -81,3 +83,28 @@ class AvisoDeCatalogoMaisAntigoNaRevisaoTests(TesteComArquivosEnviados):
         catalogo = confirmar_revisao(self.gestora, revisao.pk, hoje=HOJE)
 
         self.assertEqual(catalogo.data_exibida, '01/09/2026')
+
+
+class AvisoDeCatalogoMaisAntigoNaTelaDaRevisaoTests(TesteComArquivosEnviados):
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
+        self.client.login(username='gestora', password=SENHA_DE_TESTE)
+        importar_e_confirmar(self.gestora, self.alfa, [BALDE], '15/10/2026', HOJE)
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a([BALDE]))
+        self.revisao = iniciar_importacao(self.gestora, self.alfa, arquivo, hoje=HOJE)
+
+    def pagina_com_a_data(self, texto):
+        informar_data_do_catalogo(self.gestora, self.revisao.pk, texto, hoje=HOJE)
+        return self.client.get(reverse('revisao', kwargs={'pk': self.revisao.pk}))
+
+    def test_a_revisao_mostra_o_aviso_no_estilo_de_alerta_com_o_texto(self):
+        self.assertContains(
+            self.pagina_com_a_data('01/09/2026'),
+            '<p class="atencao" role="note"><strong>Atenção:</strong> Este Catálogo é mais antigo que o de '
+            '15/10/2026 deste Fornecedor: os códigos que estão nos dois continuam com o preço do mais recente.</p>',
+            html=True,
+        )
+
+    def test_sem_aviso_a_revisao_nao_mostra_o_alerta(self):
+        self.assertNotContains(self.pagina_com_a_data('15/10/2026'), 'mais antigo que o de')

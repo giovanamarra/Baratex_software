@@ -46,6 +46,9 @@
     </form>
   </div>
   <p>Data do Catálogo: <strong>{{ revisao.data_do_catalogo_exibida|default:"não informada" }}</strong>. É de quando são os preços, não o dia da Importação. Dia completo ou só mês e ano.</p>
+  {% with aviso=revisao.aviso_de_catalogo_mais_antigo %}{% if aviso %}
+  <p class="atencao" role="note"><strong>Atenção:</strong> {{ aviso }}</p>
+  {% endif %}{% endwith %}
   <p>Desconto aplicado: <strong>{{ revisao.desconto|percentual }}</strong>. O Preço unitário é o preço impresso com esse desconto, dividido pelo Conteúdo. Impostos não entram. O Conteúdo vem do que já foi guardado para o Fornecedor e o código (1 se nunca foi definido); mude-o em Corrigir. O Conteúdo novo só fica guardado ao confirmar.</p>
   <div class="acoes acoes--antes-da-tabela">
     <form method="post" action="{% url 'confirmar_revisao' revisao.pk %}">
