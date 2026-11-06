@@ -39,3 +39,21 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
         )
         self.assertEqual([o.codigo for o in ofertas[-2:]], [str(2001 + CARTOES_POR_PAGINA - 2), '3001'])
         self.assertEqual(len(ofertas), CARTOES_POR_PAGINA + 2)
+
+    def test_cada_oferta_do_grupo_tem_a_marca_codigo_repetido_e_o_numero_de_ofertas_do_grupo(self):
+        revisao = self.importar([
+            CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),
+            CartaoFicticio('1002', 'Tampa Ficticia'),
+            CartaoFicticio('1001', 'Panela Ficticia Secao B', '11,50'),
+            CartaoFicticio('1001', 'Panela Ficticia Secao C', '13,00'),
+        ])
+
+        self.assertEqual(
+            [(o.codigo, o.marcas, o.ofertas_com_o_mesmo_codigo) for o in self.propostas(revisao)],
+            [
+                ('1001', ['código repetido'], 3),
+                ('1001', ['código repetido'], 3),
+                ('1001', ['código repetido'], 3),
+                ('1002', [], 1),
+            ],
+        )

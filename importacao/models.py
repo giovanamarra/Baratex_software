@@ -1,3 +1,5 @@
+from collections import Counter
+
 from django.conf import settings
 from django.db import models
 
@@ -45,6 +47,7 @@ class Revisao(models.Model):
         for posicao, oferta in enumerate(ofertas):
             primeira_do_codigo.setdefault(oferta.codigo, posicao)
         ofertas.sort(key=lambda oferta: primeira_do_codigo[oferta.codigo])  # estável: mantém a ordem do arquivo
+        do_mesmo_codigo = Counter(oferta.codigo for oferta in ofertas)
         guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para a Revisão inteira
         mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
         teto = teto_atual()
@@ -53,6 +56,7 @@ class Revisao(models.Model):
             oferta._conteudo_guardado = conteudo_guardado(guardados, oferta.codigo)
             oferta._ha_decisao_guardada = oferta.codigo in guardados
             oferta._mediana = mediana
+            oferta._ofertas_com_o_mesmo_codigo = do_mesmo_codigo[oferta.codigo]
         return ofertas
 
     @property
@@ -121,7 +125,15 @@ class OfertaProposta(models.Model):
             marcas.append('fora do padrão')
         if unidade_ambigua(self.descricao):
             marcas.append('unidade ambígua')
+        if self.ofertas_com_o_mesmo_codigo > 1:
+            marcas.append('código repetido')  # não bloqueia a confirmação (ADR-0009)
         return marcas
+
+    @property
+    def ofertas_com_o_mesmo_codigo(self):
+        """Quantas Ofertas desta Revisão têm este código, contando esta. Contado por Revisao.ofertas_propostas,
+        que é por onde as telas leem as Ofertas propostas."""
+        return self._ofertas_com_o_mesmo_codigo
 
     @property
     def sugestao_de_conteudo(self):
