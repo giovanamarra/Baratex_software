@@ -56,7 +56,7 @@
           <td class="numero">{% if oferta.preco_unitario is not None %}R$ {{ oferta.preco_unitario|floatformat:"2g" }}{% else %}<span class="texto-secundario">sem preço</span>{% endif %}{% if oferta.acima_do_teto %} <strong class="alerta">acima do Teto</strong>{% endif %}</td>
           <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<span class="texto-secundario">sem Caixa</span>{% endif %}</td>
           <td>{{ oferta.catalogo.fornecedor.nome }}</td>
-          <td><a href="{% url 'catalogo' oferta.catalogo_id %}">{{ oferta.catalogo.data|date:"d/m/Y" }}</a></td>
+          <td><a href="{% url 'catalogo' oferta.catalogo_id %}">{{ oferta.catalogo.data_exibida }}</a></td>
           <td><a class="botao botao--secundario botao--pequeno" href="{% url 'definir_conteudo' oferta.pk %}?voltar={{ voltar|urlencode:'' }}">Definir Conteúdo</a></td>
         </tr>
         {% empty %}

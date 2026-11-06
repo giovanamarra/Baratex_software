@@ -141,12 +141,20 @@ class TelasAbremTests(TesteComArquivosEnviados):
 
     def test_buscar_abre_e_mostra_o_formulario_e_os_resultados_com_definir_conteudo(self):
         self.catalogo_confirmado()
+        outro = cadastrar_fornecedor(self.gestora, 'Fornecedor Beta')
+        revisao = iniciar_importacao(  # só mês e ano, como a gestora informou
+            self.gestora, outro, arquivo_enviado(catalogo_ficticio_layout_a([CartaoFicticio('2001', 'Balde Grande', '12,00')])),
+            hoje=date(2026, 3, 2),
+        )
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_do_catalogo(self.gestora, revisao.pk, '10/2025', hoje=date(2026, 3, 2))
+        confirmar_revisao(self.gestora, revisao.pk)
 
         resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'balde'})
 
         for texto in [
             'Mostrar também Ofertas antigas', 'Todos os Fornecedores', 'Fornecedor Alfa', 'Balde Ficticio',
-            'R$ 9,90', '02/03/2026', 'Definir Conteúdo',
+            'R$ 9,90', '02/03/2026', 'Definir Conteúdo', '>10/2025</a>',
         ]:
             with self.subTest(texto=texto):
                 self.assertContains(resposta, texto)
