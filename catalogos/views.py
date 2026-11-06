@@ -93,6 +93,15 @@ def catalogo(request, pk):
     return render(request, 'catalogos/catalogo.html', {'catalogo': catalogo, 'ofertas': catalogo.ofertas()})
 
 
+def corrigir_data(request, pk):
+    """Corrigir a data de um Catálogo confirmado, em duas etapas e sem JavaScript (ticket 33)."""
+    try:
+        catalogo = obter_catalogo(request.user, pk)
+    except Catalogo.DoesNotExist:
+        raise Http404
+    return render(request, 'catalogos/corrigir_data.html', {'catalogo': catalogo})
+
+
 def definir_conteudo_da_oferta(request, pk):
     """Fora da Revisão: o Conteúdo vale para o Fornecedor + código da Oferta, em todos os Catálogos."""
     oferta = _oferta(request, pk)

@@ -143,13 +143,15 @@ class TelasAbremTests(TesteComArquivosEnviados):
             with self.subTest(pagina=pagina):
                 self.assertContains(resposta, texto)
 
-    def test_ofertas_de_um_catalogo_abre_e_mostra_o_preco_unitario(self):
+    def test_ofertas_de_um_catalogo_abre_e_mostra_o_preco_unitario_e_o_botao_corrigir_a_data(self):
         catalogo = self.catalogo_confirmado()
 
         resposta = self.client.get(reverse('catalogo', kwargs={'pk': catalogo.pk}))
 
         self.assertContains(resposta, 'Balde Ficticio')
         self.assertContains(resposta, 'R$ 9,90')
+        corrigir = reverse('corrigir_data_do_catalogo', kwargs={'pk': catalogo.pk})
+        self.assertContains(resposta, f'<a class="botao botao--secundario" href="{corrigir}">Corrigir a data</a>', html=True)
 
     def test_definir_conteudo_abre_e_mostra_o_aviso_antes_de_salvar(self):
         balde = self.catalogo_confirmado().ofertas()[0]

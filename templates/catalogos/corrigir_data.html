@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block titulo %}Corrigir a data · {{ catalogo.fornecedor.nome }} · {{ catalogo.data_exibida }}{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+  <h1>Corrigir a data do Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data_exibida }}</h1>
+</section>
+{% endblock %}

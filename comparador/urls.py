@@ -23,6 +23,7 @@ urlpatterns = [
     path('fornecedores/', catalogos.fornecedores, name='fornecedores'),
     path('fornecedores/<int:pk>/catalogos/', catalogos.catalogos_do_fornecedor, name='catalogos_do_fornecedor'),
     path('catalogos/<int:pk>/', catalogos.catalogo, name='catalogo'),
+    path('catalogos/<int:pk>/corrigir-a-data/', catalogos.corrigir_data, name='corrigir_data_do_catalogo'),
     path('ofertas/<int:pk>/conteudo/', catalogos.definir_conteudo_da_oferta, name='definir_conteudo'),
     path(
         'ofertas/<int:pk>/historico-do-conteudo/',
