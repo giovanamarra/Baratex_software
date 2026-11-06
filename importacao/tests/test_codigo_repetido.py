@@ -1,8 +1,13 @@
 """Código repetido no mesmo Catálogo (ticket 32; ADR-0009, item 3). Só dados inventados."""
 
-from contas.auxiliares_de_teste import criar_gestor
+import io
+
+from django.test import SimpleTestCase
+
 from catalogos.casos_de_uso import cadastrar_fornecedor
+from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CARTOES_POR_PAGINA, CartaoFicticio, catalogo_ficticio_layout_a
+from extracao.extrair import extrair_catalogo
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
 from importacao.casos_de_uso import iniciar_importacao, obter_revisao
 
@@ -11,6 +16,20 @@ def cartoes_com_repetido_na_pagina_2(primeiro, repetido):
     """O código 1001 no primeiro cartão da página 1 e no primeiro da página 2; os outros, códigos únicos."""
     outros = [CartaoFicticio(str(2001 + i), f'Item Ficticio {i + 1}') for i in range(CARTOES_POR_PAGINA - 1)]
     return [primeiro, *outros, repetido, CartaoFicticio('3001', 'Item Ficticio Final')]
+
+
+class PaginaDeOrigemTests(SimpleTestCase):
+    def test_cada_oferta_extraida_guarda_a_pagina_de_origem(self):
+        cartoes = cartoes_com_repetido_na_pagina_2(
+            CartaoFicticio('1001', 'Panela Ficticia Secao A'), CartaoFicticio('1001', 'Panela Ficticia Secao B')
+        )
+
+        extracao = extrair_catalogo(io.BytesIO(catalogo_ficticio_layout_a(cartoes)))
+
+        paginas = [(oferta.codigo, oferta.pagina) for oferta in extracao.ofertas]
+        self.assertEqual(paginas[0], ('1001', 1))
+        self.assertEqual(paginas[CARTOES_POR_PAGINA - 1], (str(2001 + CARTOES_POR_PAGINA - 2), 1))
+        self.assertEqual(paginas[CARTOES_POR_PAGINA:], [('1001', 2), ('3001', 2)])
 
 
 class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):

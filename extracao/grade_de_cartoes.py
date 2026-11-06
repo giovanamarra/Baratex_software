@@ -13,6 +13,7 @@ class OfertaExtraida:
     preco_impresso: Decimal | None
     caixa: int | None
     caminho: str
+    pagina: int  # página de origem, contada a partir de 1
 
 
 # Layout A: cada cartão tem "Código:<código> Cx: <n>", com o preço "R$" acima e a descrição logo abaixo.
@@ -46,16 +47,16 @@ def contar_precos(pdf):
 
 def ler_layout_a(pdf):
     ofertas = []
-    for pagina in pdf.pages:
+    for numero, pagina in enumerate(pdf.pages, start=1):
         palavras = pagina.extract_words()
         ancoras = [p for p in palavras if p['text'].startswith(ROTULO_CODIGO)]
         # Ordem de leitura: linha da grade, depois coluna.
         for ancora in sorted(ancoras, key=lambda p: (round(p['top'] / 20), p['x0'])):
-            ofertas.append(_ler_cartao(ancora, palavras))
+            ofertas.append(_ler_cartao(ancora, palavras, numero))
     return ofertas
 
 
-def _ler_cartao(ancora, palavras):
+def _ler_cartao(ancora, palavras, pagina):
     x, topo = ancora['x0'], ancora['top']
     celula = [
         p for p in palavras
@@ -73,6 +74,7 @@ def _ler_cartao(ancora, palavras):
         preco_impresso=_preco(precos[0]) if precos else None,
         caixa=_caixa([p['text'] for p in linha(0)]),
         caminho=CAMINHO,
+        pagina=pagina,
     )
 
 
