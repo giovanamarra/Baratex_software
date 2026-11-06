@@ -16,6 +16,9 @@ from django.conf import settings
 from django.db import connection
 from django.utils import timezone
 
+from catalogos.models import Catalogo
+from comparador.erros import ErroDeNegocio
+
 BANCO = 'banco.sqlite3'
 ARQUIVOS = 'arquivos/'
 
@@ -37,7 +40,12 @@ def fazer_backup(pasta_destino, agora=None):
 
 
 def restaurar_backup(arquivo):
-    """Traz de volta o banco e a pasta de arquivos de um backup."""
+    """Traz de volta o banco e a pasta de arquivos de um backup, só numa instalação sem Catálogos."""
+    if Catalogo.objects.exists():
+        raise ErroDeNegocio(
+            'Esta instalação já tem dados. Restaure numa instalação vazia para não perder o que foi feito '
+            'depois do backup.'
+        )
     pasta_de_arquivos = Path(settings.MEDIA_ROOT)
     with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(arquivo) as zip_:
         zip_.extract(BANCO, temporaria)

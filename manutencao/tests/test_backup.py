@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from contas.models import Gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
@@ -73,3 +74,14 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
         restaurar_backup(backup)
 
         self.assertEqual((self.pasta_de_arquivos / 'fotos' / '3f9a1c.jpg').read_bytes(), conteudo_da_foto)
+
+    def test_restaurar_numa_instalacao_que_ja_tem_catalogos_e_recusado(self):
+        self.importar_catalogo()
+        backup = fazer_backup(self.destino)
+
+        with self.assertRaisesMessage(
+            ErroDeNegocio,
+            'Esta instalação já tem dados. Restaure numa instalação vazia para não perder o que foi feito '
+            'depois do backup.',
+        ):
+            restaurar_backup(backup)
