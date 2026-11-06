@@ -68,3 +68,9 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
             self.informar('06/11/2026')
 
         self.assertEqual(self.informar('05/11/2026'), '05/11/2026')
+
+    def test_so_mes_e_ano_vale_no_mes_atual_e_e_recusado_depois_dele(self):
+        self.assertEqual(self.informar('11/2026'), '11/2026')  # HOJE é 05/11/2026
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'A data do Catálogo não pode ser depois de hoje.'):
+            self.informar('12/2026')
