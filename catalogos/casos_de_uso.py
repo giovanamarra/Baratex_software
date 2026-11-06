@@ -329,7 +329,7 @@ def ver_impacto_da_nova_data(gestor, catalogo_id, texto, hoje=None):
     return ImpactoDaNovaData(
         deixam_de_ser_vigentes=len(antes - depois),
         passam_a_ser_vigentes=len(depois - antes),
-        aviso=aviso_de_catalogo_mais_antigo(catalogo.fornecedor_id, data),
+        aviso=aviso_de_catalogo_mais_antigo(catalogo.fornecedor_id, data, exceto=catalogo.pk),
     )
 
 

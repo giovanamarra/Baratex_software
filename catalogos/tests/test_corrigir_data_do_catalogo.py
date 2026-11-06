@@ -200,3 +200,6 @@ class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
             'Este Catálogo é mais antigo que o de 01/11/2026 deste Fornecedor: '
             'os códigos que estão nos dois continuam com o preço do mais recente.',
         )
+
+    def test_na_correcao_o_catalogo_nao_e_comparado_com_ele_mesmo(self):
+        self.assertEqual(self.impacto(self.de_novembro, '20/10/2026').aviso, '')

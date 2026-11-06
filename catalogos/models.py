@@ -155,12 +155,14 @@ def data_exibida(data, so_mes_e_ano):
     return f'{data:%m/%Y}' if so_mes_e_ano else f'{data:%d/%m/%Y}'
 
 
-def aviso_de_catalogo_mais_antigo(fornecedor_id, data):
+def aviso_de_catalogo_mais_antigo(fornecedor_id, data, exceto=None):
     """O aviso, sem bloquear, de quando a data do Catálogo é anterior à do Catálogo mais recente do mesmo
-    Fornecedor (ADR-0009, item 5). Vazio quando não é. Só mês e ano está guardado como o dia 1, como na vigência."""
+    Fornecedor (ADR-0009, item 5). Vazio quando não é. Só mês e ano está guardado como o dia 1, como na vigência.
+    `exceto` é o Catálogo cuja data se corrige: ele se compara só com os outros."""
     if data is None:
         return ''
-    mais_recente = Catalogo.objects.filter(fornecedor_id=fornecedor_id, data__gt=data).order_by('-data', '-pk').first()
+    outros = Catalogo.objects.filter(fornecedor_id=fornecedor_id).exclude(pk=exceto)
+    mais_recente = outros.filter(data__gt=data).order_by('-data', '-pk').first()
     if mais_recente is None:
         return ''
     return (
