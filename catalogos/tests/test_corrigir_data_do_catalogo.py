@@ -3,6 +3,7 @@
 from datetime import date
 
 from catalogos.casos_de_uso import cadastrar_fornecedor, corrigir_data_do_catalogo, obter_catalogo
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, importar_e_confirmar
@@ -35,3 +36,21 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
         corrigido = self.corrigir(catalogo, '10/2025')
 
         self.assertEqual((corrigido.data_exibida, corrigido.importado_em), ('10/2025', IMPORTADO_EM))
+
+    def test_formato_data_futura_e_ano_sao_recusados_com_as_mensagens_da_revisao_e_a_data_nao_muda(self):
+        catalogo = self.importar('15/10/2026', ['1001'])
+        casos = [
+            ('outubro', 'Informe a data do Catálogo como dia/mês/ano ou mês/ano, por exemplo 15/10/2026 ou 10/2026.'),
+            ('31/02/2026', 'Informe a data do Catálogo como dia/mês/ano ou mês/ano, por exemplo 15/10/2026 ou 10/2026.'),
+            ('07/11/2026', 'A data do Catálogo não pode ser depois de hoje.'),
+            ('12/2026', 'A data do Catálogo não pode ser depois de hoje.'),
+            ('10/1999', 'Confira o ano da data do Catálogo.'),
+        ]
+
+        for texto, mensagem in casos:
+            with self.subTest(texto=texto):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    self.corrigir(catalogo, texto)
+                self.assertEqual(obter_catalogo(self.gestora, catalogo.pk).data_exibida, '15/10/2026')
+
+        self.assertEqual(self.corrigir(catalogo, '06/11/2026').data_exibida, '06/11/2026')  # hoje vale
