@@ -82,3 +82,12 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
                     self.informar(texto)
 
         self.assertEqual(self.informar('01/01/2000'), '01/01/2000')
+
+    def test_formato_que_nao_e_dia_mes_ano_nem_mes_ano_ou_data_que_nao_existe_e_recusado(self):
+        mensagem = (
+            'Informe a data do Catálogo como dia/mês/ano ou mês/ano, por exemplo 15/10/2026 ou 10/2026.'
+        )
+        for texto in ['', 'outubro', '15-10-2026', '2026/10/15', '15/10/202', '1/2/3/2026', '31/02/2026', '13/2026', '00/10/2026']:
+            with self.subTest(texto=texto):
+                with self.assertRaisesMessage(ErroDeNegocio, mensagem):
+                    self.informar(texto)

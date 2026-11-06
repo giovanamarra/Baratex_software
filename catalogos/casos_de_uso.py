@@ -185,17 +185,29 @@ def preco_digitado(texto, nome='O preço'):
     return preco
 
 
+# dia/mês/ano ou mês/ano; o ano com 4 dígitos ou 2 (20xx).
+DATA_DO_CATALOGO = re.compile(r'(?:(?P<dia>\d{1,2})/)?(?P<mes>\d{1,2})/(?P<ano>\d{4}|\d{2})')
+FORMATO_DA_DATA_DO_CATALOGO = (
+    'Informe a data do Catálogo como dia/mês/ano ou mês/ano, por exemplo 15/10/2026 ou 10/2026.'
+)
+
+
 def data_do_catalogo_digitada(texto, hoje):
     """Data do Catálogo como a gestora digitou (ADR-0009): 15/10/2026, 10/2026 ou 15/10/26 (ano com 2 dígitos =
     20xx). Devolve (data, só mês e ano); só mês e ano fica como o dia 1, que é como conta para a vigência."""
-    partes = [int(parte) for parte in texto.strip().split('/')]
-    so_mes_e_ano = len(partes) == 2
-    dia, mes, ano = [1, *partes] if so_mes_e_ano else partes
+    formato = DATA_DO_CATALOGO.fullmatch(texto.strip())
+    if not formato:
+        raise ErroDeNegocio(FORMATO_DA_DATA_DO_CATALOGO)
+    so_mes_e_ano = formato['dia'] is None
+    dia, mes, ano = 1 if so_mes_e_ano else int(formato['dia']), int(formato['mes']), int(formato['ano'])
     if ano < 100:
         ano += 2000
     if ano < 2000:  # erro de digitação: um preço desses ficaria vigente por anos (102)
         raise ErroDeNegocio('Confira o ano da data do Catálogo.')
-    data = date(ano, mes, dia)
+    try:
+        data = date(ano, mes, dia)
+    except ValueError:  # 31/02/2026, 13/2026
+        raise ErroDeNegocio(FORMATO_DA_DATA_DO_CATALOGO)
     if data > hoje:
         raise ErroDeNegocio('A data do Catálogo não pode ser depois de hoje.')
     return data, so_mes_e_ano
