@@ -5,7 +5,13 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.utils import timezone
 
-from catalogos.casos_de_uso import conteudo_digitado, guardar_conteudo, preco_digitado, registrar_catalogo
+from catalogos.casos_de_uso import (
+    conteudo_digitado,
+    data_do_catalogo_digitada,
+    guardar_conteudo,
+    preco_digitado,
+    registrar_catalogo,
+)
 from comparador.erros import AcessoNegado, ErroDeNegocio
 from extracao.extrair import extrair_catalogo
 from importacao.models import OfertaProposta, Revisao
@@ -48,6 +54,16 @@ def informar_condicoes_do_catalogo(gestor, revisao_id, desconto):
     """`desconto` é o percentual como a gestora digitou (ex.: "3" ou "2,5")."""
     revisao = _revisao_em_andamento(gestor, revisao_id)
     revisao.desconto = _desconto_valido(desconto)
+    revisao.save()
+
+
+def informar_data_do_catalogo(gestor, revisao_id, texto, hoje=None):
+    """`texto` como a gestora digitou: 15/10/2026 ou 10/2026. `hoje` é injetável nos testes. Informar de novo
+    substitui: fica no rascunho até a confirmação."""
+    revisao = _revisao_em_andamento(gestor, revisao_id)
+    revisao.data_do_catalogo, revisao.data_do_catalogo_so_mes_e_ano = data_do_catalogo_digitada(
+        texto, hoje or timezone.localdate()
+    )
     revisao.save()
 
 

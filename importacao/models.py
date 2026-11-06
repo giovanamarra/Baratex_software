@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from catalogos.models import conteudo_guardado, conteudos_guardados, teto_atual
+from catalogos.models import conteudo_guardado, conteudos_guardados, data_exibida, teto_atual
 from catalogos.preco_unitario import acima_do_teto, calcular_preco_unitario
 from importacao.marcas import fora_do_padrao, mediana_dos_precos, pecas_citadas, unidade_ambigua
 
@@ -12,7 +12,10 @@ class Revisao(models.Model):
     gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='revisoes')
     fornecedor = models.ForeignKey('catalogos.Fornecedor', on_delete=models.PROTECT)
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
-    iniciada_em = models.DateField()  # vira a data do Catálogo (história 15)
+    iniciada_em = models.DateField()  # dia em que a Importação começou: o atalho "É de hoje" e o dia da Importação
+    # Data do Catálogo informada pela gestora (ADR-0009). Só mês e ano fica guardado como o dia 1.
+    data_do_catalogo = models.DateField(null=True)
+    data_do_catalogo_so_mes_e_ano = models.BooleanField(default=False)
     # Condições do Catálogo: desconto em percentual (ex.: 3 = 3%), vazio = sem desconto. Guardado
     # como a gestora digitou, sem arredondar; só o Preço unitário é arredondado.
     desconto = models.DecimalField(max_digits=7, decimal_places=4, null=True)
@@ -28,6 +31,11 @@ class Revisao(models.Model):
     class Meta:
         verbose_name = 'Revisão'
         verbose_name_plural = 'Revisões'
+
+    @property
+    def data_do_catalogo_exibida(self):
+        """Como a gestora informou: 15/10/2026 ou 10/2026. Vazio enquanto não informou."""
+        return data_exibida(self.data_do_catalogo, self.data_do_catalogo_so_mes_e_ano)
 
     def ofertas_propostas(self):
         ofertas = list(self.ofertas.order_by('ordem'))

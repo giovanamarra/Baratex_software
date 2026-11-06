@@ -115,6 +115,13 @@ class TetoDeCompra(models.Model):
         verbose_name_plural = 'Teto de compra'
 
 
+def data_exibida(data, so_mes_e_ano):
+    """A data do Catálogo como a gestora informou: 15/10/2026, ou 10/2026 quando é só mês e ano."""
+    if data is None:
+        return ''
+    return f'{data:%m/%Y}' if so_mes_e_ano else f'{data:%d/%m/%Y}'
+
+
 def teto_atual():
     """O Teto de compra do grupo, ou None quando ainda não foi definido."""
     return TetoDeCompra.objects.values_list('valor', flat=True).first()

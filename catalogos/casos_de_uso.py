@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import DecimalField, Exists, ExpressionWrapper, F, OuterRef, Q
@@ -187,6 +188,12 @@ def preco_digitado(texto, nome='O preço'):
     if preco > MAIOR_PRECO:
         raise ErroDeNegocio(f'{nome} é grande demais. Confira se digitou o valor certo.')
     return preco
+
+
+def data_do_catalogo_digitada(texto, hoje):
+    """Data do Catálogo como a gestora digitou (ADR-0009). Devolve (data, só mês e ano)."""
+    dia, mes, ano = (int(parte) for parte in texto.strip().split('/'))
+    return date(ano, mes, dia), False
 
 
 def definir_teto(gestor, valor):
