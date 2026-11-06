@@ -37,3 +37,13 @@ class AvisoDeCatalogoMaisAntigoNaRevisaoTests(TesteComArquivosEnviados):
         importar_e_confirmar(self.gestora, self.beta, [BALDE], '15/10/2026', HOJE)
 
         self.assertEqual(self.aviso_com_a_data('01/09/2026'), '')
+
+    def test_com_a_mesma_data_ou_mais_recente_nao_ha_aviso(self):
+        importar_e_confirmar(self.gestora, self.alfa, [BALDE], '15/10/2026', HOJE)
+
+        for texto in ['15/10/2026', '16/10/2026', '11/2026']:
+            with self.subTest(texto=texto):
+                self.assertEqual(self.aviso_com_a_data(texto), '')
+
+    def test_fornecedor_sem_catalogos_nao_tem_aviso(self):
+        self.assertEqual(self.aviso_com_a_data('01/01/2000'), '')
