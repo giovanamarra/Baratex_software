@@ -33,3 +33,9 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
 
     def test_ignora_espacos_nas_pontas(self):
         self.assertEqual(self.informar('  15/10/2026 '), '15/10/2026')
+
+    def test_a_data_fica_no_rascunho_da_revisao_e_informar_de_novo_vale_a_ultima(self):
+        self.informar('10/2026')
+
+        self.assertEqual(self.informar('15/10/2026'), '15/10/2026')  # obter_revisao relê o rascunho do banco
+        self.assertEqual(self.informar('09/2026'), '09/2026')
