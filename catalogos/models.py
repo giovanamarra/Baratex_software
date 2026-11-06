@@ -27,7 +27,7 @@ class Catalogo(models.Model):
     # guardado como o dia 1 daquele mês, que é como conta para ordenar.
     data = models.DateField()
     data_so_mes_e_ano = models.BooleanField(default=False)
-    importado_em = models.DateField(null=True)  # dia em que a Importação começou: só registro
+    importado_em = models.DateField()  # dia em que a Importação começou: só registro
     # Condições do Catálogo: desconto percentual (ex.: 3 = 3%); vazio = sem desconto.
     desconto = models.DecimalField(max_digits=7, decimal_places=4, null=True)
 
