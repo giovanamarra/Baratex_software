@@ -9,6 +9,7 @@ from comparador.erros import AcessoNegado, ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import (
+    informar_data_de_hoje,
     TesteComArquivosEnviados,
     TesteTransacionalComArquivosEnviados,
     arquivo_enviado,
@@ -37,6 +38,7 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
             revisao = iniciar_importacao(self.gestora, self.fornecedor, catalogo, hoje=hoje)
         # Desde o ticket 06, confirmar exige o desconto informado; 0 vale como resposta.
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         return revisao
 
     def test_antes_de_confirmar_o_fornecedor_continua_sem_catalogos(self):
@@ -52,6 +54,7 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
         ])  # Ofertas sem preço ou sem Caixa são recusadas desde o ticket 06
         revisao = iniciar_importacao(self.gestora, self.fornecedor, arquivo_enviado(conteudo))
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
 
@@ -174,6 +177,7 @@ class ConfirmacaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
         ]
         revisao = iniciar_importacao(gestora, fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes)))
         informar_condicoes_do_catalogo(gestora, revisao.pk, '0')
+        informar_data_de_hoje(gestora, revisao.pk)
         # A Revisão está completa, então a falha tem de vir do banco: um gatilho (só no SQLite de
         # teste) recusa gravar a Oferta 1002 depois de o Catálogo já ter sido criado. Decisão da
         # usuária no ticket 06, porque a validação da confirmação passou a cobrir o preço negativo.

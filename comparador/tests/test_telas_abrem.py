@@ -14,7 +14,7 @@ from django.urls import reverse
 from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, definir_teto, obter_teto
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, informar_data_de_hoje
 from importacao.casos_de_uso import confirmar_revisao, informar_condicoes_do_catalogo, iniciar_importacao
 
 
@@ -32,6 +32,7 @@ class TelasAbremTests(TesteComArquivosEnviados):
     def catalogo_confirmado(self):
         revisao = self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,90')])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         return confirmar_revisao(self.gestora, revisao.pk)
 
     def test_inicio_abre_e_mostra_as_lojas(self):
@@ -124,6 +125,7 @@ class TelasAbremTests(TesteComArquivosEnviados):
         arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
         revisao = iniciar_importacao(self.gestora, fornecedor or self.fornecedor, arquivo, hoje=hoje)
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         return confirmar_revisao(self.gestora, revisao.pk)
 
     def test_buscar_com_ofertas_antigas_marcado_mostra_tambem_as_antigas(self):
@@ -183,6 +185,7 @@ class TelasAbremTests(TesteComArquivosEnviados):
     def test_buscar_com_mais_de_200_resultados_avisa_para_refinar_a_busca(self):
         revisao = self.importar([CartaoFicticio(str(c), f'Item Ficticio {c}', '9,90') for c in range(1000, 1201)])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         confirmar_revisao(self.gestora, revisao.pk)
 
         resposta = self.client.get(reverse('buscar_ofertas'), {'texto': 'ficticio'})
@@ -270,6 +273,7 @@ class TelasAbremTests(TesteComArquivosEnviados):
             CartaoFicticio('1002', 'Rodo Ficticio', '4,00'),
         ])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         confirmar_revisao(self.gestora, revisao.pk)
         definir_teto(self.gestora, '5,00')
 

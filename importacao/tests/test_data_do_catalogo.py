@@ -3,10 +3,17 @@
 from datetime import date
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
+from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import informar_data_do_catalogo, iniciar_importacao, obter_revisao
+from importacao.casos_de_uso import (
+    confirmar_revisao,
+    informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
+    iniciar_importacao,
+    obter_revisao,
+)
 
 HOJE = date(2026, 11, 5)
 
@@ -39,3 +46,19 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
 
         self.assertEqual(self.informar('15/10/2026'), '15/10/2026')  # obter_revisao relê o rascunho do banco
         self.assertEqual(self.informar('09/2026'), '09/2026')
+
+    def test_confirmar_sem_a_data_do_catalogo_e_recusado(self):
+        informar_condicoes_do_catalogo(self.gestora, self.revisao.pk, '0')
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'Informe de quando é este Catálogo antes de confirmar.'):
+            confirmar_revisao(self.gestora, self.revisao.pk)
+
+    def test_sem_data_e_sem_desconto_a_recusa_lista_os_dois_numa_mensagem_so(self):
+        with self.assertRaises(ErroDeNegocio) as recusa:
+            confirmar_revisao(self.gestora, self.revisao.pk)
+
+        self.assertEqual(
+            recusa.exception.mensagem,
+            'Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0. '
+            'Informe de quando é este Catálogo antes de confirmar.',
+        )

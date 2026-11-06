@@ -6,7 +6,7 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase, override_settings
 
-from importacao.casos_de_uso import corrigir_oferta_proposta
+from importacao.casos_de_uso import corrigir_oferta_proposta, informar_data_do_catalogo, obter_revisao
 
 
 class ArquivosEnviadosTemporarios:
@@ -53,3 +53,12 @@ def corrigir(gestor, oferta, **mudancas):
 def resumo(oferta):
     """Os campos que a Revisão e o Catálogo guardam de uma Oferta, para comparar em testes."""
     return (oferta.codigo, oferta.descricao, oferta.preco_impresso, oferta.caixa, oferta.caminho)
+
+
+def informar_data_de_hoje(gestor, revisao_id):
+    """Como o atalho "É de hoje" da Revisão: a data do Catálogo é o dia em que a Importação começou.
+
+    Para os testes que não tratam da data do Catálogo (desde o ticket 31, confirmar exige a data).
+    """
+    iniciada_em = obter_revisao(gestor, revisao_id).iniciada_em
+    informar_data_do_catalogo(gestor, revisao_id, f'{iniciada_em:%d/%m/%Y}', hoje=iniciada_em)

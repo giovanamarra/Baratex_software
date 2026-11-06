@@ -16,7 +16,7 @@ from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from contas.models import Gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteTransacionalComArquivosEnviados, arquivo_enviado
+from importacao.auxiliares_de_teste import TesteTransacionalComArquivosEnviados, arquivo_enviado, informar_data_de_hoje
 from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, informar_condicoes_do_catalogo
 from manutencao.casos_de_uso import fazer_backup, restaurar_backup
 
@@ -38,6 +38,7 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
         conteudo = catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio', '9,90', '6')])
         revisao = iniciar_importacao(gestora, fornecedor, arquivo_enviado(conteudo), hoje=date(2026, 3, 2))
         informar_condicoes_do_catalogo(gestora, revisao.pk, '0')
+        informar_data_de_hoje(gestora, revisao.pk)
         confirmar_revisao(gestora, revisao.pk)
         return conteudo
 

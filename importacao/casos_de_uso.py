@@ -193,6 +193,9 @@ def _exigir_revisao_completa(revisao, ofertas):
     if revisao.desconto is None:
         # O desconto é resposta obrigatória a cada Importação; 0 vale (decisão da usuária, ticket 06).
         problemas.append('Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0.')
+    if revisao.data_do_catalogo is None:
+        # Resposta obrigatória, como o desconto: nenhum catálogo antigo vira vigente por esquecimento (101).
+        problemas.append('Informe de quando é este Catálogo antes de confirmar.')
     sem_caixa = [oferta.codigo for oferta in ofertas if oferta.caixa is None]
     if sem_caixa:
         problemas.append(f'Informe a Caixa antes de confirmar. Ofertas sem Caixa: {", ".join(sem_caixa)}.')

@@ -7,7 +7,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, histo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, informar_data_de_hoje
 from importacao.casos_de_uso import (
     abandonar_revisao,
     confirmar_revisao,
@@ -34,6 +34,7 @@ class ConteudoTests(TesteComArquivosEnviados):
         catalogo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
         revisao = iniciar_importacao(gestor or self.gestora, fornecedor or self.alfa, catalogo, hoje=hoje)
         informar_condicoes_do_catalogo(gestor or self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(gestor or self.gestora, revisao.pk)
         return revisao
 
     def ofertas(self, revisao):

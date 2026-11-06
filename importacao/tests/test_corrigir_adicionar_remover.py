@@ -4,7 +4,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, listar_catalogos_do_for
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, resumo
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, resumo, informar_data_de_hoje
 from importacao.casos_de_uso import (
     abandonar_revisao,
     adicionar_oferta_proposta,
@@ -36,6 +36,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             CartaoFicticio('1002', 'Rodo Ficticio', '9,90'),
         ])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         balde = self.ofertas(revisao)[0]
 
         corrigir_oferta_proposta(
@@ -79,6 +80,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
 
         self.assertEqual([oferta.codigo for oferta in self.ofertas(revisao)], ['1001'])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
         self.assertEqual([oferta.codigo for oferta in catalogo.ofertas()], ['1001'])
 
@@ -101,6 +103,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             CartaoFicticio('1007', 'Pa Ficticia', caixa='***'),
         ])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         with self.assertRaisesMessage(
             ErroDeNegocio, 'Informe a Caixa antes de confirmar. Ofertas sem Caixa: 1001, 1007.'
@@ -122,6 +125,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             CartaoFicticio('1004', 'Pa Ficticia', '0,00'),
         ])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         with self.assertRaisesMessage(
             ErroDeNegocio, 'Informe um preço maior que zero antes de confirmar. Ofertas sem preço: 1003, 1004.'
@@ -137,6 +141,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
         for revisao in (confirmada, abandonada):
             self.corrigir(self.ofertas(revisao)[0], descricao='Balde Ficticio 10L', preco_impresso='8,00')
             informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+            informar_data_de_hoje(self.gestora, revisao.pk)
 
         catalogo = confirmar_revisao(self.gestora, confirmada.pk)
         abandonar_revisao(self.gestora, abandonada.pk)
@@ -242,6 +247,7 @@ class CorrigirAdicionarRemoverTests(TesteComArquivosEnviados):
             confirmar_revisao(self.gestora, revisao.pk)
 
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
         self.assertEqual(catalogo.desconto, Decimal('0'))
 

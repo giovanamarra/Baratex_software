@@ -4,7 +4,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, obter_catalogo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, informar_data_de_hoje
 from importacao.casos_de_uso import (
     confirmar_revisao,
     iniciar_importacao,
@@ -50,6 +50,7 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
                 )
 
                 informar_condicoes_do_catalogo(self.gestora, revisao.pk, desconto)
+                informar_data_de_hoje(self.gestora, revisao.pk)
 
                 ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
                 self.assertEqual(precos_unitarios(ofertas), esperados)
@@ -65,7 +66,9 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '8,00')])
 
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
         self.assertEqual([(o.preco_impresso, o.preco_unitario) for o in ofertas], [(Decimal('8.00'), Decimal('7.20'))])
@@ -73,7 +76,9 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
     def test_vale_o_ultimo_desconto_informado_e_ao_confirmar_ele_fica_no_catalogo(self):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '10')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '5')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
@@ -97,6 +102,7 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
             CartaoFicticio('1003', 'Pa Ficticia', '0,50'),
         ])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '3')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         na_revisao = precos_unitarios(obter_revisao(self.gestora, revisao.pk).ofertas_propostas())
         catalogo = confirmar_revisao(self.gestora, revisao.pk)
 
@@ -109,11 +115,13 @@ class PrecoUnitarioNaRevisaoTests(TesteComArquivosEnviados):
     def test_desconto_negativo_de_100_ou_mais_ou_que_nao_e_numero_e_recusado(self):
         revisao = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '5')
+        informar_data_de_hoje(self.gestora, revisao.pk)
 
         for desconto in ['-1', '100', '150', 'dez', '']:
             with self.subTest(desconto=desconto):
                 with self.assertRaisesMessage(ErroDeNegocio, 'O desconto precisa ser de 0% até menos de 100%.'):
                     informar_condicoes_do_catalogo(self.gestora, revisao.pk, desconto)
+                    informar_data_de_hoje(self.gestora, revisao.pk)
 
         # O desconto anterior (5%) continua valendo.
         ofertas = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()

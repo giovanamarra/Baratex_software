@@ -7,7 +7,7 @@ from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, definir
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, informar_data_de_hoje
 from importacao.casos_de_uso import (
     adicionar_oferta_proposta,
     confirmar_revisao,
@@ -43,6 +43,7 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
         revisao = iniciar_importacao(gestor, fornecedor or self.alfa, arquivo, hoje=dia)
         informar_condicoes_do_catalogo(gestor, revisao.pk, desconto)
+        informar_data_de_hoje(gestor, revisao.pk)
         return confirmar_revisao(gestor, revisao.pk, hoje=dia)
 
     def buscar(self, texto='', **filtros):
@@ -182,6 +183,7 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             self.gestora, revisao.pk, codigo='2001', descricao='Escova Ácida', preco_impresso='3,40', caixa='60'
         )
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         confirmar_revisao(self.gestora, revisao.pk, hoje=DIA_01)
 
         casos = [('plastica', ['1001']), ('ACIDA', ['2001']), ('balde', [])]

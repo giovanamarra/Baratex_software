@@ -10,7 +10,7 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, histo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, informar_data_de_hoje
 from importacao.casos_de_uso import (
     abandonar_revisao,
     aceitar_sugestao_de_conteudo,
@@ -106,6 +106,7 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         ]
         primeira = self.importar(cartoes)
         informar_condicoes_do_catalogo(self.gestora, primeira.pk, '0')
+        informar_data_de_hoje(self.gestora, primeira.pk)
         confirmar_revisao(self.gestora, primeira.pk)
         definir_conteudo(self.gestora, self.fornecedor, '3001', '3')  # decisão guardada: 3
         definir_conteudo(self.gestora, self.fornecedor, '3002', '4')
@@ -127,6 +128,7 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         aceita = obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0]
         self.assertEqual((aceita.conteudo, aceita.preco_unitario, aceita.sugestao_de_conteudo), (3, Decimal('3.00'), None))
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         confirmar_revisao(self.gestora, revisao.pk)
         self.assertEqual(
             [(r.valor_anterior, r.valor_novo) for r in historico_do_conteudo(self.gestora, self.fornecedor, '3001')],
@@ -164,6 +166,7 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         marcadas = self.importar(cartoes)
         for revisao in (sem_preco, marcadas):
             informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+            informar_data_de_hoje(self.gestora, revisao.pk)
 
         with self.assertRaisesMessage(
             ErroDeNegocio, 'Informe um preço maior que zero antes de confirmar. Ofertas sem preço: 1003.'
@@ -185,6 +188,7 @@ class MarcasDeConferenciaTests(TesteComArquivosEnviados):
         self.assertEqual(self.sugestoes(revisao), {'3001': None})
         self.assertEqual(list(historico_do_conteudo(self.gestora, self.fornecedor, '3001')), [])
         informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
         confirmar_revisao(self.gestora, revisao.pk, hoje=date(2026, 3, 3))
         abandonar_revisao(self.gestora, abandonada.pk)
 
