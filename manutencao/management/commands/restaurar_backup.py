@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
+from comparador.erros import ErroDeNegocio
 from manutencao.casos_de_uso import restaurar_backup
 
 
@@ -12,5 +13,8 @@ class Command(BaseCommand):
         parser.add_argument('arquivo', help='O arquivo .zip gerado por fazer_backup.')
 
     def handle(self, *args, arquivo, **opcoes):
-        restaurar_backup(arquivo)
+        try:
+            restaurar_backup(arquivo)
+        except ErroDeNegocio as erro:
+            raise CommandError(erro.mensagem)
         self.stdout.write(f'Pronto: backup {Path(arquivo).name} restaurado.')

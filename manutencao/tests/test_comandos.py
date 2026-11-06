@@ -42,3 +42,10 @@ class ComandosDeBackupTests(TesteTransacionalComArquivosEnviados):
 
         self.assertTrue(Gestor.objects.filter(username='gestora').exists())
         self.assertIn(f'Pronto: backup {backup.name} restaurado.', saida.getvalue())
+
+    def test_restaurar_algo_que_nao_e_backup_mostra_a_mensagem_sem_detalhe_tecnico(self):
+        planilha = self.destino / 'pedido.xlsx'
+        planilha.write_bytes(b'nao e um backup')
+
+        with self.assertRaisesMessage(CommandError, 'Este arquivo não é um backup do Comparador de Catálogos.'):
+            call_command('restaurar_backup', str(planilha))
