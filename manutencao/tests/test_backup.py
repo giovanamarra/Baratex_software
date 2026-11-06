@@ -60,3 +60,16 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
         self.assertEqual((oferta.codigo, oferta.descricao, oferta.preco_unitario), ('1001', 'Balde Ficticio', Decimal('9.90')))
         with oferta.catalogo.arquivo.open('rb') as arquivo_de_origem:
             self.assertEqual(arquivo_de_origem.read(), conteudo_de_origem)
+
+    def test_arquivo_posto_em_fotos_volta_com_o_mesmo_conteudo(self):
+        # A foto de uma Oferta de verdade só existe a partir do ticket 14, que repete este teste com ela.
+        self.importar_catalogo()
+        conteudo_da_foto = b'\xff\xd8\xff\xe0 foto ficticia \xff\xd9'
+        (self.pasta_de_arquivos / 'fotos').mkdir()
+        (self.pasta_de_arquivos / 'fotos' / '3f9a1c.jpg').write_bytes(conteudo_da_foto)
+        backup = fazer_backup(self.destino)
+        self.apagar_a_instalacao()
+
+        restaurar_backup(backup)
+
+        self.assertEqual((self.pasta_de_arquivos / 'fotos' / '3f9a1c.jpg').read_bytes(), conteudo_da_foto)
