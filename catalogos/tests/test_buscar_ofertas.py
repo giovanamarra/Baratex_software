@@ -195,6 +195,30 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao A', Decimal('0.01'))])
 
+    def test_o_codigo_repetido_nao_concorre_com_o_mesmo_codigo_de_um_catalogo_de_data_mais_antiga(self):
+        # A regra entre Catálogos vem antes: o de 01/10, mais barato e confirmado depois, nunca é vigente.
+        self.importar(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio Secao A', '12,90'),
+            CartaoFicticio('1001', 'Balde Ficticio Secao B', '11,50'),
+        ), '15/10/2026', hoje=date(2026, 10, 16))
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio Antigo', '5,00')], '01/10/2026', hoje=date(2026, 10, 20))
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual(
+            [(o.descricao, o.catalogo.data_exibida) for o in achadas], [('Balde Ficticio Secao B', '15/10/2026')]
+        )
+
+    def test_com_as_ofertas_antigas_aparecem_todas_as_do_codigo_repetido(self):
+        self.importar(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio Secao A', '12,90'),
+            CartaoFicticio('1001', 'Balde Ficticio Secao B', '11,50'),
+        ), '15/10/2026')
+
+        achadas = self.buscar('1001', so_vigentes=False)
+
+        self.assertEqual(sorted(o.descricao for o in achadas), ['Balde Ficticio Secao A', 'Balde Ficticio Secao B'])
+
     def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '10/2026')  # confirmado depois
