@@ -193,3 +193,10 @@ class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
         vigente = buscar_ofertas(self.gestora, '1001', fornecedor=self.alfa).ofertas
         self.assertEqual([o.catalogo.data_exibida for o in vigente], ['15/10/2026'])
         self.assertEqual(list(correcoes_da_data(self.gestora, self.de_outubro.pk)), [])
+
+    def test_a_nova_data_anterior_a_do_outro_catalogo_mais_recente_do_fornecedor_tem_o_aviso(self):
+        self.assertEqual(
+            self.impacto(self.de_outubro, '10/2025').aviso,
+            'Este Catálogo é mais antigo que o de 01/11/2026 deste Fornecedor: '
+            'os códigos que estão nos dois continuam com o preço do mais recente.',
+        )

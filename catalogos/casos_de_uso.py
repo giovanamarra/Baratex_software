@@ -19,6 +19,7 @@ from catalogos.models import (
     Fornecedor,
     Oferta,
     TetoDeCompra,
+    aviso_de_catalogo_mais_antigo,
     conteudo_guardado,
     conteudos_guardados,
     teto_atual,
@@ -296,6 +297,7 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
 class ImpactoDaNovaData:
     deixam_de_ser_vigentes: int
     passam_a_ser_vigentes: int
+    aviso: str  # o de Catálogo mais antigo, ou vazio
 
     @property
     def mensagem(self):
@@ -324,7 +326,11 @@ def ver_impacto_da_nova_data(gestor, catalogo_id, texto, hoje=None):
         Catalogo.objects.filter(pk=catalogo.pk).update(data=data, data_so_mes_e_ano=so_mes_e_ano)
         depois = _vigentes_do_catalogo(catalogo)
         transaction.set_rollback(True)
-    return ImpactoDaNovaData(deixam_de_ser_vigentes=len(antes - depois), passam_a_ser_vigentes=len(depois - antes))
+    return ImpactoDaNovaData(
+        deixam_de_ser_vigentes=len(antes - depois),
+        passam_a_ser_vigentes=len(depois - antes),
+        aviso=aviso_de_catalogo_mais_antigo(catalogo.fornecedor_id, data),
+    )
 
 
 def _vigentes_do_catalogo(catalogo):
