@@ -2,7 +2,13 @@
 
 from datetime import date
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, correcoes_da_data, corrigir_data_do_catalogo, obter_catalogo
+from catalogos.casos_de_uso import (
+    buscar_ofertas,
+    cadastrar_fornecedor,
+    correcoes_da_data,
+    corrigir_data_do_catalogo,
+    obter_catalogo,
+)
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio
@@ -27,8 +33,10 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
         self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
         self.beta = cadastrar_fornecedor(self.gestora, 'Beta')
 
-    def importar(self, data, codigos, fornecedor=None):
-        return importar_e_confirmar(self.gestora, fornecedor or self.alfa, cartoes(*codigos), data, IMPORTADO_EM)
+    def importar(self, data, codigos, fornecedor=None, preco='10,00'):
+        return importar_e_confirmar(
+            self.gestora, fornecedor or self.alfa, cartoes(*codigos, preco=preco), data, IMPORTADO_EM
+        )
 
     def corrigir(self, catalogo, texto, gestor=None):
         corrigir_data_do_catalogo(gestor or self.socio, catalogo.pk, texto, hoje=HOJE)
@@ -106,3 +114,18 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
     def test_corrigir_um_catalogo_que_nao_existe_e_recusado(self):
         with self.assertRaisesMessage(ErroDeNegocio, 'Catálogo não encontrado.'):
             corrigir_data_do_catalogo(self.socio, 999, '10/2025', hoje=HOJE)
+
+    def test_depois_de_corrigir_a_busca_padrao_mostra_a_oferta_do_outro_catalogo(self):
+        errado = self.importar('15/10/2026', ['1001'], preco='10,00')
+        self.importar('01/09/2026', ['1001'], preco='12,00')
+        self.assertEqual(self.vigentes('1001'), [('1001', '15/10/2026', '10.00')])
+
+        self.corrigir(errado, '10/2025')
+
+        self.assertEqual(self.vigentes('1001'), [('1001', '01/09/2026', '12.00')])
+
+    def vigentes(self, texto):
+        return [
+            (o.codigo, o.catalogo.data_exibida, str(o.preco_unitario))
+            for o in buscar_ofertas(self.gestora, texto, fornecedor=self.alfa).ofertas
+        ]
