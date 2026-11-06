@@ -6,11 +6,12 @@
 {% block conteudo %}
 <section class="cartao">
   <h1>Catálogos de {{ fornecedor.nome }}</h1>
-  <p class="texto-secundario">Do mais recente para o mais antigo. A data é o dia em que a Importação começou.</p>
+  <p class="texto-secundario">Pela data do Catálogo, do mais recente para o mais antigo; na mesma data, o confirmado por último primeiro. A data do Catálogo é de quando são os preços, informada na Revisão; "Importado em" é só o dia em que a Importação começou.</p>
   <table>
     <thead>
       <tr>
-        <th scope="col">Data</th>
+        <th scope="col">Data do Catálogo</th>
+        <th scope="col">Importado em</th>
         <th scope="col">Desconto</th>
         <th scope="col">Importado por</th>
         <th scope="col">Ofertas</th>
@@ -19,13 +20,14 @@
     <tbody>
       {% for catalogo in catalogos %}
       <tr>
-        <td class="numero-tabular">{{ catalogo.data|date:"d/m/Y" }}</td>
+        <td class="numero-tabular">{{ catalogo.data_exibida }}</td>
+        <td class="numero-tabular">{{ catalogo.importado_em|date:"d/m/Y" }}</td>
         <td>{{ catalogo.desconto|percentual }}</td>
         <td>{{ catalogo.gestor.get_username }}</td>
         <td><a href="{% url 'catalogo' catalogo.pk %}">Ver Ofertas</a></td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" class="texto-secundario">Nenhum Catálogo importado ainda.</td></tr>
+      <tr><td colspan="5" class="texto-secundario">Nenhum Catálogo importado ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>

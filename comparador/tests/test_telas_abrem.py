@@ -15,7 +15,12 @@ from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, defin
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, informar_data_de_hoje
-from importacao.casos_de_uso import confirmar_revisao, informar_condicoes_do_catalogo, iniciar_importacao
+from importacao.casos_de_uso import (
+    confirmar_revisao,
+    informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
+    iniciar_importacao,
+)
 
 
 class TelasAbremTests(TesteComArquivosEnviados):
@@ -99,12 +104,17 @@ class TelasAbremTests(TesteComArquivosEnviados):
         self.assertContains(recusada, 'Informe a data do Catálogo como dia/mês/ano ou mês/ano')
         self.assertContains(recusada, 'Data do Catálogo: <strong>10/2025</strong>')  # a recusa não apaga a anterior
 
-    def test_catalogos_do_fornecedor_abre_e_mostra_a_data_do_catalogo(self):
-        self.catalogo_confirmado()
+    def test_catalogos_do_fornecedor_abre_e_mostra_a_data_do_catalogo_e_o_dia_da_importacao(self):
+        revisao = self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,90')])  # Importação de 02/03/2026
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_do_catalogo(self.gestora, revisao.pk, '10/2025', hoje=date(2026, 3, 2))
+        confirmar_revisao(self.gestora, revisao.pk)
 
         resposta = self.client.get(reverse('catalogos_do_fornecedor', kwargs={'pk': self.fornecedor.pk}))
 
-        self.assertContains(resposta, '02/03/2026')
+        for texto in ['Data do Catálogo', 'Importado em', '<td class="numero-tabular">10/2025</td>', '02/03/2026']:
+            with self.subTest(texto=texto):
+                self.assertContains(resposta, texto)
 
     def test_ofertas_de_um_catalogo_abre_e_mostra_o_preco_unitario(self):
         catalogo = self.catalogo_confirmado()
