@@ -299,8 +299,14 @@ class ImpactoDaNovaData:
 
     @property
     def mensagem(self):
+        # Mudar a data só move o Catálogo para a frente ou para trás dos outros: ou Ofertas passam a ser vigentes,
+        # ou deixam de ser, nunca as duas coisas.
+        if self.passam_a_ser_vigentes == 1:
+            return 'Com a nova data, 1 Oferta deste Catálogo passa a ser vigente.'
         if self.passam_a_ser_vigentes:
             return f'Com a nova data, {self.passam_a_ser_vigentes} Ofertas deste Catálogo passam a ser vigentes.'
+        if self.deixam_de_ser_vigentes == 1:
+            return 'Com a nova data, 1 Oferta deste Catálogo deixa de ser vigente.'
         if self.deixam_de_ser_vigentes:
             return f'Com a nova data, {self.deixam_de_ser_vigentes} Ofertas deste Catálogo deixam de ser vigentes.'
         return 'Com a nova data, nenhuma Oferta deste Catálogo muda de vigência.'

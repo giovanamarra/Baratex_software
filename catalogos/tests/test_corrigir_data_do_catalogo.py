@@ -135,6 +135,18 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
             for o in buscar_ofertas(self.gestora, texto, fornecedor=self.alfa).ofertas
         ]
 
+    def test_o_impacto_de_uma_so_oferta_fica_no_singular(self):
+        de_outubro = self.importar('15/10/2026', ['1001'])
+        de_setembro = self.importar('01/09/2026', ['1001'])
+
+        casos = [
+            (de_outubro, '10/2025', 'Com a nova data, 1 Oferta deste Catálogo deixa de ser vigente.'),
+            (de_setembro, '16/10/2026', 'Com a nova data, 1 Oferta deste Catálogo passa a ser vigente.'),
+        ]
+        for catalogo, texto, mensagem in casos:
+            with self.subTest(texto=texto):
+                self.assertEqual(ver_impacto_da_nova_data(self.socio, catalogo.pk, texto, hoje=HOJE).mensagem, mensagem)
+
 
 class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
     """O exemplo do ticket: o Catálogo de 15/10/2026 tem 40 Ofertas, 37 vigentes (as outras 3 estão num Catálogo
