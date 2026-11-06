@@ -47,3 +47,20 @@ class AvisoDeCatalogoMaisAntigoNaRevisaoTests(TesteComArquivosEnviados):
 
     def test_fornecedor_sem_catalogos_nao_tem_aviso(self):
         self.assertEqual(self.aviso_com_a_data('01/01/2000'), '')
+
+    def test_o_aviso_cita_o_catalogo_mais_recente_com_a_data_como_foi_informada(self):
+        for data in ['01/09/2026', '10/2026', '15/09/2026']:
+            importar_e_confirmar(self.gestora, self.alfa, [BALDE], data, HOJE)
+
+        self.assertEqual(
+            self.aviso_com_a_data('15/08/2026'),
+            'Este Catálogo é mais antigo que o de 10/2026 deste Fornecedor: '
+            'os códigos que estão nos dois continuam com o preço do mais recente.',
+        )
+
+    def test_so_mes_e_ano_conta_como_o_dia_1_do_mes(self):
+        importar_e_confirmar(self.gestora, self.alfa, [BALDE], '01/10/2026', HOJE)
+        self.assertEqual(self.aviso_com_a_data('10/2026'), '')
+
+        importar_e_confirmar(self.gestora, self.alfa, [BALDE], '02/10/2026', HOJE)
+        self.assertIn('mais antigo que o de 02/10/2026', self.aviso_com_a_data('10/2026'))
