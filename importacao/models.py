@@ -38,7 +38,13 @@ class Revisao(models.Model):
         return data_exibida(self.data_do_catalogo, self.data_do_catalogo_so_mes_e_ano)
 
     def ofertas_propostas(self):
+        """Na ordem do arquivo, com as Ofertas de um código repetido juntas, onde o código aparece primeiro
+        (ticket 32)."""
         ofertas = list(self.ofertas.order_by('ordem'))
+        primeira_do_codigo = {}
+        for posicao, oferta in enumerate(ofertas):
+            primeira_do_codigo.setdefault(oferta.codigo, posicao)
+        ofertas.sort(key=lambda oferta: primeira_do_codigo[oferta.codigo])  # estável: mantém a ordem do arquivo
         guardados = conteudos_guardados(self.fornecedor_id)  # uma consulta para a Revisão inteira
         mediana = mediana_dos_precos(oferta.preco_impresso for oferta in ofertas)
         teto = teto_atual()

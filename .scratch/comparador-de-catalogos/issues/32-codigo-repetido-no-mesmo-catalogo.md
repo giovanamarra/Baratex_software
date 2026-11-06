@@ -1,6 +1,6 @@
 # 32 — Código repetido no mesmo Catálogo: agrupado na Revisão, vale o menor Preço unitário
 
-Status: ready-for-agent
+Status: claimed
 Type: task
 Blocked by: 31
 Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › Código repetido; Extração › marcas de conferência; Modelo de dados › Oferta: posição no arquivo, Oferta vigente)
