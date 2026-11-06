@@ -62,3 +62,9 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
             'Informe o desconto do Catálogo antes de confirmar. Se não houver desconto, informe 0. '
             'Informe de quando é este Catálogo antes de confirmar.',
         )
+
+    def test_data_depois_de_hoje_e_recusada_e_hoje_vale(self):
+        with self.assertRaisesMessage(ErroDeNegocio, 'A data do Catálogo não pode ser depois de hoje.'):
+            self.informar('06/11/2026')
+
+        self.assertEqual(self.informar('05/11/2026'), '05/11/2026')

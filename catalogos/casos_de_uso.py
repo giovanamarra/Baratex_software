@@ -198,7 +198,10 @@ def data_do_catalogo_digitada(texto, hoje):
     dia, mes, ano = [1, *partes] if so_mes_e_ano else partes
     if ano < 100:
         ano += 2000
-    return date(ano, mes, dia), so_mes_e_ano
+    data = date(ano, mes, dia)
+    if data > hoje:
+        raise ErroDeNegocio('A data do Catálogo não pode ser depois de hoje.')
+    return data, so_mes_e_ano
 
 
 def definir_teto(gestor, valor):
