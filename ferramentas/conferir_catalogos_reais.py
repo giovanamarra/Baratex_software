@@ -7,9 +7,10 @@ Uso (da raiz do projeto):
 Imprime só números por arquivo, nunca código, descrição, preço ou nome de marca: a saída pode ser
 mostrada sem expor dados reais. Os arquivos são numerados pela ordem alfabética do nome na pasta.
 
-Duas tabelas: a leitura (reconhecido, cartões, Ofertas, sem preço, sem Caixa, tempo) e a calibração
+Três tabelas: a leitura (reconhecido, cartões, Ofertas, sem preço, sem Caixa, tempo), a calibração
 das marcas de conferência do ticket 08 (fora do padrão, Unidade de venda ambígua, sugestão de
-Conteúdo por padrão e preços no arquivo × Ofertas extraídas).
+Conteúdo por padrão e preços no arquivo × Ofertas extraídas) e o código repetido no mesmo Catálogo
+do ticket 32 (códigos repetidos, Ofertas nesses códigos e quantos deles estão em páginas diferentes).
 """
 
 import sys
@@ -44,6 +45,19 @@ def padrao_de_pecas(descricao):
     """O nome do padrão que cita peças (para a contagem por padrão), ou None."""
     citadas = pecas_citadas(descricao)
     return citadas[0] if citadas else None
+
+
+def codigos_repetidos(ofertas):
+    """Códigos que aparecem mais de uma vez no arquivo, comparados como a Revisão compara (ticket 32)."""
+    paginas = {}
+    for oferta in ofertas:
+        paginas.setdefault(oferta.codigo, []).append(oferta.pagina)
+    repetidos = [lista for lista in paginas.values() if len(lista) > 1]
+    return {
+        'codigos_repetidos': len(repetidos),
+        'ofertas_repetidas': sum(len(lista) for lista in repetidos),
+        'repetidos_em_paginas_diferentes': sum(1 for lista in repetidos if len(set(lista)) > 1),
+    }
 
 
 def precos_no_arquivo(pdf):
@@ -81,6 +95,7 @@ def conferir(arquivo):
                 sugestoes=Counter(filter(None, (padrao_de_pecas(oferta.descricao) for oferta in ofertas))),
                 precos_no_arquivo=precos,
                 mascarados=mascarados,
+                **codigos_repetidos(ofertas),
             )
             return numeros
     numeros['segundos'] = time.perf_counter() - inicio
@@ -136,6 +151,14 @@ def main(pasta):
             ('ofertas', 'fora_do_padrao', 'ambiguas', 'precos_no_arquivo', 'mascarados')}
     soma['sugestoes'] = sum((n['sugestoes'] for _, n in lidos), Counter())
     print(linha_de_calibracao('total     ', soma))
+
+    print('\nCódigo repetido no mesmo Catálogo (ticket 32)')
+    chaves = ('codigos_repetidos', 'ofertas_repetidas', 'repetidos_em_paginas_diferentes')
+    for rotulo, numeros in [*((f'arquivo {i:02d}', n) for i, n in lidos), ('total     ', {c: sum(n[c] for _, n in lidos) for c in chaves})]:
+        print(
+            f'{rotulo}  códigos repetidos: {numeros["codigos_repetidos"]}  Ofertas nesses códigos: '
+            f'{numeros["ofertas_repetidas"]}  em páginas diferentes: {numeros["repetidos_em_paginas_diferentes"]}'
+        )
 
 
 if __name__ == '__main__':
