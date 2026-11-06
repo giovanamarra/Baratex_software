@@ -5,11 +5,13 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, ExpressionWrapper, F, Func, IntegerField, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from catalogos.busca import normalizar, texto_de_busca
 from catalogos.models import (
+    CONTEUDO_PADRAO,
     AlteracaoDeConteudo,
     Catalogo,
     Fornecedor,
@@ -146,16 +148,46 @@ def _que_vale_mais_que_esta():
     Ganha a do Catálogo de data do Catálogo mais recente, mesmo que o preço tenha subido (só mês e ano está
     guardado como o dia 1). Na mesma data, a do Catálogo confirmado por último: o Catálogo é criado na
     confirmação, então o maior pk é o último confirmado. Calculado na consulta, nunca gravado.
+
+    O código repetido no mesmo Catálogo (ticket 32): ganha a de menor Preço unitário e, com Preço unitário
+    igual, a que aparece primeiro no arquivo (menor ordem).
     """
     data_de_fora = OuterRef('catalogo__data')
-    return Oferta.objects.filter(
-        Q(catalogo__data__gt=data_de_fora)
-        | Q(catalogo__data=data_de_fora, catalogo__pk__gt=OuterRef('catalogo__pk'))
-        | Q(catalogo=OuterRef('catalogo'), preco_impresso__lt=OuterRef('preco_impresso'))
-        | Q(catalogo=OuterRef('catalogo'), preco_impresso=OuterRef('preco_impresso'), ordem__lt=OuterRef('ordem')),
-        catalogo__fornecedor=OuterRef('catalogo__fornecedor'),
-        codigo=OuterRef('codigo'),
+    # As duas Ofertas são do mesmo Fornecedor + código: o Conteúdo é o mesmo, e o desta serve para as duas.
+    conteudo = Coalesce(
+        Subquery(
+            AlteracaoDeConteudo.objects.filter(fornecedor=OuterRef('catalogo__fornecedor'), codigo=OuterRef('codigo'))
+            .order_by('-pk')
+            .values('valor_novo')[:1]
+        ),
+        CONTEUDO_PADRAO,
     )
+    return (
+        Oferta.objects.annotate(
+            preco_unitario_em_centavos=_preco_unitario_em_centavos(F('preco_impresso'), conteudo),
+            preco_unitario_de_fora_em_centavos=_preco_unitario_em_centavos(OuterRef('preco_impresso'), conteudo),
+        )
+        .filter(
+            Q(catalogo__data__gt=data_de_fora)
+            | Q(catalogo__data=data_de_fora, catalogo__pk__gt=OuterRef('catalogo__pk'))
+            | Q(catalogo=OuterRef('catalogo'), preco_unitario_em_centavos__lt=F('preco_unitario_de_fora_em_centavos'))
+            | Q(
+                catalogo=OuterRef('catalogo'),
+                preco_unitario_em_centavos=F('preco_unitario_de_fora_em_centavos'),
+                ordem__lt=OuterRef('ordem'),
+            ),
+            catalogo__fornecedor=OuterRef('catalogo__fornecedor'),
+            codigo=OuterRef('codigo'),
+        )
+    )
+
+
+def _preco_unitario_em_centavos(preco_impresso, conteudo):
+    """O Preço unitário de catalogos.preco_unitario, em centavos, calculado no SQLite só com inteiros (o SQLite
+    não tem decimal): preço ÷ Conteúdo, com meio centavo para cima, como floor((2 × preço + Conteúdo) ÷ (2 × Conteúdo))
+    sobre o preço em centavos."""
+    centavos = Func(preco_impresso, template='CAST(ROUND(%(expressions)s * 100) AS INTEGER)', output_field=IntegerField())
+    return ExpressionWrapper((2 * centavos + conteudo) / (2 * conteudo), output_field=IntegerField())
 
 
 # O maior valor que cabe nas colunas de preço (12 dígitos, 2 casas); acima disso o banco recusa a gravação.

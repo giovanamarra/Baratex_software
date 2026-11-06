@@ -168,6 +168,22 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.preco_unitario, o.caixa) for o in achadas], [(Decimal('10.00'), 6)])
 
+    def test_codigo_repetido_que_so_empata_no_preco_unitario_arredondado_vale_a_primeira_do_arquivo(self):
+        # Com Conteúdo 12: 10,01 / 12 = 0,834 e 10,00 / 12 = 0,833; as duas dão 0,83.
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio Secao A', '10,01'),
+            CartaoFicticio('1001', 'Balde Ficticio Secao B', '10,00'),
+        )))
+        revisao = iniciar_importacao(self.gestora, self.alfa, arquivo, hoje=HOJE)
+        corrigir(self.gestora, obter_revisao(self.gestora, revisao.pk).ofertas_propostas()[0], conteudo='12')
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_do_catalogo(self.gestora, revisao.pk, '15/10/2026', hoje=HOJE)
+        confirmar_revisao(self.gestora, revisao.pk, hoje=HOJE)
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao A', Decimal('0.83'))])
+
     def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '10/2026')  # confirmado depois
