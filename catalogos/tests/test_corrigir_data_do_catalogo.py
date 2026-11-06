@@ -8,6 +8,7 @@ from catalogos.casos_de_uso import (
     correcoes_da_data,
     corrigir_data_do_catalogo,
     obter_catalogo,
+    ver_impacto_da_nova_data,
 )
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
@@ -24,6 +25,10 @@ def cartoes(*codigos, preco='10,00'):
 
 def registro(correcao):
     return (correcao.gestor.get_username(), correcao.dia, correcao.data_anterior_exibida, correcao.data_nova_exibida)
+
+
+def codigos(primeiro, ultimo):
+    return [str(codigo) for codigo in range(primeiro, ultimo + 1)]
 
 
 class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
@@ -129,3 +134,30 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
             (o.codigo, o.catalogo.data_exibida, str(o.preco_unitario))
             for o in buscar_ofertas(self.gestora, texto, fornecedor=self.alfa).ofertas
         ]
+
+
+class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
+    """O exemplo do ticket: o Catálogo de 15/10/2026 tem 40 Ofertas, 37 vigentes (as outras 3 estão num Catálogo
+    mais recente); um Catálogo de 01/09/2026 tem os 37 códigos. Beta, outro Fornecedor, tem os mesmos 40 códigos."""
+
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.socio = criar_gestor('socio')
+        self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
+        self.beta = cadastrar_fornecedor(self.gestora, 'Beta')
+        self.de_outubro = self.importar(self.alfa, '15/10/2026', codigos(1001, 1040))
+        self.de_setembro = self.importar(self.alfa, '01/09/2026', codigos(1001, 1037))
+        self.de_novembro = self.importar(self.alfa, '01/11/2026', codigos(1038, 1040))
+        self.de_beta = self.importar(self.beta, '01/08/2026', codigos(1001, 1040))
+
+    def importar(self, fornecedor, data, codigos_do_catalogo):
+        return importar_e_confirmar(self.gestora, fornecedor, cartoes(*codigos_do_catalogo), data, HOJE)
+
+    def impacto(self, catalogo, texto):
+        return ver_impacto_da_nova_data(self.socio, catalogo.pk, texto, hoje=HOJE)
+
+    def test_com_a_nova_data_as_ofertas_que_perdem_para_outro_catalogo_deixam_de_ser_vigentes(self):
+        self.assertEqual(
+            self.impacto(self.de_outubro, '10/2025').mensagem,
+            'Com a nova data, 37 Ofertas deste Catálogo deixam de ser vigentes.',
+        )

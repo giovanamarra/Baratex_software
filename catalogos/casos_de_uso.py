@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
+from django.db import transaction
 from django.db.models import DecimalField, Exists, ExpressionWrapper, F, Func, IntegerField, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -289,6 +290,35 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
         data_nova=catalogo.data,
         data_nova_so_mes_e_ano=catalogo.data_so_mes_e_ano,
     )
+
+
+@dataclass
+class ImpactoDaNovaData:
+    deixam_de_ser_vigentes: int
+
+    @property
+    def mensagem(self):
+        return f'Com a nova data, {self.deixam_de_ser_vigentes} Ofertas deste Catálogo deixam de ser vigentes.'
+
+
+def ver_impacto_da_nova_data(gestor, catalogo_id, texto, hoje=None):
+    """Quantas Ofertas deste Catálogo mudam de vigência com a nova data, antes de salvar (história 104). É só
+    aviso: corrigir_data_do_catalogo recalcula ao salvar."""
+    catalogo = _catalogo_existente(catalogo_id)
+    data, so_mes_e_ano = data_do_catalogo_digitada(texto, hoje or timezone.localdate())
+    antes = _vigentes_do_catalogo(catalogo)
+    # A mesma regra de vigência da busca, com a data nova gravada só dentro de uma transação desfeita em seguida:
+    # nenhuma segunda implementação da regra (ADR-0009).
+    with transaction.atomic():
+        Catalogo.objects.filter(pk=catalogo.pk).update(data=data, data_so_mes_e_ano=so_mes_e_ano)
+        depois = _vigentes_do_catalogo(catalogo)
+        transaction.set_rollback(True)
+    return ImpactoDaNovaData(deixam_de_ser_vigentes=len(antes - depois))
+
+
+def _vigentes_do_catalogo(catalogo):
+    vigentes = Oferta.objects.filter(catalogo=catalogo).exclude(Exists(_que_vale_mais_que_esta()))
+    return set(vigentes.values_list('pk', flat=True))
 
 
 def _catalogo_existente(catalogo_id):
