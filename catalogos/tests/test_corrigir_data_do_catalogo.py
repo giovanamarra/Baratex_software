@@ -81,3 +81,24 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
                 ('socio', date(2026, 11, 2), '15/10/2026', '10/2025'),
             ],
         )
+
+    def test_a_mesma_data_ja_guardada_nao_e_correcao_e_nada_e_registrado(self):
+        catalogo = self.importar('15/10/2026', ['1001'])
+        mes_e_ano = self.importar('10/2026', ['1002'])
+
+        self.corrigir(catalogo, '15/10/2026')
+        self.corrigir(catalogo, '15/10/26')  # a mesma data, digitada de outro jeito
+        self.corrigir(mes_e_ano, '10/2026')
+
+        self.assertEqual(list(correcoes_da_data(self.gestora, catalogo.pk)), [])
+        self.assertEqual(list(correcoes_da_data(self.gestora, mes_e_ano.pk)), [])
+
+    def test_mudar_so_a_precisao_da_data_e_correcao_decisao_da_usuaria(self):
+        catalogo = self.importar('01/10/2026', ['1001'])
+
+        self.assertEqual(self.corrigir(catalogo, '10/2026').data_exibida, '10/2026')
+
+        self.assertEqual(
+            [registro(c) for c in correcoes_da_data(self.gestora, catalogo.pk)],
+            [('socio', HOJE, '01/10/2026', '10/2026')],
+        )

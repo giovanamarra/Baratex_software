@@ -275,7 +275,10 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
     hoje = hoje or timezone.localdate()
     catalogo = Catalogo.objects.get(pk=catalogo_id)
     anterior = catalogo.data, catalogo.data_so_mes_e_ano
-    catalogo.data, catalogo.data_so_mes_e_ano = data_do_catalogo_digitada(texto, hoje)
+    nova = data_do_catalogo_digitada(texto, hoje)
+    if nova == anterior:  # a mesma data, com a mesma precisão, não é correção: nada muda nem é registrado
+        return
+    catalogo.data, catalogo.data_so_mes_e_ano = nova
     catalogo.save(update_fields=['data', 'data_so_mes_e_ano'])
     CorrecaoDaDataDoCatalogo.objects.create(
         catalogo=catalogo,
