@@ -57,3 +57,14 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
                 ('1002', [], 1),
             ],
         )
+
+    def test_a_oferta_sem_preco_do_grupo_tambem_tem_a_marca_codigo_repetido(self):
+        revisao = self.importar([
+            CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),
+            CartaoFicticio('1001', 'Panela Ficticia Secao B', preco=None),
+        ])
+
+        self.assertEqual(
+            [o.marcas for o in self.propostas(revisao)],
+            [['código repetido'], ['sem preço', 'código repetido']],
+        )

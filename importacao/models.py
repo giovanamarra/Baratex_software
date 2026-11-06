@@ -114,6 +114,12 @@ class OfertaProposta(models.Model):
     @property
     def marcas(self):
         """Marcas de conferência, em texto. Recalculadas a cada leitura: corrigir a Oferta muda as marcas."""
+        marcas = self._marcas_do_preco_e_da_descricao()
+        if self.ofertas_com_o_mesmo_codigo > 1:
+            marcas.append('código repetido')  # não bloqueia a confirmação (ADR-0009)
+        return marcas
+
+    def _marcas_do_preco_e_da_descricao(self):
         if self.preco_impresso is None:
             return ['sem preço']
         if self.preco_impresso == 0:
@@ -125,8 +131,6 @@ class OfertaProposta(models.Model):
             marcas.append('fora do padrão')
         if unidade_ambigua(self.descricao):
             marcas.append('unidade ambígua')
-        if self.ofertas_com_o_mesmo_codigo > 1:
-            marcas.append('código repetido')  # não bloqueia a confirmação (ADR-0009)
         return marcas
 
     @property
