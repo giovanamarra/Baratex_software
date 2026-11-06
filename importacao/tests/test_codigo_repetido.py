@@ -77,6 +77,17 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
             ],
         )
 
+    def test_a_oferta_proposta_guarda_a_pagina_de_origem(self):
+        revisao = self.importar(cartoes_com_repetido_na_pagina_2(
+            CartaoFicticio('1001', 'Panela Ficticia Secao A'), CartaoFicticio('1001', 'Panela Ficticia Secao B')
+        ))
+
+        grupo = self.propostas(revisao)[:2]
+
+        self.assertEqual([(o.descricao, o.pagina) for o in grupo], [
+            ('Panela Ficticia Secao A', 1), ('Panela Ficticia Secao B', 2),
+        ])
+
     def test_a_oferta_sem_preco_do_grupo_tambem_tem_a_marca_codigo_repetido(self):
         revisao = self.importar([
             CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),

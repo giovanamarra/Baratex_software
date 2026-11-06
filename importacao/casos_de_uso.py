@@ -44,6 +44,7 @@ def iniciar_importacao(gestor, fornecedor, arquivo, hoje=None):
                 preco_impresso=oferta.preco_impresso,
                 caixa=oferta.caixa,
                 caminho=oferta.caminho,
+                pagina=oferta.pagina,
             )
             for ordem, oferta in enumerate(ofertas)
         )

@@ -80,6 +80,8 @@ class OfertaProposta(models.Model):
     preco_impresso = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     caixa = models.PositiveIntegerField(null=True)
     caminho = models.CharField(max_length=30)
+    # Página de origem no arquivo (ticket 32). Vazia na Oferta adicionada à mão e nas Revisões de antes do ticket.
+    pagina = models.PositiveIntegerField(null=True)
     # Conteúdo definido pela gestora nesta Revisão. Fica só aqui até a confirmação; vazio = não mexeu.
     conteudo_definido = models.PositiveIntegerField(null=True)
     # "Manter 1" na sugestão de Conteúdo: decisão explícita, guardada no histórico ao confirmar mesmo sem
