@@ -3,9 +3,10 @@
 import io
 
 from django.test import SimpleTestCase
+from django.urls import reverse
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
-from contas.auxiliares_de_teste import criar_gestor
+from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor
 from extracao.catalogos_ficticios import (
     CARTOES_POR_PAGINA,
     CartaoFicticio,
@@ -171,3 +172,31 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
             [o.marcas for o in self.propostas(revisao)],
             [['código repetido'], ['sem preço', 'código repetido']],
         )
+
+
+class TelaDoCodigoRepetidoTests(TesteComArquivosEnviados):
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.fornecedor = cadastrar_fornecedor(self.gestora, 'Fornecedor Alfa')
+        self.client.login(username='gestora', password=SENHA_DE_TESTE)
+
+    def test_as_ofertas_do_grupo_aparecem_juntas_na_ordem_do_arquivo_com_a_pagina_de_origem(self):
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),
+            CartaoFicticio('1001', 'Panela Ficticia Secao B', '11,50'),
+        )))
+        revisao = iniciar_importacao(self.gestora, self.fornecedor, arquivo)
+        adicionar_oferta_proposta(self.gestora, revisao.pk, '1001', 'Panela Ficticia Digitada', '9,90', '12')
+
+        html = self.client.get(reverse('revisao', kwargs={'pk': revisao.pk})).content.decode()
+
+        trechos = [
+            'Código repetido (3 Ofertas)',
+            'Panela Ficticia Secao A', 'p. 1',
+            'Panela Ficticia Secao B', 'p. 2',
+            'Panela Ficticia Digitada', 'adicionada à mão',
+            'Item Ficticio 1',
+        ]
+        posicoes = [html.find(trecho) for trecho in trechos]
+        self.assertNotIn(-1, posicoes, dict(zip(trechos, posicoes)))
+        self.assertEqual(posicoes, sorted(posicoes))

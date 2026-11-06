@@ -55,7 +55,12 @@ Linhas sem preço válido, sem Caixa ou acima do Teto de compra usam o estilo de
           {% endif %}
         </td>
         <td class="numero">{% if oferta.caixa is not None %}{{ oferta.caixa }}{% else %}<strong class="alerta">sem Caixa</strong>{% endif %}</td>
-        <td>{{ oferta.caminho }}</td>
+        <td>
+          {{ oferta.caminho }}
+          {% if com_acoes and oferta.ofertas_com_o_mesmo_codigo > 1 %}
+          <br><span class="texto-secundario">{% if oferta.pagina %}p. {{ oferta.pagina }}{% elif oferta.caminho == "manual" %}adicionada à mão{% endif %}</span>
+          {% endif %}
+        </td>
         {% if com_acoes %}
         <td>
           <div class="acoes acoes--na-linha">
