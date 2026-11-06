@@ -62,6 +62,8 @@ def restaurar_backup(arquivo):
             'Esta instalação já tem dados. Restaure numa instalação vazia para não perder o que foi feito '
             'depois do backup.'
         )
+    if not zipfile.is_zipfile(arquivo):
+        raise ErroDeNegocio(NAO_E_BACKUP)
     pasta_de_arquivos = Path(settings.MEDIA_ROOT)
     with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(arquivo) as zip_:
         _exigir_manifesto(zip_)

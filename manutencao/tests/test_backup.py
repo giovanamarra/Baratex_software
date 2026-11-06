@@ -103,3 +103,10 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
 
         with self.assertRaisesMessage(ErroDeNegocio, NAO_E_BACKUP):
             restaurar_backup(zip_qualquer)
+
+    def test_restaurar_um_arquivo_que_nem_e_zip_e_recusado(self):
+        pdf = self.destino / 'catalogo.pdf'
+        pdf.write_bytes(catalogo_ficticio_layout_a([CartaoFicticio('1001', 'Balde Ficticio')]))
+
+        with self.assertRaisesMessage(ErroDeNegocio, NAO_E_BACKUP):
+            restaurar_backup(pdf)
