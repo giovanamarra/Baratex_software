@@ -1,5 +1,6 @@
 """Backup e restauração da instalação no computador da gestora (ticket 11)."""
 
+import os
 import shutil
 import tempfile
 import zipfile
@@ -110,3 +111,26 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
 
         with self.assertRaisesMessage(ErroDeNegocio, NAO_E_BACKUP):
             restaurar_backup(pdf)
+
+    def test_restaurar_zip_com_caminho_que_sai_da_pasta_de_arquivos_e_recusado_sem_gravar_nada(self):
+        criar_gestor('gestora')
+        backup_valido = fazer_backup(self.destino)
+        self.apagar_a_instalacao()
+        fora = self.destino / 'fora-da-pasta.txt'
+        caminhos_que_saem = {
+            'subindo': 'arquivos/' + os.path.relpath(fora, self.pasta_de_arquivos).replace(os.sep, '/'),
+            'absoluto': 'arquivos/' + fora.as_posix(),
+        }
+        for caso, caminho in caminhos_que_saem.items():
+            with self.subTest(caso):
+                malicioso = self.destino / f'malicioso-{caso}.zip'
+                with zipfile.ZipFile(backup_valido) as valido, zipfile.ZipFile(malicioso, 'w') as zip_:
+                    for nome in valido.namelist():  # o manifesto e o banco de um backup de verdade
+                        zip_.writestr(nome, valido.read(nome))
+                    zip_.writestr(caminho, b'fora da pasta de arquivos')
+
+                with self.assertRaisesMessage(ErroDeNegocio, NAO_E_BACKUP):
+                    restaurar_backup(malicioso)
+
+                self.assertFalse(fora.exists())
+                self.assertFalse(Gestor.objects.exists())  # o banco do backup também não foi restaurado

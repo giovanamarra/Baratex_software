@@ -67,17 +67,30 @@ def restaurar_backup(arquivo):
     pasta_de_arquivos = Path(settings.MEDIA_ROOT)
     with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(arquivo) as zip_:
         _exigir_manifesto(zip_)
+        arquivos = _arquivos_dentro_da_pasta(zip_, pasta_de_arquivos)  # confere tudo antes de gravar
         zip_.extract(BANCO, temporaria)
         origem = sqlite3.connect(Path(temporaria) / BANCO)
         try:
             origem.backup(_conexao_sqlite())
         finally:
             origem.close()
-        for nome in zip_.namelist():
-            if nome.startswith(ARQUIVOS) and not nome.endswith('/'):
-                destino = pasta_de_arquivos / nome.removeprefix(ARQUIVOS)
-                destino.parent.mkdir(parents=True, exist_ok=True)
-                destino.write_bytes(zip_.read(nome))
+        for nome, destino in arquivos:
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            destino.write_bytes(zip_.read(nome))
+
+
+def _arquivos_dentro_da_pasta(zip_, pasta_de_arquivos):
+    """(nome no zip, destino) de cada arquivo. Um caminho que sairia da pasta de arquivos (com `..` ou
+    absoluto) não vem de um backup do sistema: o zip inteiro é recusado."""
+    pasta = pasta_de_arquivos.resolve()
+    arquivos = []
+    for nome in zip_.namelist():
+        if nome.startswith(ARQUIVOS) and not nome.endswith('/'):
+            destino = (pasta / nome.removeprefix(ARQUIVOS)).resolve()
+            if not destino.is_relative_to(pasta):
+                raise ErroDeNegocio(NAO_E_BACKUP)
+            arquivos.append((nome, destino))
+    return arquivos
 
 
 def _exigir_manifesto(zip_):
