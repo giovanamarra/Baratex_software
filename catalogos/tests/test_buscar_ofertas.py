@@ -129,13 +129,15 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             [(Decimal('10.00'), DIA_01), (Decimal('11.00'), DIA_15)],
         )
 
-    def test_no_mesmo_dia_vale_a_oferta_de_menor_preco_unitario_e_nao_a_de_menor_preco_impresso(self):
-        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,50')], DIA_15, desconto='0')
-        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15, desconto='10')
+    def test_na_mesma_data_vale_o_catalogo_confirmado_por_ultimo_mesmo_mais_caro(self):
+        # Até o ticket 31, na mesma data valia o menor Preço unitário (9,90). Agora vale o confirmado por último
+        # (ADR-0009, regra 2), e a busca padrão devolve uma Oferta só para o código.
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026', desconto='10')  # 9,90
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,50')], '15/10/2026', desconto='0')
 
         achadas = self.buscar('1001')
 
-        self.assertEqual([o.preco_unitario for o in achadas], [Decimal('9.90')])
+        self.assertEqual([o.preco_unitario for o in achadas], [Decimal('10.50')])
 
     def test_o_filtro_por_fornecedor_mostra_so_as_ofertas_dele(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01, fornecedor=self.alfa)
