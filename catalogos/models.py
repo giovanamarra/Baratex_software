@@ -18,18 +18,26 @@ class Fornecedor(models.Model):
 
 
 class Catalogo(models.Model):
-    """Conjunto de preços de um Fornecedor, datado pelo dia da Importação. Nunca é sobrescrito."""
+    """Conjunto de preços de um Fornecedor, com a data do Catálogo informada pela gestora. Nunca é sobrescrito."""
 
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.PROTECT, related_name='catalogos')
     gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='catalogos_importados')
     arquivo = models.FileField(upload_to='importacoes/%Y/%m/')
-    data = models.DateField()  # dia em que a Importação começou
+    # Data do Catálogo informada pela gestora (ADR-0009): é a que vale para a Oferta vigente. Só mês e ano fica
+    # guardado como o dia 1 daquele mês, que é como conta para ordenar.
+    data = models.DateField()
+    data_so_mes_e_ano = models.BooleanField(default=False)
+    importado_em = models.DateField(null=True)  # dia em que a Importação começou: só registro
     # Condições do Catálogo: desconto percentual (ex.: 3 = 3%); vazio = sem desconto.
     desconto = models.DecimalField(max_digits=7, decimal_places=4, null=True)
 
     class Meta:
         verbose_name = 'Catálogo'
         verbose_name_plural = 'Catálogos'
+
+    @property
+    def data_exibida(self):
+        return data_exibida(self.data, self.data_so_mes_e_ano)
 
     def ofertas(self):
         ofertas = list(self.ofertas_do_catalogo.order_by('ordem'))

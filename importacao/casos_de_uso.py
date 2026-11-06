@@ -168,6 +168,8 @@ def confirmar_revisao(gestor, revisao_id, hoje=None):
         catalogo = registrar_catalogo(
             gestor,
             revisao.fornecedor,
+            revisao.data_do_catalogo,
+            revisao.data_do_catalogo_so_mes_e_ano,
             revisao.iniciada_em,
             revisao.arquivo,
             revisao.desconto,

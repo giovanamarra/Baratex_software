@@ -20,6 +20,7 @@ from importacao.casos_de_uso import (
     confirmar_revisao,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
     listar_revisoes_em_andamento,
 )
 
@@ -70,12 +71,15 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
             ],
         )
 
-    def test_data_do_catalogo_e_o_dia_em_que_a_importacao_comecou(self):
+    def test_o_catalogo_guarda_a_data_informada_com_a_precisao_dela_e_separado_o_dia_da_importacao(self):
+        # Até o ticket 31, a data do Catálogo era o dia da Importação. Agora é a informada (ADR-0009), e o dia
+        # em que a Importação começou fica só como registro.
         revisao = self.iniciar(hoje=date(2026, 10, 10))
+        informar_data_do_catalogo(self.gestora, revisao.pk, '09/2026', hoje=date(2026, 10, 10))
 
         catalogo = confirmar_revisao(self.gestora, revisao.pk)  # confirmada hoje, não no dia 10
 
-        self.assertEqual(catalogo.data, date(2026, 10, 10))
+        self.assertEqual((catalogo.data_exibida, catalogo.importado_em), ('09/2026', date(2026, 10, 10)))
 
     def test_lista_de_catalogos_do_fornecedor_mostra_o_catalogo_confirmado_com_a_data(self):
         revisao = self.iniciar(hoje=date(2026, 10, 10))

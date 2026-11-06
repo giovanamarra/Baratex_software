@@ -37,10 +37,16 @@ def listar_fornecedores(gestor):
     return Fornecedor.objects.all()
 
 
-def registrar_catalogo(gestor, fornecedor, data, arquivo, desconto, ofertas):
+def registrar_catalogo(gestor, fornecedor, data, data_so_mes_e_ano, importado_em, arquivo, desconto, ofertas):
     """Cria o Catálogo e as suas Ofertas. Chamado pela Importação ao confirmar a Revisão."""
     catalogo = Catalogo.objects.create(
-        gestor=gestor, fornecedor=fornecedor, data=data, arquivo=arquivo, desconto=desconto
+        gestor=gestor,
+        fornecedor=fornecedor,
+        data=data,
+        data_so_mes_e_ano=data_so_mes_e_ano,
+        importado_em=importado_em,
+        arquivo=arquivo,
+        desconto=desconto,
     )
     Oferta.objects.bulk_create(
         Oferta(
