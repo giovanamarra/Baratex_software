@@ -11,6 +11,7 @@ from catalogos.casos_de_uso import (
     ResultadoDaBusca,
     buscar_ofertas,
     cadastrar_fornecedor,
+    corrigir_data_do_catalogo,
     definir_conteudo,
     definir_teto,
     historico_do_conteudo,
@@ -100,6 +101,12 @@ def corrigir_data(request, pk):
         catalogo = obter_catalogo(request.user, pk)
     except Catalogo.DoesNotExist:
         raise Http404
+    if request.method == 'POST':  # "Confirmar a nova data": o caso de uso recalcula e grava
+        anterior = catalogo.data_exibida
+        corrigir_data_do_catalogo(request.user, pk, request.POST.get('data', ''))
+        catalogo.refresh_from_db()
+        messages.success(request, f'Data do Catálogo corrigida de {anterior} para {catalogo.data_exibida}.')
+        return redirect('catalogo', pk=pk)
     contexto = {'catalogo': catalogo, 'digitada': request.GET.get('data', '')}
     if 'data' in request.GET:  # "Ver o impacto": só aviso, nada é salvo
         try:

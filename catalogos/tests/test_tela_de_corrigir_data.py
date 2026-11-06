@@ -55,3 +55,16 @@ class TelaDeCorrigirDataTests(TesteComArquivosEnviados):
         )
         self.assertContains(resposta, 'value="31/02/2026"')  # a gestora corrige o que digitou
         self.assertNotContains(resposta, 'Confirmar a nova data')
+
+    def test_confirmar_a_nova_data_corrige_registra_quem_corrigiu_e_volta_ao_catalogo(self):
+        resposta = self.client.post(self.url, {'data': '10/2025'}, follow=True)
+
+        self.assertRedirects(resposta, reverse('catalogo', kwargs={'pk': self.errado.pk}))
+        self.assertContains(
+            resposta, '<p class="aviso" role="status"><strong>Pronto:</strong> Data do Catálogo corrigida de '
+            '05/03/2026 para 10/2025.</p>', html=True,
+        )
+        self.assertEqual(obter_catalogo(self.gestora, self.errado.pk).data_exibida, '10/2025')
+        self.assertEqual([c.gestor.get_username() for c in correcoes_da_data(self.gestora, self.errado.pk)], ['socio'])
+        vigente = buscar_ofertas(self.gestora, '1001').ofertas
+        self.assertEqual([o.catalogo.data_exibida for o in vigente], ['01/02/2026'])
