@@ -1,6 +1,6 @@
 # 11 — Rodar no computador da gestora, com backup
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 04
 Spec: [docs/spec.md](../../../docs/spec.md) (Arquitetura e tecnologia; Modelo de dados › Foto); [C4 Container](../../../docs/architecture/c4-2-container.md) (perguntas em aberto)
@@ -46,3 +46,14 @@ Decisões da usuária que este ticket aplica (pergunta em aberto do C4):
 ## Notas
 
 - Escolher o lugar de execução não é difícil de reverter, então não é preciso ADR agora. Quando for para um servidor, vale um ADR. O C4 Container pode trocar "a decidir" por "sistema de arquivos local" no Armazenamento de arquivos.
+
+## Comments
+
+**2026-11-05 — implementado por TDD** (commits `8675cca` a `4a1a404`, mais o commit de README, scripts e documentação)
+
+- **Decisões da usuária:** a gestora usa Windows ou macOS (scripts `iniciar.bat` e `iniciar.command`); `DEBUG=False` sem biblioteca nova, com o CSS servido por `runserver --insecure --noreload` só em 127.0.0.1; página `templates/500.html`; `LOGGING` de `django.request` para o terminal; seams: casos de uso, comandos, leitor do `.env` e `ALLOWED_HOSTS`.
+- **Configuração** (`comparador/ambiente.py`, `ler_configuracao`): `.env` sem biblioteca (`NOME=valor`, comentários com `#`, aspas opcionais). Chaves: `SECRET_KEY`, `PASTA_DE_ARQUIVOS`, `ANTHROPIC_API_KEY` (setting `CHAVE_DA_LLM`, opcional até o ticket 25), `DEBUG`. Sem `.env`: valores de desenvolvimento, `DEBUG=False`, pasta `~/ComparadorDeCatalogos/arquivos`, aviso no terminal. Modelo em `.env.exemplo`.
+- **Backup** (app `manutencao`, `manutencao/casos_de_uso.py`): `fazer_backup(pasta_destino, agora=None)` → `backup-comparador-AAAA-MM-DD_HH-MM-SS.zip` com `banco.sqlite3` (cópia pela API de backup do SQLite), `arquivos/...` (a pasta de arquivos inteira) e `manifesto.json` (`formato`, `versao` 1, `data`, `catalogos`). `restaurar_backup(arquivo)` recusa instalação com Catálogos, arquivo que não é zip e zip sem manifesto. Comandos `fazer_backup <pasta>` e `restaurar_backup <arquivo>` transformam `ErroDeNegocio` em `CommandError`.
+- **Ticket 14:** repetir `test_arquivo_posto_em_fotos_volta_com_o_mesmo_conteudo` com a foto de uma Oferta de verdade.
+- **Os scripts `iniciar` rodam `migrate` antes de subir**, então um backup restaurado de uma versão anterior é migrado ao iniciar.
+
