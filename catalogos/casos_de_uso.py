@@ -236,7 +236,7 @@ def obter_catalogo(gestor, catalogo_id):
 
 
 def listar_catalogos_do_fornecedor(gestor, fornecedor):
-    # Mais recente primeiro; no mesmo dia, o último confirmado primeiro.
+    # Pela data do Catálogo, da mais recente para a mais antiga; na mesma data, o confirmado por último primeiro (58).
     return Catalogo.objects.filter(fornecedor=fornecedor).order_by('-data', '-pk')
 
 

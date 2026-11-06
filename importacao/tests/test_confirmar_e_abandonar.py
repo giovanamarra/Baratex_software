@@ -92,6 +92,27 @@ class ConfirmarOuAbandonarRevisaoTests(TesteComArquivosEnviados):
             [(date(2026, 10, 10), 'Fornecedor Alfa')],
         )
 
+    def test_lista_de_catalogos_ordena_pela_data_do_catalogo_e_na_mesma_data_o_confirmado_por_ultimo_primeiro(self):
+        def confirmar(data, importado_em):
+            revisao = self.iniciar(hoje=importado_em)
+            informar_data_do_catalogo(self.gestora, revisao.pk, data, hoje=importado_em)
+            confirmar_revisao(self.gestora, revisao.pk)
+
+        confirmar('15/10/2026', importado_em=date(2026, 10, 16))
+        confirmar('09/2026', importado_em=date(2026, 10, 20))  # catálogo antigo, importado depois
+        confirmar('15/10/2026', importado_em=date(2026, 10, 18))
+
+        catalogos = listar_catalogos_do_fornecedor(self.gestora, self.fornecedor)
+
+        self.assertEqual(
+            [(catalogo.data_exibida, catalogo.importado_em) for catalogo in catalogos],
+            [
+                ('15/10/2026', date(2026, 10, 18)),
+                ('15/10/2026', date(2026, 10, 16)),
+                ('09/2026', date(2026, 10, 20)),
+            ],
+        )
+
     def test_duas_importacoes_em_dias_diferentes_geram_dois_catalogos_e_o_primeiro_fica_intacto(self):
         primeira = self.iniciar([CartaoFicticio('1001', 'Balde Ficticio', '7,50')], hoje=date(2026, 10, 10))
         confirmar_revisao(self.gestora, primeira.pk)
