@@ -103,7 +103,11 @@ def corrigir_data(request, pk):
         raise Http404
     if request.method == 'POST':  # "Confirmar a nova data": o caso de uso recalcula e grava
         anterior = catalogo.data_exibida
-        corrigir_data_do_catalogo(request.user, pk, request.POST.get('data', ''))
+        try:
+            corrigir_data_do_catalogo(request.user, pk, request.POST.get('data', ''))
+        except ErroDeNegocio as erro:
+            contexto = {'catalogo': catalogo, 'digitada': request.POST.get('data', ''), 'erro_ao_salvar': erro.mensagem}
+            return render(request, 'catalogos/corrigir_data.html', contexto)
         catalogo.refresh_from_db()
         messages.success(request, f'Data do Catálogo corrigida de {anterior} para {catalogo.data_exibida}.')
         return redirect('catalogo', pk=pk)

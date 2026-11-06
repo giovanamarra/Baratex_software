@@ -7,6 +7,7 @@
   <h1>Corrigir a data do Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data_exibida }}</h1>
   <p>Data atual: <strong>{{ catalogo.data_exibida }}</strong>. É de quando são os preços, não o dia da Importação. Dia completo ou só mês e ano. A data é o único dado do Catálogo que pode mudar depois da confirmação.</p>
   {% if erro %}<p class="erro" role="alert"><strong>Não foi possível ver o impacto:</strong> {{ erro }}</p>{% endif %}
+  {% if erro_ao_salvar %}<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> {{ erro_ao_salvar }}</p>{% endif %}
   <form method="get">
     <div class="campo">
       <label for="data">Nova data do Catálogo</label>

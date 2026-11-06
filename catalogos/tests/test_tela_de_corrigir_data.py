@@ -68,3 +68,12 @@ class TelaDeCorrigirDataTests(TesteComArquivosEnviados):
         self.assertEqual([c.gestor.get_username() for c in correcoes_da_data(self.gestora, self.errado.pk)], ['socio'])
         vigente = buscar_ofertas(self.gestora, '1001').ofertas
         self.assertEqual([o.catalogo.data_exibida for o in vigente], ['01/02/2026'])
+
+    def test_confirmar_uma_data_recusada_mostra_o_erro_e_a_data_nao_muda(self):
+        resposta = self.client.post(self.url, {'data': '10/1999'})
+
+        self.assertContains(
+            resposta, '<p class="erro" role="alert"><strong>Não foi possível salvar:</strong> Confira o ano da data do '
+            'Catálogo.</p>', html=True,
+        )
+        self.assertEqual(obter_catalogo(self.gestora, self.errado.pk).data_exibida, '05/03/2026')
