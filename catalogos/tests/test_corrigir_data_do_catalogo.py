@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, corrigir_data_do_catalogo, obter_catalogo
+from catalogos.casos_de_uso import cadastrar_fornecedor, correcoes_da_data, corrigir_data_do_catalogo, obter_catalogo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio
@@ -14,6 +14,10 @@ HOJE = date(2026, 11, 6)
 
 def cartoes(*codigos, preco='10,00'):
     return [CartaoFicticio(codigo, f'Item Ficticio {codigo}', preco, '6') for codigo in codigos]
+
+
+def registro(correcao):
+    return (correcao.gestor.get_username(), correcao.dia, correcao.data_anterior_exibida, correcao.data_nova_exibida)
 
 
 class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
@@ -54,3 +58,13 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
                 self.assertEqual(obter_catalogo(self.gestora, catalogo.pk).data_exibida, '15/10/2026')
 
         self.assertEqual(self.corrigir(catalogo, '06/11/2026').data_exibida, '06/11/2026')  # hoje vale
+
+    def test_a_correcao_registra_o_gestor_o_dia_e_as_datas_anterior_e_nova_como_foram_informadas(self):
+        catalogo = self.importar('10/2026', ['1001'])
+
+        self.corrigir(catalogo, '15/10/2026')
+
+        self.assertEqual(
+            [registro(c) for c in correcoes_da_data(self.gestora, catalogo.pk)],
+            [('socio', HOJE, '10/2026', '15/10/2026')],
+        )

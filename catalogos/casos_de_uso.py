@@ -14,6 +14,7 @@ from catalogos.models import (
     CONTEUDO_PADRAO,
     AlteracaoDeConteudo,
     Catalogo,
+    CorrecaoDaDataDoCatalogo,
     Fornecedor,
     Oferta,
     TetoDeCompra,
@@ -271,9 +272,25 @@ def data_do_catalogo_digitada(texto, hoje):
 def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
     """Qualquer Gestor corrige a data de um Catálogo confirmado (ADR-0009, item 6): é o único dado do Catálogo que
     muda depois da confirmação. `texto` como a gestora digitou; `hoje` é injetável nos testes."""
+    hoje = hoje or timezone.localdate()
     catalogo = Catalogo.objects.get(pk=catalogo_id)
-    catalogo.data, catalogo.data_so_mes_e_ano = data_do_catalogo_digitada(texto, hoje or timezone.localdate())
+    anterior = catalogo.data, catalogo.data_so_mes_e_ano
+    catalogo.data, catalogo.data_so_mes_e_ano = data_do_catalogo_digitada(texto, hoje)
     catalogo.save(update_fields=['data', 'data_so_mes_e_ano'])
+    CorrecaoDaDataDoCatalogo.objects.create(
+        catalogo=catalogo,
+        gestor=gestor,
+        dia=hoje,
+        data_anterior=anterior[0],
+        data_anterior_so_mes_e_ano=anterior[1],
+        data_nova=catalogo.data,
+        data_nova_so_mes_e_ano=catalogo.data_so_mes_e_ano,
+    )
+
+
+def correcoes_da_data(gestor, catalogo_id):
+    """As correções da data de um Catálogo (para a página do Catálogo)."""
+    return CorrecaoDaDataDoCatalogo.objects.filter(catalogo_id=catalogo_id)
 
 
 def definir_teto(gestor, valor):

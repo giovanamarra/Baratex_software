@@ -112,6 +112,31 @@ class AlteracaoDeConteudo(models.Model):
         verbose_name_plural = 'Alterações de Conteúdo'
 
 
+class CorrecaoDaDataDoCatalogo(models.Model):
+    """Registro de cada correção da data de um Catálogo confirmado (ADR-0009 item 6, ADR-0007): quem corrigiu, em
+    que dia, e as datas anterior e nova com a precisão em que foram informadas. Não se desfaz."""
+
+    catalogo = models.ForeignKey(Catalogo, on_delete=models.PROTECT, related_name='correcoes_da_data')
+    gestor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='+')
+    dia = models.DateField()
+    data_anterior = models.DateField()
+    data_anterior_so_mes_e_ano = models.BooleanField()
+    data_nova = models.DateField()
+    data_nova_so_mes_e_ano = models.BooleanField()
+
+    class Meta:
+        verbose_name = 'Correção da data do Catálogo'
+        verbose_name_plural = 'Correções da data do Catálogo'
+
+    @property
+    def data_anterior_exibida(self):
+        return data_exibida(self.data_anterior, self.data_anterior_so_mes_e_ano)
+
+    @property
+    def data_nova_exibida(self):
+        return data_exibida(self.data_nova, self.data_nova_so_mes_e_ano)
+
+
 class TetoDeCompra(models.Model):
     """Maior Preço unitário que ainda permite revender com lucro. Um único valor para o grupo (ADR-0007):
     há no máximo uma linha, e definir de novo substitui o valor."""
