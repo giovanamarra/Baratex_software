@@ -3,7 +3,7 @@
 from datetime import date
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
-from comparador.erros import ErroDeNegocio
+from comparador.erros import AcessoNegado, ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
@@ -91,3 +91,22 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
             with self.subTest(texto=texto):
                 with self.assertRaisesMessage(ErroDeNegocio, mensagem):
                     self.informar(texto)
+
+    def test_outro_gestor_nao_informa_a_data_e_a_revisao_continua_sem_ela(self):
+        outro = criar_gestor('outro-gestor')
+
+        with self.assertRaisesMessage(AcessoNegado, 'Esta Revisão é de outro Gestor.'):
+            informar_data_do_catalogo(outro, self.revisao.pk, '15/10/2026', hoje=HOJE)
+
+        self.assertEqual(obter_revisao(self.gestora, self.revisao.pk).data_do_catalogo_exibida, '')
+
+    def test_revisao_ja_confirmada_nao_recebe_outra_data(self):
+        informar_condicoes_do_catalogo(self.gestora, self.revisao.pk, '0')
+        self.informar('15/10/2026')
+        catalogo = confirmar_revisao(self.gestora, self.revisao.pk)
+
+        with self.assertRaisesMessage(ErroDeNegocio, 'Esta Revisão já foi confirmada.'):
+            informar_data_do_catalogo(self.gestora, self.revisao.pk, '01/10/2026', hoje=HOJE)
+
+        catalogo.refresh_from_db()
+        self.assertEqual(catalogo.data_exibida, '15/10/2026')
