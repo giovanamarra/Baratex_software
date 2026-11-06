@@ -7,7 +7,10 @@ from pathlib import Path
 
 from django.core.management import CommandError, call_command
 
+from contas.auxiliares_de_teste import criar_gestor
+from contas.models import Gestor
 from importacao.auxiliares_de_teste import TesteTransacionalComArquivosEnviados
+from manutencao.casos_de_uso import fazer_backup
 
 
 class ComandosDeBackupTests(TesteTransacionalComArquivosEnviados):
@@ -28,3 +31,14 @@ class ComandosDeBackupTests(TesteTransacionalComArquivosEnviados):
 
         with self.assertRaisesMessage(CommandError, f'A pasta de destino não existe: {inexistente}.'):
             call_command('fazer_backup', str(inexistente))
+
+    def test_restaurar_backup_traz_os_dados_de_volta_e_avisa(self):
+        criar_gestor('gestora')
+        backup = fazer_backup(self.destino)
+        call_command('flush', interactive=False, verbosity=0)
+        saida = StringIO()
+
+        call_command('restaurar_backup', str(backup), stdout=saida)
+
+        self.assertTrue(Gestor.objects.filter(username='gestora').exists())
+        self.assertIn(f'Pronto: backup {backup.name} restaurado.', saida.getvalue())
