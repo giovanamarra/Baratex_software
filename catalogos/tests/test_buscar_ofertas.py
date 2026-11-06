@@ -158,6 +158,16 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao B', Decimal('11.50'))])
 
+    def test_codigo_repetido_com_o_mesmo_preco_unitario_vale_a_que_aparece_primeiro_no_arquivo(self):
+        self.importar(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio', '10,00', caixa='6'),
+            CartaoFicticio('1001', 'Balde Ficticio', '10,00', caixa='12'),
+        ), '15/10/2026')
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.preco_unitario, o.caixa) for o in achadas], [(Decimal('10.00'), 6)])
+
     def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '10/2026')  # confirmado depois
