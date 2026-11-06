@@ -281,16 +281,18 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
     if nova == anterior:  # a mesma data, com a mesma precisão, não é correção: nada muda nem é registrado
         return
     catalogo.data, catalogo.data_so_mes_e_ano = nova
-    catalogo.save(update_fields=['data', 'data_so_mes_e_ano'])
-    CorrecaoDaDataDoCatalogo.objects.create(
-        catalogo=catalogo,
-        gestor=gestor,
-        dia=hoje,
-        data_anterior=anterior[0],
-        data_anterior_so_mes_e_ano=anterior[1],
-        data_nova=catalogo.data,
-        data_nova_so_mes_e_ano=catalogo.data_so_mes_e_ano,
-    )
+    # Transação única: a data nunca muda sem o registro de quem corrigiu (ADR-0007).
+    with transaction.atomic():
+        catalogo.save(update_fields=['data', 'data_so_mes_e_ano'])
+        CorrecaoDaDataDoCatalogo.objects.create(
+            catalogo=catalogo,
+            gestor=gestor,
+            dia=hoje,
+            data_anterior=anterior[0],
+            data_anterior_so_mes_e_ano=anterior[1],
+            data_nova=catalogo.data,
+            data_nova_so_mes_e_ano=catalogo.data_so_mes_e_ano,
+        )
 
 
 @dataclass

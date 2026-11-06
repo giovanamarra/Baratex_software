@@ -2,6 +2,8 @@
 
 from datetime import date
 
+from django.db import IntegrityError, connection
+
 from catalogos.casos_de_uso import (
     buscar_ofertas,
     cadastrar_fornecedor,
@@ -10,10 +12,15 @@ from catalogos.casos_de_uso import (
     obter_catalogo,
     ver_impacto_da_nova_data,
 )
+from catalogos.models import CorrecaoDaDataDoCatalogo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CartaoFicticio
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, importar_e_confirmar
+from importacao.auxiliares_de_teste import (
+    TesteComArquivosEnviados,
+    TesteTransacionalComArquivosEnviados,
+    importar_e_confirmar,
+)
 
 IMPORTADO_EM = date(2026, 10, 20)
 HOJE = date(2026, 11, 6)
@@ -203,3 +210,28 @@ class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
 
     def test_na_correcao_o_catalogo_nao_e_comparado_com_ele_mesmo(self):
         self.assertEqual(self.impacto(self.de_novembro, '20/10/2026').aviso, '')
+
+
+class CorrecaoEmTransacaoUnicaTests(TesteTransacionalComArquivosEnviados):
+    def test_se_o_registro_falha_a_data_do_catalogo_nao_muda(self):
+        gestora = criar_gestor('gestora')
+        alfa = cadastrar_fornecedor(gestora, 'Alfa')
+        catalogo = importar_e_confirmar(gestora, alfa, cartoes('1001'), '15/10/2026', HOJE)
+        # A falha tem de vir do banco depois de a data já ter sido gravada: um gatilho (só no SQLite de teste)
+        # recusa gravar o registro da correção, como no teste da confirmação em transação única (ticket 04).
+        tabela = CorrecaoDaDataDoCatalogo._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f'CREATE TRIGGER falha_simulada BEFORE INSERT ON {tabela} '
+                "BEGIN SELECT RAISE(ABORT, 'falha simulada ao registrar a correção'); END"
+            )
+        self.addCleanup(self._apagar_gatilho)
+
+        with self.assertRaises(IntegrityError):
+            corrigir_data_do_catalogo(gestora, catalogo.pk, '10/2025', hoje=HOJE)
+
+        self.assertEqual(obter_catalogo(gestora, catalogo.pk).data_exibida, '15/10/2026')
+
+    def _apagar_gatilho(self):
+        with connection.cursor() as cursor:
+            cursor.execute('DROP TRIGGER IF EXISTS falha_simulada')
