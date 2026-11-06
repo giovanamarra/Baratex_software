@@ -191,9 +191,14 @@ def preco_digitado(texto, nome='O preço'):
 
 
 def data_do_catalogo_digitada(texto, hoje):
-    """Data do Catálogo como a gestora digitou (ADR-0009). Devolve (data, só mês e ano)."""
-    dia, mes, ano = (int(parte) for parte in texto.strip().split('/'))
-    return date(ano, mes, dia), False
+    """Data do Catálogo como a gestora digitou (ADR-0009): 15/10/2026, 10/2026 ou 15/10/26 (ano com 2 dígitos =
+    20xx). Devolve (data, só mês e ano); só mês e ano fica como o dia 1, que é como conta para a vigência."""
+    partes = [int(parte) for parte in texto.strip().split('/')]
+    so_mes_e_ano = len(partes) == 2
+    dia, mes, ano = [1, *partes] if so_mes_e_ano else partes
+    if ano < 100:
+        ano += 2000
+    return date(ano, mes, dia), so_mes_e_ano
 
 
 def definir_teto(gestor, valor):

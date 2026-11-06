@@ -24,3 +24,12 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
 
     def test_aceita_a_data_completa_e_a_mostra_como_foi_informada(self):
         self.assertEqual(self.informar('15/10/2026'), '15/10/2026')
+
+    def test_aceita_so_mes_e_ano(self):
+        self.assertEqual(self.informar('10/2026'), '10/2026')
+
+    def test_ano_com_2_digitos_e_deste_seculo(self):
+        self.assertEqual(self.informar('15/10/26'), '15/10/2026')
+
+    def test_ignora_espacos_nas_pontas(self):
+        self.assertEqual(self.informar('  15/10/2026 '), '15/10/2026')
