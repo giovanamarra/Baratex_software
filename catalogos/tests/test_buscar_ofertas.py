@@ -1,4 +1,4 @@
-"""Buscar Ofertas vigentes (ticket 09; ADR-0005, ADR-0007)."""
+"""Buscar Ofertas vigentes (tickets 09 e 31; ADR-0005, ADR-0007, ADR-0009)."""
 
 from datetime import date
 from decimal import Decimal
@@ -13,11 +13,13 @@ from importacao.casos_de_uso import (
     confirmar_revisao,
     iniciar_importacao,
     informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
     obter_revisao,
 )
 
 DIA_01 = date(2026, 3, 1)
 DIA_15 = date(2026, 3, 15)
+HOJE = date(2026, 11, 5)
 
 
 def achado(oferta):
@@ -37,14 +39,17 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
         self.beta = cadastrar_fornecedor(self.gestora, 'Beta')
 
-    def importar(self, cartoes, dia, fornecedor=None, desconto='0', gestor=None):
-        """Importa e confirma um Catálogo fictício do Layout A, no dia dado."""
+    def importar(self, cartoes, data, fornecedor=None, desconto='0', gestor=None, hoje=HOJE):
+        """Importa e confirma um Catálogo fictício do Layout A com a data do Catálogo dada, como a gestora
+        digita ("15/10/2026", "10/2026") ou como date. `hoje` é o dia da Importação, separado da data."""
         gestor = gestor or self.gestora
+        if isinstance(data, date):
+            data = f'{data:%d/%m/%Y}'
         arquivo = arquivo_enviado(catalogo_ficticio_layout_a(cartoes))
-        revisao = iniciar_importacao(gestor, fornecedor or self.alfa, arquivo, hoje=dia)
+        revisao = iniciar_importacao(gestor, fornecedor or self.alfa, arquivo, hoje=hoje)
         informar_condicoes_do_catalogo(gestor, revisao.pk, desconto)
-        informar_data_de_hoje(gestor, revisao.pk)
-        return confirmar_revisao(gestor, revisao.pk, hoje=dia)
+        informar_data_do_catalogo(gestor, revisao.pk, data, hoje=hoje)
+        return confirmar_revisao(gestor, revisao.pk, hoje=hoje)
 
     def buscar(self, texto='', **filtros):
         return buscar_ofertas(self.gestora, texto, **filtros).ofertas
@@ -80,7 +85,7 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             with self.subTest(digitado=digitado):
                 self.assertEqual(sorted(o.codigo for o in self.buscar(digitado)), esperado)
 
-    def test_a_busca_padrao_mostra_so_a_oferta_do_catalogo_mais_recente_do_fornecedor(self):
+    def test_vale_a_oferta_do_catalogo_de_data_mais_recente_mesmo_com_o_preco_maior(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15)
 
@@ -90,6 +95,14 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
             [(o.preco_unitario, o.catalogo.data) for o in achadas],
             [(Decimal('11.00'), DIA_15)],
         )
+
+    def test_catalogo_antigo_importado_depois_nao_derruba_a_oferta_do_catalogo_mais_recente(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026', hoje=date(2026, 10, 16))
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '01/09/2026', hoje=date(2026, 10, 20))
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.preco_unitario, o.catalogo.data_exibida) for o in achadas], [(Decimal('11.00'), '15/10/2026')])
 
     def test_sem_so_vigentes_mostra_tambem_as_ofertas_antigas(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
