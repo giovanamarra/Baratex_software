@@ -45,3 +45,13 @@ class TelaDeCorrigirDataTests(TesteComArquivosEnviados):
             html=True,
         )
         self.assertEqual(obter_catalogo(self.gestora, self.errado.pk).data_exibida, '05/03/2026')  # só aviso
+
+    def test_ver_o_impacto_de_uma_data_recusada_mostra_o_erro_e_nao_oferece_confirmar(self):
+        resposta = self.client.get(self.url, {'data': '31/02/2026'})
+
+        self.assertContains(
+            resposta, '<p class="erro" role="alert"><strong>Não foi possível ver o impacto:</strong> Informe a data do '
+            'Catálogo como dia/mês/ano ou mês/ano, por exemplo 15/10/2026 ou 10/2026.</p>', html=True,
+        )
+        self.assertContains(resposta, 'value="31/02/2026"')  # a gestora corrige o que digitou
+        self.assertNotContains(resposta, 'Confirmar a nova data')
