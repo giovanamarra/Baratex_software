@@ -6,15 +6,29 @@
 <section class="cartao">
   <h1>Corrigir a data do Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data_exibida }}</h1>
   <p>Data atual: <strong>{{ catalogo.data_exibida }}</strong>. É de quando são os preços, não o dia da Importação. Dia completo ou só mês e ano. A data é o único dado do Catálogo que pode mudar depois da confirmação.</p>
+  {% if erro %}<p class="erro" role="alert"><strong>Não foi possível ver o impacto:</strong> {{ erro }}</p>{% endif %}
   <form method="get">
     <div class="campo">
       <label for="data">Nova data do Catálogo</label>
       <input id="data" name="data" type="text" inputmode="numeric" value="{{ digitada }}" placeholder="15/10/2026 ou 10/2026">
     </div>
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Ver o impacto</button>
+      <button class="botao {% if impacto %}botao--secundario{% else %}botao--primario{% endif %}" type="submit">Ver o impacto</button>
+      {% if not impacto %}<a class="botao botao--secundario" href="{% url 'catalogo' catalogo.pk %}">Voltar</a>{% endif %}
+    </div>
+  </form>
+  {% if impacto %}
+  <h2>Antes de salvar a data {{ digitada }}</h2>
+  <p class="atencao" role="note"><strong>Atenção:</strong> {{ impacto.mensagem }}</p>
+  {% if impacto.aviso %}<p class="atencao" role="note"><strong>Atenção:</strong> {{ impacto.aviso }}</p>{% endif %}
+  <form method="post" action="{% url 'corrigir_data_do_catalogo' catalogo.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="data" value="{{ digitada }}">
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Confirmar a nova data</button>
       <a class="botao botao--secundario" href="{% url 'catalogo' catalogo.pk %}">Voltar</a>
     </div>
   </form>
+  {% endif %}
 </section>
 {% endblock %}

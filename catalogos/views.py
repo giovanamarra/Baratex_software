@@ -19,6 +19,7 @@ from catalogos.casos_de_uso import (
     obter_catalogo,
     obter_oferta,
     obter_teto,
+    ver_impacto_da_nova_data,
 )
 from catalogos.models import Catalogo, Oferta
 from comparador.erros import ErroDeNegocio
@@ -99,7 +100,13 @@ def corrigir_data(request, pk):
         catalogo = obter_catalogo(request.user, pk)
     except Catalogo.DoesNotExist:
         raise Http404
-    return render(request, 'catalogos/corrigir_data.html', {'catalogo': catalogo})
+    contexto = {'catalogo': catalogo, 'digitada': request.GET.get('data', '')}
+    if 'data' in request.GET:  # "Ver o impacto": só aviso, nada é salvo
+        try:
+            contexto['impacto'] = ver_impacto_da_nova_data(request.user, pk, contexto['digitada'])
+        except ErroDeNegocio as erro:
+            contexto['erro'] = erro.mensagem
+    return render(request, 'catalogos/corrigir_data.html', contexto)
 
 
 def definir_conteudo_da_oferta(request, pk):

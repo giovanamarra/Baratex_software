@@ -1,0 +1,47 @@
+"""Tela de corrigir a data do Catálogo, em duas etapas e sem JavaScript (ticket 33). As regras estão nos testes
+do caso de uso; aqui, o fluxo da tela."""
+
+from datetime import date
+
+from django.urls import reverse
+
+from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, correcoes_da_data, obter_catalogo
+from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor
+from extracao.catalogos_ficticios import CartaoFicticio
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, importar_e_confirmar
+
+# Datas do passado: a tela usa o dia de hoje de verdade para recusar data futura.
+IMPORTADO_EM = date(2026, 3, 10)
+
+
+class TelaDeCorrigirDataTests(TesteComArquivosEnviados):
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.socio = criar_gestor('socio')
+        self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
+        balde = [CartaoFicticio('1001', 'Balde Ficticio', '10,00', '6')]
+        self.errado = importar_e_confirmar(self.gestora, self.alfa, balde, '05/03/2026', IMPORTADO_EM)
+        self.outro = importar_e_confirmar(self.gestora, self.alfa, balde, '01/02/2026', IMPORTADO_EM)
+        self.client.login(username='socio', password=SENHA_DE_TESTE)  # não foi quem importou
+        self.url = reverse('corrigir_data_do_catalogo', kwargs={'pk': self.errado.pk})
+
+    def test_ver_o_impacto_mostra_a_mensagem_o_aviso_e_os_botoes_confirmar_e_voltar(self):
+        resposta = self.client.get(self.url, {'data': '10/2025'})
+
+        self.assertContains(
+            resposta, '<p class="atencao" role="note"><strong>Atenção:</strong> Com a nova data, 1 Oferta deste '
+            'Catálogo deixa de ser vigente.</p>', html=True,
+        )
+        self.assertContains(
+            resposta, '<p class="atencao" role="note"><strong>Atenção:</strong> Este Catálogo é mais antigo que o '
+            'de 01/02/2026 deste Fornecedor: os códigos que estão nos dois continuam com o preço do mais recente.</p>',
+            html=True,
+        )
+        self.assertContains(resposta, f'<form method="post" action="{self.url}">')
+        self.assertContains(resposta, '<input type="hidden" name="data" value="10/2025">', html=True)
+        self.assertContains(resposta, '<button class="botao botao--primario" type="submit">Confirmar a nova data</button>', html=True)
+        self.assertContains(
+            resposta, f'<a class="botao botao--secundario" href="{reverse("catalogo", kwargs={"pk": self.errado.pk})}">Voltar</a>',
+            html=True,
+        )
+        self.assertEqual(obter_catalogo(self.gestora, self.errado.pk).data_exibida, '05/03/2026')  # só aviso
