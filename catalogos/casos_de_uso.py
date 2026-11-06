@@ -295,9 +295,12 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
 @dataclass
 class ImpactoDaNovaData:
     deixam_de_ser_vigentes: int
+    passam_a_ser_vigentes: int
 
     @property
     def mensagem(self):
+        if self.passam_a_ser_vigentes:
+            return f'Com a nova data, {self.passam_a_ser_vigentes} Ofertas deste Catálogo passam a ser vigentes.'
         return f'Com a nova data, {self.deixam_de_ser_vigentes} Ofertas deste Catálogo deixam de ser vigentes.'
 
 
@@ -313,7 +316,7 @@ def ver_impacto_da_nova_data(gestor, catalogo_id, texto, hoje=None):
         Catalogo.objects.filter(pk=catalogo.pk).update(data=data, data_so_mes_e_ano=so_mes_e_ano)
         depois = _vigentes_do_catalogo(catalogo)
         transaction.set_rollback(True)
-    return ImpactoDaNovaData(deixam_de_ser_vigentes=len(antes - depois))
+    return ImpactoDaNovaData(deixam_de_ser_vigentes=len(antes - depois), passam_a_ser_vigentes=len(depois - antes))
 
 
 def _vigentes_do_catalogo(catalogo):
