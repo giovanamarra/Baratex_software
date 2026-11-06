@@ -184,6 +184,17 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao A', Decimal('0.83'))])
 
+    def test_codigo_repetido_que_so_empata_no_preco_unitario_com_o_desconto_vale_a_primeira_do_arquivo(self):
+        # Com 50% de desconto: 0,02 dá 0,01 e 0,01 dá 0,005, que arredonda para 0,01 (meio centavo para cima).
+        self.importar(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio Secao A', '0,02'),
+            CartaoFicticio('1001', 'Balde Ficticio Secao B', '0,01'),
+        ), '15/10/2026', desconto='50')
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao A', Decimal('0.01'))])
+
     def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '10/2026')  # confirmado depois

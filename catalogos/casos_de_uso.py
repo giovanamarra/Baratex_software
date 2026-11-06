@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Exists, ExpressionWrapper, F, Func, IntegerField, OuterRef, Q, Subquery
+from django.db.models import DecimalField, Exists, ExpressionWrapper, F, Func, IntegerField, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -153,7 +153,9 @@ def _que_vale_mais_que_esta():
     igual, a que aparece primeiro no arquivo (menor ordem).
     """
     data_de_fora = OuterRef('catalogo__data')
-    # As duas Ofertas são do mesmo Fornecedor + código: o Conteúdo é o mesmo, e o desta serve para as duas.
+    # As duas Ofertas são do mesmo Catálogo e do mesmo Fornecedor + código: o desconto e o Conteúdo são os
+    # mesmos, e os desta servem para as duas.
+    desconto = Coalesce(F('catalogo__desconto'), 0, output_field=DecimalField())
     conteudo = Coalesce(
         Subquery(
             AlteracaoDeConteudo.objects.filter(fornecedor=OuterRef('catalogo__fornecedor'), codigo=OuterRef('codigo'))
@@ -164,8 +166,10 @@ def _que_vale_mais_que_esta():
     )
     return (
         Oferta.objects.annotate(
-            preco_unitario_em_centavos=_preco_unitario_em_centavos(F('preco_impresso'), conteudo),
-            preco_unitario_de_fora_em_centavos=_preco_unitario_em_centavos(OuterRef('preco_impresso'), conteudo),
+            preco_unitario_em_centavos=_preco_unitario_em_centavos(F('preco_impresso'), desconto, conteudo),
+            preco_unitario_de_fora_em_centavos=_preco_unitario_em_centavos(
+                OuterRef('preco_impresso'), desconto, conteudo
+            ),
         )
         .filter(
             Q(catalogo__data__gt=data_de_fora)
@@ -182,12 +186,26 @@ def _que_vale_mais_que_esta():
     )
 
 
-def _preco_unitario_em_centavos(preco_impresso, conteudo):
+def _preco_unitario_em_centavos(preco_impresso, desconto, conteudo):
     """O Preço unitário de catalogos.preco_unitario, em centavos, calculado no SQLite só com inteiros (o SQLite
-    não tem decimal): preço ÷ Conteúdo, com meio centavo para cima, como floor((2 × preço + Conteúdo) ÷ (2 × Conteúdo))
-    sobre o preço em centavos."""
-    centavos = Func(preco_impresso, template='CAST(ROUND(%(expressions)s * 100) AS INTEGER)', output_field=IntegerField())
-    return ExpressionWrapper((2 * centavos + conteudo) / (2 * conteudo), output_field=IntegerField())
+    não tem decimal, e o float erraria o meio centavo).
+
+    Com o preço em centavos (P), o desconto em décimos de milésimo de ponto percentual (D: 100% = 1.000.000, as
+    4 casas do campo) e o Conteúdo (C): P × (1 − D/1.000.000) ÷ C, com meio centavo para cima, é
+    (2 × P × (1.000.000 − D) + 1.000.000 × C) ÷ (2.000.000 × C) na divisão inteira. Com o maior preço (cerca de
+    10¹² centavos), o produto fica perto de 2 × 10¹⁸, abaixo do limite do inteiro do SQLite (9,2 × 10¹⁸).
+    """
+    centavos = _inteiro_do_sqlite(preco_impresso, 100)
+    desconto = _inteiro_do_sqlite(desconto, 10_000)
+    return ExpressionWrapper(
+        (2 * centavos * (1_000_000 - desconto) + 1_000_000 * conteudo) / (2_000_000 * conteudo),
+        output_field=IntegerField(),
+    )
+
+
+def _inteiro_do_sqlite(decimal, escala):
+    """O decimal × escala como inteiro do SQLite (o decimal fica guardado como número de ponto flutuante)."""
+    return Func(decimal, template=f'CAST(ROUND(%(expressions)s * {escala}) AS INTEGER)', output_field=IntegerField())
 
 
 # O maior valor que cabe nas colunas de preço (12 dígitos, 2 casas); acima disso o banco recusa a gravação.
