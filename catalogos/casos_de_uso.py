@@ -273,7 +273,7 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
     """Qualquer Gestor corrige a data de um Catálogo confirmado (ADR-0009, item 6): é o único dado do Catálogo que
     muda depois da confirmação. `texto` como a gestora digitou; `hoje` é injetável nos testes."""
     hoje = hoje or timezone.localdate()
-    catalogo = Catalogo.objects.get(pk=catalogo_id)
+    catalogo = _catalogo_existente(catalogo_id)
     anterior = catalogo.data, catalogo.data_so_mes_e_ano
     nova = data_do_catalogo_digitada(texto, hoje)
     if nova == anterior:  # a mesma data, com a mesma precisão, não é correção: nada muda nem é registrado
@@ -289,6 +289,13 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
         data_nova=catalogo.data,
         data_nova_so_mes_e_ano=catalogo.data_so_mes_e_ano,
     )
+
+
+def _catalogo_existente(catalogo_id):
+    catalogo = Catalogo.objects.filter(pk=catalogo_id).first()
+    if catalogo is None:
+        raise ErroDeNegocio('Catálogo não encontrado.')
+    return catalogo
 
 
 def correcoes_da_data(gestor, catalogo_id):

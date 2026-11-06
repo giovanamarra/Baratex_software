@@ -102,3 +102,7 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
             [registro(c) for c in correcoes_da_data(self.gestora, catalogo.pk)],
             [('socio', HOJE, '01/10/2026', '10/2026')],
         )
+
+    def test_corrigir_um_catalogo_que_nao_existe_e_recusado(self):
+        with self.assertRaisesMessage(ErroDeNegocio, 'Catálogo não encontrado.'):
+            corrigir_data_do_catalogo(self.socio, 999, '10/2025', hoje=HOJE)
