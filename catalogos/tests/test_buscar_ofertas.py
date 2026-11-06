@@ -104,6 +104,20 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.preco_unitario, o.catalogo.data_exibida) for o in achadas], [(Decimal('11.00'), '15/10/2026')])
 
+    def test_a_substituicao_e_codigo_a_codigo_e_o_codigo_que_falta_no_catalogo_novo_continua_vigente(self):
+        self.importar([
+            CartaoFicticio('1001', 'Balde Ficticio', '10,00'),
+            CartaoFicticio('1002', 'Rodo Ficticio', '7,00'),
+        ], '01/10/2026')
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
+
+        achadas = self.buscar('ficticio')
+
+        self.assertEqual(
+            [(o.codigo, o.preco_unitario, o.catalogo.data_exibida) for o in achadas],
+            [('1001', Decimal('11.00'), '15/10/2026'), ('1002', Decimal('7.00'), '01/10/2026')],
+        )
+
     def test_sem_so_vigentes_mostra_tambem_as_ofertas_antigas(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01)
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], DIA_15)
