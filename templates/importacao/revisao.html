@@ -7,7 +7,7 @@
 <section class="cartao">
   <h1>Revisão: {{ revisao.fornecedor.nome }}</h1>
   {% if revisao.catalogo_id %}
-  <p><strong>Revisão confirmada.</strong> O Catálogo de {{ revisao.iniciada_em|date:"d/m/Y" }} já foi salvo.
+  <p><strong>Revisão confirmada.</strong> O Catálogo de {{ revisao.catalogo.data_exibida }} já foi salvo.
     <a href="{% url 'catalogo' revisao.catalogo_id %}">Ver as Ofertas do Catálogo</a></p>
   {% include "catalogos/_tabela_de_ofertas.html" %}
   {% else %}

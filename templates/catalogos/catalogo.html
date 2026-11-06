@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load formatos %}
 
-{% block titulo %}Catálogo · {{ catalogo.fornecedor.nome }} · {{ catalogo.data|date:"d/m/Y" }}{% endblock %}
+{% block titulo %}Catálogo · {{ catalogo.fornecedor.nome }} · {{ catalogo.data_exibida }}{% endblock %}
 
 {% block conteudo %}
 <section class="cartao">
-  <h1>Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data|date:"d/m/Y" }}</h1>
+  <h1>Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data_exibida }}</h1>
   <p>Desconto aplicado: <strong>{{ catalogo.desconto|percentual }}</strong>. Importado por {{ catalogo.gestor.get_username }}. {{ ofertas|length }} Ofertas.</p>
   <p class="texto-secundario">O Conteúdo é guardado por Fornecedor e código: definir o Conteúdo de uma Oferta muda o Preço unitário dela em todos os Catálogos de {{ catalogo.fornecedor.nome }}.</p>
   {% include "catalogos/_tabela_de_ofertas.html" with acoes_de_conteudo=True %}

@@ -85,7 +85,7 @@ def confirmar(request, pk):
         if listar_revisoes_em_andamento(request.user).filter(pk=pk).exists():
             return redirect('revisao', pk=pk)
         return redirect('importar')
-    messages.success(request, f'Revisão confirmada: Catálogo de {catalogo.data:%d/%m/%Y} salvo.')
+    messages.success(request, f'Revisão confirmada: Catálogo de {catalogo.data_exibida} salvo.')
     return redirect('catalogos_do_fornecedor', pk=catalogo.fornecedor_id)
 
 

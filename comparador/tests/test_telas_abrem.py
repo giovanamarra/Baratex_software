@@ -11,7 +11,13 @@ from urllib.parse import urlencode
 
 from django.urls import reverse
 
-from catalogos.casos_de_uso import cadastrar_fornecedor, definir_conteudo, definir_teto, obter_teto
+from catalogos.casos_de_uso import (
+    cadastrar_fornecedor,
+    definir_conteudo,
+    definir_teto,
+    listar_catalogos_do_fornecedor,
+    obter_teto,
+)
 from contas.auxiliares_de_teste import SENHA_DE_TESTE, criar_gestor, criar_loja
 from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, informar_data_de_hoje
@@ -114,6 +120,25 @@ class TelasAbremTests(TesteComArquivosEnviados):
 
         for texto in ['Data do Catálogo', 'Importado em', '<td class="numero-tabular">10/2025</td>', '02/03/2026']:
             with self.subTest(texto=texto):
+                self.assertContains(resposta, texto)
+
+    def test_confirmar_pela_tela_mostra_a_data_do_catalogo_como_foi_informada_e_nao_o_dia_da_importacao(self):
+        revisao = self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,90')])  # Importação de 02/03/2026
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_do_catalogo(self.gestora, revisao.pk, '10/2025', hoje=date(2026, 3, 2))
+
+        confirmada = self.client.post(reverse('confirmar_revisao', kwargs={'pk': revisao.pk}), follow=True)
+        catalogo = listar_catalogos_do_fornecedor(self.gestora, self.fornecedor).get()
+        paginas = {
+            'mensagem da confirmação': (confirmada, 'Revisão confirmada: Catálogo de 10/2025 salvo.'),
+            'página do Catálogo': (self.client.get(reverse('catalogo', kwargs={'pk': catalogo.pk})), 'Fornecedor Alfa, 10/2025'),
+            'Revisão confirmada': (
+                self.client.get(reverse('revisao', kwargs={'pk': revisao.pk})), 'O Catálogo de 10/2025 já foi salvo.'
+            ),
+        }
+
+        for pagina, (resposta, texto) in paginas.items():
+            with self.subTest(pagina=pagina):
                 self.assertContains(resposta, texto)
 
     def test_ofertas_de_um_catalogo_abre_e_mostra_o_preco_unitario(self):
