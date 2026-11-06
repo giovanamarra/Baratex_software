@@ -147,6 +147,22 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
 
         self.assertEqual([(o.preco_unitario, o.caixa) for o in achadas], [(Decimal('10.00'), 12)])
 
+    def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '10/2026')  # confirmado depois
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.preco_unitario, o.catalogo.data_exibida) for o in achadas], [(Decimal('11.00'), '15/10/2026')])
+
+    def test_so_mes_e_ano_tem_a_mesma_data_que_o_dia_1_e_vale_o_confirmado_por_ultimo(self):
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '10/2026')
+        self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], '01/10/2026')
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.preco_unitario, o.catalogo.data_exibida) for o in achadas], [(Decimal('10.00'), '01/10/2026')])
+
     def test_o_filtro_por_fornecedor_mostra_so_as_ofertas_dele(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '10,00')], DIA_01, fornecedor=self.alfa)
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,00')], DIA_01, fornecedor=self.beta)
