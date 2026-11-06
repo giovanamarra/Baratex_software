@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+import zipfile
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -17,6 +18,8 @@ from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layou
 from importacao.auxiliares_de_teste import TesteTransacionalComArquivosEnviados, arquivo_enviado
 from importacao.casos_de_uso import confirmar_revisao, iniciar_importacao, informar_condicoes_do_catalogo
 from manutencao.casos_de_uso import fazer_backup, restaurar_backup
+
+NAO_E_BACKUP = 'Este arquivo não é um backup do Comparador de Catálogos.'
 
 
 class BackupTests(TesteTransacionalComArquivosEnviados):
@@ -91,3 +94,12 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
 
         with self.assertRaisesMessage(ErroDeNegocio, f'A pasta de destino não existe: {inexistente}.'):
             fazer_backup(inexistente)
+
+    def test_restaurar_um_zip_qualquer_sem_o_manifesto_e_recusado(self):
+        zip_qualquer = self.destino / 'fotos-das-ferias.zip'
+        with zipfile.ZipFile(zip_qualquer, 'w') as zip_:
+            zip_.writestr('banco.sqlite3', b'nao e um banco')
+            zip_.writestr('praia.jpg', b'foto')
+
+        with self.assertRaisesMessage(ErroDeNegocio, NAO_E_BACKUP):
+            restaurar_backup(zip_qualquer)

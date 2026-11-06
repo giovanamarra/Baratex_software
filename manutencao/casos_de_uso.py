@@ -2,11 +2,13 @@
 
 Chamados pelos comandos `fazer_backup` e `restaurar_backup` do manage.py.
 
-O .zip leva o banco (`banco.sqlite3`) e a pasta de arquivos inteira, com as subpastas (`arquivos/...`).
+O .zip leva o banco (`banco.sqlite3`), a pasta de arquivos inteira, com as subpastas (`arquivos/...`), e
+um manifesto (`manifesto.json`) que identifica um backup do sistema.
 O banco é copiado pela API de backup do SQLite, nunca copiando o arquivo .sqlite3 direto: assim o backup
 funciona com o sistema aberto.
 """
 
+import json
 import sqlite3
 import tempfile
 import zipfile
@@ -21,6 +23,11 @@ from comparador.erros import ErroDeNegocio
 
 BANCO = 'banco.sqlite3'
 ARQUIVOS = 'arquivos/'
+MANIFESTO = 'manifesto.json'
+FORMATO = 'backup do Comparador de Catálogos'
+VERSAO_DO_FORMATO = 1
+
+NAO_E_BACKUP = 'Este arquivo não é um backup do Comparador de Catálogos.'
 
 
 def fazer_backup(pasta_destino, agora=None):
@@ -35,6 +42,12 @@ def fazer_backup(pasta_destino, agora=None):
         copia_do_banco = Path(temporaria) / BANCO
         _copiar_banco(_conexao_sqlite(), copia_do_banco)
         zip_.write(copia_do_banco, BANCO)
+        zip_.writestr(MANIFESTO, json.dumps({
+            'formato': FORMATO,
+            'versao': VERSAO_DO_FORMATO,
+            'data': agora.isoformat(),
+            'catalogos': Catalogo.objects.count(),
+        }, ensure_ascii=False, indent=2))
         if pasta_de_arquivos.exists():
             for arquivo in sorted(pasta_de_arquivos.rglob('*')):
                 if arquivo.is_file():
@@ -51,6 +64,7 @@ def restaurar_backup(arquivo):
         )
     pasta_de_arquivos = Path(settings.MEDIA_ROOT)
     with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(arquivo) as zip_:
+        _exigir_manifesto(zip_)
         zip_.extract(BANCO, temporaria)
         origem = sqlite3.connect(Path(temporaria) / BANCO)
         try:
@@ -62,6 +76,15 @@ def restaurar_backup(arquivo):
                 destino = pasta_de_arquivos / nome.removeprefix(ARQUIVOS)
                 destino.parent.mkdir(parents=True, exist_ok=True)
                 destino.write_bytes(zip_.read(nome))
+
+
+def _exigir_manifesto(zip_):
+    try:
+        manifesto = json.loads(zip_.read(MANIFESTO))
+    except (KeyError, ValueError):
+        raise ErroDeNegocio(NAO_E_BACKUP)
+    if not isinstance(manifesto, dict) or manifesto.get('formato') != FORMATO:
+        raise ErroDeNegocio(NAO_E_BACKUP)
 
 
 def _conexao_sqlite():
