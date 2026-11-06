@@ -268,6 +268,14 @@ def data_do_catalogo_digitada(texto, hoje):
     return data, so_mes_e_ano
 
 
+def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
+    """Qualquer Gestor corrige a data de um Catálogo confirmado (ADR-0009, item 6): é o único dado do Catálogo que
+    muda depois da confirmação. `texto` como a gestora digitou; `hoje` é injetável nos testes."""
+    catalogo = Catalogo.objects.get(pk=catalogo_id)
+    catalogo.data, catalogo.data_so_mes_e_ano = data_do_catalogo_digitada(texto, hoje or timezone.localdate())
+    catalogo.save(update_fields=['data', 'data_so_mes_e_ano'])
+
+
 def definir_teto(gestor, valor):
     """O Teto é um valor único do grupo: definir de novo substitui o anterior. `valor` vem como a gestora digitou."""
     teto = preco_digitado(valor, nome='O Teto de compra')
