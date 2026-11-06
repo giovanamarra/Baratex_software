@@ -74,6 +74,7 @@ class TelasAbremTests(TesteComArquivosEnviados):
                 CartaoFicticio('1006', 'Lixeira Ficticia', '150,00'),
                 CartaoFicticio('2001', 'Kit Tesouras Ficticias', '10,00'),
                 CartaoFicticio('3001', 'Tesoura Ficticia C/3', '9,00'),
+                CartaoFicticio('1001', 'Balde Ficticio Outra Secao', '9,50'),  # código repetido (ticket 32)
             ],
             rodape='Frete gratis acima de R$500,00',  # um preço que não vira Oferta
         )
@@ -83,10 +84,11 @@ class TelasAbremTests(TesteComArquivosEnviados):
         for texto in [
             'Balde Ficticio', 'sem preço', 'sem Caixa', 'fora do padrão', 'unidade ambígua',
             'Sugestão: Conteúdo 3', 'Aceitar', 'Manter 1',
-            'Preços no arquivo: <strong>9</strong> · Ofertas extraídas: <strong>8</strong>',
+            'Preços no arquivo: <strong>10</strong> · Ofertas extraídas: <strong>9</strong>',
             'Falta 1 Oferta: confira o arquivo.',
             # Data do Catálogo junto do desconto, vazia, com o atalho do dia em que a Importação começou (ticket 31)
             'Data do Catálogo', 'É de hoje (02/03/2026)',
+            'Código repetido (2 Ofertas)', 'código repetido',
         ]:
             with self.subTest(texto=texto):
                 self.assertContains(resposta, texto)

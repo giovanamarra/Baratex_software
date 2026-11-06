@@ -231,6 +231,17 @@ table tbody tr.linha--alerta {
   margin-left: 0.25rem;
 }
 
+/* Cabeçalho do grupo de código repetido na Revisão (ticket 32): o texto "Código repetido (N Ofertas)" no
+   estilo de alerta, com a borda de alerta à esquerda marcando o começo do grupo, nunca só a cor (BRAND.md). */
+
+table tbody tr.linha--grupo th {
+  color: var(--bx-alerta);
+  font-weight: 400;
+  text-align: left;
+  background: var(--bx-alerta-fundo);
+  border-left: 6px solid var(--bx-alerta);
+}
+
 /* Sugestão de Conteúdo na Revisão: texto e botões pequenos, sem cor de alerta (não é problema) */
 
 .sugestao {

@@ -19,6 +19,14 @@ Linhas sem preço válido, sem Caixa ou acima do Teto de compra usam o estilo de
     </thead>
     <tbody>
       {% for oferta in ofertas %}
+      {% if com_acoes and oferta.ofertas_com_o_mesmo_codigo > 1 %}{% ifchanged oferta.codigo %}
+      <tr class="linha--grupo">
+        <th scope="rowgroup" colspan="8">
+          <strong class="alerta">Código repetido ({{ oferta.ofertas_com_o_mesmo_codigo }} Ofertas)</strong>
+          Código {{ oferta.codigo }}. Remova as erradas; se ficarem todas, vale a de menor Preço unitário.
+        </th>
+      </tr>
+      {% endifchanged %}{% endif %}
       <tr{% if oferta.marcas or oferta.caixa is None or oferta.acima_do_teto %} class="linha--alerta"{% endif %}>
         <td>{{ oferta.codigo }}</td>
         <td>
