@@ -149,7 +149,9 @@ def _que_vale_mais_que_esta():
     """
     data_de_fora = OuterRef('catalogo__data')
     return Oferta.objects.filter(
-        Q(catalogo__data__gt=data_de_fora) | Q(catalogo__data=data_de_fora, catalogo__pk__gt=OuterRef('catalogo__pk')),
+        Q(catalogo__data__gt=data_de_fora)
+        | Q(catalogo__data=data_de_fora, catalogo__pk__gt=OuterRef('catalogo__pk'))
+        | Q(catalogo=OuterRef('catalogo'), preco_impresso__lt=OuterRef('preco_impresso')),
         catalogo__fornecedor=OuterRef('catalogo__fornecedor'),
         codigo=OuterRef('codigo'),
     )

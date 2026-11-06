@@ -6,7 +6,7 @@ from decimal import Decimal
 from catalogos.casos_de_uso import buscar_ofertas, cadastrar_fornecedor, definir_conteudo
 from comparador.erros import ErroDeNegocio
 from contas.auxiliares_de_teste import criar_gestor
-from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
+from extracao.catalogos_ficticios import CartaoFicticio, cartoes_com_o_segundo_na_pagina_2, catalogo_ficticio_layout_a
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir, informar_data_de_hoje
 from importacao.casos_de_uso import (
     adicionar_oferta_proposta,
@@ -146,6 +146,17 @@ class BuscarOfertasTests(TesteComArquivosEnviados):
         achadas = self.buscar('1001')
 
         self.assertEqual([(o.preco_unitario, o.caixa) for o in achadas], [(Decimal('10.00'), 12)])
+
+    def test_codigo_repetido_no_mesmo_catalogo_vale_a_oferta_de_menor_preco_unitario(self):
+        # ADR-0009, item 3: a mais barata está na página 2, depois da mais cara.
+        self.importar(cartoes_com_o_segundo_na_pagina_2(
+            CartaoFicticio('1001', 'Balde Ficticio Secao A', '12,90'),
+            CartaoFicticio('1001', 'Balde Ficticio Secao B', '11,50'),
+        ), '15/10/2026')
+
+        achadas = self.buscar('1001')
+
+        self.assertEqual([(o.descricao, o.preco_unitario) for o in achadas], [('Balde Ficticio Secao B', Decimal('11.50'))])
 
     def test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1(self):
         self.importar([CartaoFicticio('1001', 'Balde Ficticio', '11,00')], '15/10/2026')

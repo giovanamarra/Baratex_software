@@ -6,7 +6,12 @@ from django.test import SimpleTestCase
 
 from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
-from extracao.catalogos_ficticios import CARTOES_POR_PAGINA, CartaoFicticio, catalogo_ficticio_layout_a
+from extracao.catalogos_ficticios import (
+    CARTOES_POR_PAGINA,
+    CartaoFicticio,
+    cartoes_com_o_segundo_na_pagina_2,
+    catalogo_ficticio_layout_a,
+)
 from extracao.extrair import extrair_catalogo
 from importacao.auxiliares_de_teste import (
     TesteComArquivosEnviados,
@@ -24,15 +29,9 @@ from importacao.casos_de_uso import (
 )
 
 
-def cartoes_com_repetido_na_pagina_2(primeiro, repetido):
-    """O código 1001 no primeiro cartão da página 1 e no primeiro da página 2; os outros, códigos únicos."""
-    outros = [CartaoFicticio(str(2001 + i), f'Item Ficticio {i + 1}') for i in range(CARTOES_POR_PAGINA - 1)]
-    return [primeiro, *outros, repetido, CartaoFicticio('3001', 'Item Ficticio Final')]
-
-
 class PaginaDeOrigemTests(SimpleTestCase):
     def test_cada_oferta_extraida_guarda_a_pagina_de_origem(self):
-        cartoes = cartoes_com_repetido_na_pagina_2(
+        cartoes = cartoes_com_o_segundo_na_pagina_2(
             CartaoFicticio('1001', 'Panela Ficticia Secao A'), CartaoFicticio('1001', 'Panela Ficticia Secao B')
         )
 
@@ -57,7 +56,7 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
         return obter_revisao(self.gestora, revisao.pk).ofertas_propostas()
 
     def test_as_ofertas_do_mesmo_codigo_ficam_juntas_na_ordem_do_arquivo(self):
-        revisao = self.importar(cartoes_com_repetido_na_pagina_2(
+        revisao = self.importar(cartoes_com_o_segundo_na_pagina_2(
             CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),
             CartaoFicticio('1001', 'Panela Ficticia Secao B', '11,50'),
         ))
@@ -152,7 +151,7 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
         ])
 
     def test_a_oferta_proposta_guarda_a_pagina_de_origem(self):
-        revisao = self.importar(cartoes_com_repetido_na_pagina_2(
+        revisao = self.importar(cartoes_com_o_segundo_na_pagina_2(
             CartaoFicticio('1001', 'Panela Ficticia Secao A'), CartaoFicticio('1001', 'Panela Ficticia Secao B')
         ))
 

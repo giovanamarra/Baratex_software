@@ -41,6 +41,13 @@ def catalogo_ficticio_layout_a(cartoes, rodape='Catálogo de Produtos Fornecedor
     return bytes(pdf.output())
 
 
+def cartoes_com_o_segundo_na_pagina_2(primeiro, segundo):
+    """`primeiro` no primeiro cartão da página 1 e `segundo` no primeiro da página 2, com cartões de enchimento
+    (códigos 2001 em diante) entre eles e um cartão 3001 depois. Para o código repetido (ticket 32)."""
+    enchimento = [CartaoFicticio(str(2001 + i), f'Item Ficticio {i + 1}') for i in range(CARTOES_POR_PAGINA - 1)]
+    return [primeiro, *enchimento, segundo, CartaoFicticio('3001', 'Item Ficticio Final')]
+
+
 def pdf_ficticio_com_texto(linhas):
     """PDF com texto selecionável, uma linha por item, sem a estrutura de nenhum Layout conhecido."""
     pdf = FPDF(unit='pt', format='A4')
