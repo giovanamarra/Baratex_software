@@ -9,6 +9,7 @@ from catalogos.casos_de_uso import (
     cadastrar_fornecedor,
     correcoes_da_data,
     corrigir_data_do_catalogo,
+    listar_catalogos_do_fornecedor,
     obter_catalogo,
     ver_impacto_da_nova_data,
 )
@@ -126,6 +127,20 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
     def test_corrigir_um_catalogo_que_nao_existe_e_recusado(self):
         with self.assertRaisesMessage(ErroDeNegocio, 'Catálogo não encontrado.'):
             corrigir_data_do_catalogo(self.socio, 999, '10/2025', hoje=HOJE)
+
+    def test_ver_o_impacto_num_catalogo_que_nao_existe_e_recusado(self):
+        with self.assertRaisesMessage(ErroDeNegocio, 'Catálogo não encontrado.'):
+            ver_impacto_da_nova_data(self.socio, 999, '10/2025', hoje=HOJE)
+
+    def test_depois_de_corrigir_a_lista_de_catalogos_ordena_pela_nova_data(self):
+        errado = self.importar('15/10/2026', ['1001'])
+        self.importar('01/09/2026', ['1001'])
+
+        self.corrigir(errado, '10/2025')
+
+        self.assertEqual(
+            [c.data_exibida for c in listar_catalogos_do_fornecedor(self.gestora, self.alfa)], ['01/09/2026', '10/2025']
+        )
 
     def test_depois_de_corrigir_a_busca_padrao_mostra_a_oferta_do_outro_catalogo(self):
         errado = self.importar('15/10/2026', ['1001'], preco='10,00')
