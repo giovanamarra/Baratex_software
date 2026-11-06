@@ -74,3 +74,11 @@ class DataDoCatalogoNaRevisaoTests(TesteComArquivosEnviados):
 
         with self.assertRaisesMessage(ErroDeNegocio, 'A data do Catálogo não pode ser depois de hoje.'):
             self.informar('12/2026')
+
+    def test_ano_antes_de_2000_e_recusado(self):
+        for texto in ['15/10/1999', '10/1999']:
+            with self.subTest(texto=texto):
+                with self.assertRaisesMessage(ErroDeNegocio, 'Confira o ano da data do Catálogo.'):
+                    self.informar(texto)
+
+        self.assertEqual(self.informar('01/01/2000'), '01/01/2000')
