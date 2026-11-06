@@ -1,6 +1,6 @@
 # C4 — Nível 1: Contexto
 
-Arquitetura **planejada** do MVP, derivada de [spec](../../.scratch/comparador-de-catalogos/spec.md), [GLOSSARY](../../GLOSSARY.md) e [ADRs](../adr/). Ainda não existe código.
+Arquitetura **planejada** do MVP, derivada de [spec](../spec.md), [GLOSSARY](../../GLOSSARY.md) e [ADRs](../adr/). Ainda não existe código.
 
 ```mermaid
 C4Context
