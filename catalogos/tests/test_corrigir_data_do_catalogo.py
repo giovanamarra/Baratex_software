@@ -185,3 +185,11 @@ class ImpactoDaNovaDataTests(TesteComArquivosEnviados):
             self.impacto(self.de_outubro, '16/10/2026').mensagem,
             'Com a nova data, nenhuma Oferta deste Catálogo muda de vigência.',
         )
+
+    def test_ver_o_impacto_nao_muda_a_data_nem_a_vigencia_nem_registra_correcao(self):
+        self.impacto(self.de_outubro, '10/2025')
+
+        self.assertEqual(obter_catalogo(self.gestora, self.de_outubro.pk).data_exibida, '15/10/2026')
+        vigente = buscar_ofertas(self.gestora, '1001', fornecedor=self.alfa).ofertas
+        self.assertEqual([o.catalogo.data_exibida for o in vigente], ['15/10/2026'])
+        self.assertEqual(list(correcoes_da_data(self.gestora, self.de_outubro.pk)), [])
