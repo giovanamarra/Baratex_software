@@ -5,5 +5,16 @@
 {% block conteudo %}
 <section class="cartao">
   <h1>Corrigir a data do Catálogo de {{ catalogo.fornecedor.nome }}, {{ catalogo.data_exibida }}</h1>
+  <p>Data atual: <strong>{{ catalogo.data_exibida }}</strong>. É de quando são os preços, não o dia da Importação. Dia completo ou só mês e ano. A data é o único dado do Catálogo que pode mudar depois da confirmação.</p>
+  <form method="get">
+    <div class="campo">
+      <label for="data">Nova data do Catálogo</label>
+      <input id="data" name="data" type="text" inputmode="numeric" value="{{ digitada }}" placeholder="15/10/2026 ou 10/2026">
+    </div>
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Ver o impacto</button>
+      <a class="botao botao--secundario" href="{% url 'catalogo' catalogo.pk %}">Voltar</a>
+    </div>
+  </form>
 </section>
 {% endblock %}

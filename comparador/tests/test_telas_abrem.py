@@ -153,6 +153,15 @@ class TelasAbremTests(TesteComArquivosEnviados):
         corrigir = reverse('corrigir_data_do_catalogo', kwargs={'pk': catalogo.pk})
         self.assertContains(resposta, f'<a class="botao botao--secundario" href="{corrigir}">Corrigir a data</a>', html=True)
 
+    def test_corrigir_a_data_abre_com_a_data_atual_o_campo_e_o_botao_ver_o_impacto(self):
+        catalogo = self.catalogo_confirmado()  # data do Catálogo 02/03/2026
+
+        resposta = self.client.get(reverse('corrigir_data_do_catalogo', kwargs={'pk': catalogo.pk}))
+
+        self.assertContains(resposta, 'Data atual: <strong>02/03/2026</strong>')
+        self.assertContains(resposta, '<input id="data" name="data" type="text" inputmode="numeric" value="" placeholder="15/10/2026 ou 10/2026">', html=True)
+        self.assertContains(resposta, '<button class="botao botao--primario" type="submit">Ver o impacto</button>', html=True)
+
     def test_definir_conteudo_abre_e_mostra_o_aviso_antes_de_salvar(self):
         balde = self.catalogo_confirmado().ofertas()[0]
 
