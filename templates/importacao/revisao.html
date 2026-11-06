@@ -29,6 +29,23 @@
     </div>
     <button class="botao botao--secundario" type="submit">Recalcular</button>
   </form>
+  <div class="acoes acoes--antes-da-tabela">
+    <form method="post" action="{% url 'informar_data_do_catalogo' revisao.pk %}" class="acoes">
+      {% csrf_token %}
+      <div class="campo campo--em-linha">
+        <label for="data_do_catalogo">Data do Catálogo</label>
+        <input id="data_do_catalogo" name="data" type="text" inputmode="numeric" placeholder="15/10/2026 ou 10/2026"
+               value="{{ revisao.data_do_catalogo_exibida }}">
+      </div>
+      <button class="botao botao--secundario" type="submit">Salvar a data</button>
+    </form>
+    <form method="post" action="{% url 'informar_data_do_catalogo' revisao.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="data" value="{{ revisao.iniciada_em|date:"d/m/Y" }}">
+      <button class="botao botao--secundario botao--pequeno" type="submit">É de hoje ({{ revisao.iniciada_em|date:"d/m/Y" }})</button>
+    </form>
+  </div>
+  <p>Data do Catálogo: <strong>{{ revisao.data_do_catalogo_exibida|default:"não informada" }}</strong>. É de quando são os preços, não o dia da Importação. Dia completo ou só mês e ano.</p>
   <p>Desconto aplicado: <strong>{{ revisao.desconto|percentual }}</strong>. O Preço unitário é o preço impresso com esse desconto, dividido pelo Conteúdo. Impostos não entram. O Conteúdo vem do que já foi guardado para o Fornecedor e o código (1 se nunca foi definido); mude-o em Corrigir. O Conteúdo novo só fica guardado ao confirmar.</p>
   <div class="acoes acoes--antes-da-tabela">
     <form method="post" action="{% url 'confirmar_revisao' revisao.pk %}">

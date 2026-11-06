@@ -34,6 +34,7 @@ urlpatterns = [
     path('importar/', importacao.importar, name='importar'),
     path('revisoes/<int:pk>/', importacao.revisao, name='revisao'),
     path('revisoes/<int:pk>/condicoes/', importacao.informar_condicoes, name='informar_condicoes_do_catalogo'),
+    path('revisoes/<int:pk>/data/', importacao.informar_data, name='informar_data_do_catalogo'),
     path('revisoes/<int:pk>/confirmar/', importacao.confirmar, name='confirmar_revisao'),
     path('revisoes/<int:pk>/abandonar/', importacao.abandonar, name='abandonar_revisao'),
     path('revisoes/<int:pk>/adicionar-oferta/', importacao.adicionar_oferta, name='adicionar_oferta_proposta'),

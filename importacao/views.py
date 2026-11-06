@@ -14,6 +14,7 @@ from importacao.casos_de_uso import (
     confirmar_revisao,
     corrigir_oferta_proposta,
     informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
     iniciar_importacao,
     listar_revisoes_em_andamento,
     manter_conteudo_1,
@@ -53,6 +54,18 @@ def revisao(request, pk):
 def informar_condicoes(request, pk):
     try:
         informar_condicoes_do_catalogo(request.user, pk, request.POST.get('desconto', ''))
+    except AcessoNegado as erro:
+        return _acesso_negado(request, erro)
+    except ErroDeNegocio as erro:
+        messages.error(request, erro.mensagem)
+    return redirect('revisao', pk=pk)
+
+
+@require_POST
+def informar_data(request, pk):
+    # O atalho "É de hoje" envia, pelo mesmo caminho, o dia em que a Importação começou.
+    try:
+        informar_data_do_catalogo(request.user, pk, request.POST.get('data', ''))
     except AcessoNegado as erro:
         return _acesso_negado(request, erro)
     except ErroDeNegocio as erro:

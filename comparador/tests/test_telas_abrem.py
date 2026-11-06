@@ -74,9 +74,30 @@ class TelasAbremTests(TesteComArquivosEnviados):
             'Sugestão: Conteúdo 3', 'Aceitar', 'Manter 1',
             'Preços no arquivo: <strong>9</strong> · Ofertas extraídas: <strong>8</strong>',
             'Falta 1 Oferta: confira o arquivo.',
+            # Data do Catálogo junto do desconto, vazia, com o atalho do dia em que a Importação começou (ticket 31)
+            'Data do Catálogo', 'É de hoje (02/03/2026)',
         ]:
             with self.subTest(texto=texto):
                 self.assertContains(resposta, texto)
+
+    def test_atalho_e_de_hoje_e_o_campo_da_data_gravam_a_data_do_catalogo_pelo_caso_de_uso(self):
+        revisao = self.importar([CartaoFicticio('1001', 'Balde Ficticio', '9,90')])  # Importação de 02/03/2026
+        url = reverse('informar_data_do_catalogo', kwargs={'pk': revisao.pk})
+        pagina = self.client.get(reverse('revisao', kwargs={'pk': revisao.pk}))
+        self.assertContains(pagina, f'action="{url}"')
+        self.assertContains(pagina, '<input type="hidden" name="data" value="02/03/2026">', html=False)
+
+        self.assertContains(pagina, 'Data do Catálogo: <strong>não informada</strong>')
+
+        atalho = self.client.post(url, {'data': '02/03/2026'}, follow=True)  # o que o botão do atalho envia
+        self.assertContains(atalho, 'Data do Catálogo: <strong>02/03/2026</strong>')
+
+        digitada = self.client.post(url, {'data': '10/2025'}, follow=True)
+        self.assertContains(digitada, 'Data do Catálogo: <strong>10/2025</strong>')
+
+        recusada = self.client.post(url, {'data': '31/02/2026'}, follow=True)
+        self.assertContains(recusada, 'Informe a data do Catálogo como dia/mês/ano ou mês/ano')
+        self.assertContains(recusada, 'Data do Catálogo: <strong>10/2025</strong>')  # a recusa não apaga a anterior
 
     def test_catalogos_do_fornecedor_abre_e_mostra_a_data_do_catalogo(self):
         self.catalogo_confirmado()
