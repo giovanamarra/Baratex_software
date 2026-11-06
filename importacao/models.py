@@ -3,7 +3,13 @@ from collections import Counter
 from django.conf import settings
 from django.db import models
 
-from catalogos.models import conteudo_guardado, conteudos_guardados, data_exibida, teto_atual
+from catalogos.models import (
+    aviso_de_catalogo_mais_antigo,
+    conteudo_guardado,
+    conteudos_guardados,
+    data_exibida,
+    teto_atual,
+)
 from catalogos.preco_unitario import acima_do_teto, calcular_preco_unitario
 from importacao.marcas import fora_do_padrao, mediana_dos_precos, pecas_citadas, unidade_ambigua
 
@@ -38,6 +44,10 @@ class Revisao(models.Model):
     def data_do_catalogo_exibida(self):
         """Como a gestora informou: 15/10/2026 ou 10/2026. Vazio enquanto não informou."""
         return data_exibida(self.data_do_catalogo, self.data_do_catalogo_so_mes_e_ano)
+
+    @property
+    def aviso_de_catalogo_mais_antigo(self):
+        return aviso_de_catalogo_mais_antigo(self.data_do_catalogo)
 
     def ofertas_propostas(self):
         """Na ordem do arquivo, com as Ofertas de um código repetido juntas, onde o código aparece primeiro

@@ -1,6 +1,6 @@
 # 33 — Aviso de Catálogo mais antigo e correção da data de um Catálogo confirmado
 
-Status: ready-for-agent
+Status: claimed
 Type: task
 Blocked by: 31
 Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › Data do Catálogo, Corrigir a data; Modelo de dados › Catálogo, Auditoria)

@@ -1,0 +1,34 @@
+"""Aviso de Catálogo mais antigo na Revisão (ticket 33; ADR-0009 item 5, história 103)."""
+
+from datetime import date
+
+from catalogos.casos_de_uso import cadastrar_fornecedor
+from contas.auxiliares_de_teste import criar_gestor
+from extracao.catalogos_ficticios import CartaoFicticio, catalogo_ficticio_layout_a
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, importar_e_confirmar
+from importacao.casos_de_uso import informar_data_do_catalogo, iniciar_importacao, obter_revisao
+
+HOJE = date(2026, 11, 5)
+BALDE = CartaoFicticio('1001', 'Balde Ficticio', '9,90', '6')
+
+
+class AvisoDeCatalogoMaisAntigoNaRevisaoTests(TesteComArquivosEnviados):
+    def setUp(self):
+        self.gestora = criar_gestor('gestora')
+        self.alfa = cadastrar_fornecedor(self.gestora, 'Alfa')
+        self.beta = cadastrar_fornecedor(self.gestora, 'Beta')
+
+    def aviso_com_a_data(self, texto, fornecedor=None):
+        arquivo = arquivo_enviado(catalogo_ficticio_layout_a([BALDE]))
+        revisao = iniciar_importacao(self.gestora, fornecedor or self.alfa, arquivo, hoje=HOJE)
+        informar_data_do_catalogo(self.gestora, revisao.pk, texto, hoje=HOJE)
+        return obter_revisao(self.gestora, revisao.pk).aviso_de_catalogo_mais_antigo
+
+    def test_data_anterior_a_do_catalogo_mais_recente_do_fornecedor_mostra_o_aviso(self):
+        importar_e_confirmar(self.gestora, self.alfa, [BALDE], '15/10/2026', HOJE)
+
+        self.assertEqual(
+            self.aviso_com_a_data('01/09/2026'),
+            'Este Catálogo é mais antigo que o de 15/10/2026 deste Fornecedor: '
+            'os códigos que estão nos dois continuam com o preço do mais recente.',
+        )

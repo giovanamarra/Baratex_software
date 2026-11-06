@@ -6,7 +6,15 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase, override_settings
 
-from importacao.casos_de_uso import corrigir_oferta_proposta, informar_data_do_catalogo, obter_revisao
+from extracao.catalogos_ficticios import catalogo_ficticio_layout_a
+from importacao.casos_de_uso import (
+    confirmar_revisao,
+    corrigir_oferta_proposta,
+    informar_condicoes_do_catalogo,
+    informar_data_do_catalogo,
+    iniciar_importacao,
+    obter_revisao,
+)
 
 
 class ArquivosEnviadosTemporarios:
@@ -62,3 +70,12 @@ def informar_data_de_hoje(gestor, revisao_id):
     """
     iniciada_em = obter_revisao(gestor, revisao_id).iniciada_em
     informar_data_do_catalogo(gestor, revisao_id, f'{iniciada_em:%d/%m/%Y}', hoje=iniciada_em)
+
+
+def importar_e_confirmar(gestor, fornecedor, cartoes, data, hoje, desconto='0'):
+    """Importa e confirma um Catálogo fictício do Layout A com a data do Catálogo como a gestora digita
+    ("15/10/2026", "10/2026"). `hoje` é o dia da Importação e o "hoje" da data do Catálogo."""
+    revisao = iniciar_importacao(gestor, fornecedor, arquivo_enviado(catalogo_ficticio_layout_a(cartoes)), hoje=hoje)
+    informar_condicoes_do_catalogo(gestor, revisao.pk, desconto)
+    informar_data_do_catalogo(gestor, revisao.pk, data, hoje=hoje)
+    return confirmar_revisao(gestor, revisao.pk, hoje=hoje)

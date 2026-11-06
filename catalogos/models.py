@@ -130,6 +130,20 @@ def data_exibida(data, so_mes_e_ano):
     return f'{data:%m/%Y}' if so_mes_e_ano else f'{data:%d/%m/%Y}'
 
 
+def aviso_de_catalogo_mais_antigo(data):
+    """O aviso, sem bloquear, de quando a data do Catálogo é anterior à do Catálogo mais recente (ADR-0009, item 5).
+    Vazio quando não é."""
+    if data is None:
+        return ''
+    mais_recente = Catalogo.objects.filter(data__gt=data).order_by('-data', '-pk').first()
+    if mais_recente is None:
+        return ''
+    return (
+        f'Este Catálogo é mais antigo que o de {mais_recente.data_exibida} deste Fornecedor: '
+        'os códigos que estão nos dois continuam com o preço do mais recente.'
+    )
+
+
 def teto_atual():
     """O Teto de compra do grupo, ou None quando ainda não foi definido."""
     return TetoDeCompra.objects.values_list('valor', flat=True).first()
