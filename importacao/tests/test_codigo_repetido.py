@@ -9,7 +9,12 @@ from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CARTOES_POR_PAGINA, CartaoFicticio, catalogo_ficticio_layout_a
 from extracao.extrair import extrair_catalogo
 from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
-from importacao.casos_de_uso import iniciar_importacao, obter_revisao, remover_oferta_proposta
+from importacao.casos_de_uso import (
+    adicionar_oferta_proposta,
+    iniciar_importacao,
+    obter_revisao,
+    remover_oferta_proposta,
+)
 
 
 def cartoes_com_repetido_na_pagina_2(primeiro, repetido):
@@ -104,6 +109,27 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
         self.assertEqual(
             [(o.codigo, o.marcas, o.ofertas_com_o_mesmo_codigo) for o in self.propostas(revisao)],
             [('1001', [], 1), ('1002', [], 1), ('1003', [], 1)],
+        )
+
+    def test_a_oferta_adicionada_com_espacos_nas_pontas_do_codigo_entra_no_grupo(self):
+        revisao = self.importar([CartaoFicticio('1001', 'Panela Ficticia'), CartaoFicticio('1002', 'Tampa Ficticia')])
+
+        adicionar_oferta_proposta(self.gestora, revisao.pk, '  1001 ', 'Panela Ficticia Digitada', '9,90', '12')
+
+        self.assertEqual(
+            [(o.descricao, o.marcas) for o in self.propostas(revisao)],
+            [
+                ('Panela Ficticia', ['código repetido']),
+                ('Panela Ficticia Digitada', ['código repetido']),
+                ('Tampa Ficticia', []),
+            ],
+        )
+
+    def test_codigos_diferentes_so_em_maiusculas_nao_sao_o_mesmo_codigo(self):
+        revisao = self.importar([CartaoFicticio('AB-10', 'Panela Ficticia'), CartaoFicticio('ab-10', 'Tampa Ficticia')])
+
+        self.assertEqual(
+            [(o.codigo, o.marcas) for o in self.propostas(revisao)], [('AB-10', []), ('ab-10', [])]
         )
 
     def test_a_oferta_proposta_guarda_a_pagina_de_origem(self):
