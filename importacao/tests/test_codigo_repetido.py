@@ -8,8 +8,8 @@ from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CARTOES_POR_PAGINA, CartaoFicticio, catalogo_ficticio_layout_a
 from extracao.extrair import extrair_catalogo
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado
-from importacao.casos_de_uso import iniciar_importacao, obter_revisao
+from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.casos_de_uso import iniciar_importacao, obter_revisao, remover_oferta_proposta
 
 
 def cartoes_com_repetido_na_pagina_2(primeiro, repetido):
@@ -75,6 +75,35 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
                 ('1001', ['código repetido'], 3),
                 ('1002', [], 1),
             ],
+        )
+
+    def repetido_duas_vezes(self):
+        return self.importar([
+            CartaoFicticio('1001', 'Panela Ficticia Secao A', '12,90'),
+            CartaoFicticio('1002', 'Tampa Ficticia'),
+            CartaoFicticio('1001', 'Panela Ficticia Secao B', '11,50'),
+        ])
+
+    def test_remover_uma_das_duas_tira_o_grupo_e_a_marca_da_que_ficou(self):
+        revisao = self.repetido_duas_vezes()
+        segunda = self.propostas(revisao)[1]
+
+        remover_oferta_proposta(self.gestora, segunda.pk)
+
+        self.assertEqual(
+            [(o.descricao, o.marcas, o.ofertas_com_o_mesmo_codigo) for o in self.propostas(revisao)],
+            [('Panela Ficticia Secao A', [], 1), ('Tampa Ficticia', [], 1)],
+        )
+
+    def test_corrigir_o_codigo_de_uma_delas_desfaz_o_grupo(self):
+        revisao = self.repetido_duas_vezes()
+        segunda = self.propostas(revisao)[1]
+
+        corrigir(self.gestora, segunda, codigo='1003')
+
+        self.assertEqual(
+            [(o.codigo, o.marcas, o.ofertas_com_o_mesmo_codigo) for o in self.propostas(revisao)],
+            [('1001', [], 1), ('1002', [], 1), ('1003', [], 1)],
         )
 
     def test_a_oferta_proposta_guarda_a_pagina_de_origem(self):
