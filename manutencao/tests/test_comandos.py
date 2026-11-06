@@ -22,3 +22,9 @@ class ComandosDeBackupTests(TesteTransacionalComArquivosEnviados):
 
         [backup] = self.destino.iterdir()
         self.assertIn(f'Pronto: backup gravado em {backup}', saida.getvalue())
+
+    def test_fazer_backup_para_pasta_inexistente_mostra_a_mensagem_sem_detalhe_tecnico(self):
+        inexistente = self.destino / 'pendrive-desconectado'
+
+        with self.assertRaisesMessage(CommandError, f'A pasta de destino não existe: {inexistente}.'):
+            call_command('fazer_backup', str(inexistente))
