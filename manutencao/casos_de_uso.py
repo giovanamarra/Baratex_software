@@ -25,8 +25,11 @@ ARQUIVOS = 'arquivos/'
 
 def fazer_backup(pasta_destino, agora=None):
     """Gera, na pasta de destino, um único .zip com o banco e a pasta de arquivos inteira."""
+    pasta_destino = Path(pasta_destino)
+    if not pasta_destino.is_dir():
+        raise ErroDeNegocio(f'A pasta de destino não existe: {pasta_destino}.')
     agora = agora or timezone.localtime()
-    backup = Path(pasta_destino) / f'backup-comparador-{agora:%Y-%m-%d_%H-%M-%S}.zip'
+    backup = pasta_destino / f'backup-comparador-{agora:%Y-%m-%d_%H-%M-%S}.zip'
     pasta_de_arquivos = Path(settings.MEDIA_ROOT)
     with tempfile.TemporaryDirectory() as temporaria, zipfile.ZipFile(backup, 'w', zipfile.ZIP_DEFLATED) as zip_:
         copia_do_banco = Path(temporaria) / BANCO

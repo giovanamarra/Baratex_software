@@ -85,3 +85,9 @@ class BackupTests(TesteTransacionalComArquivosEnviados):
             'depois do backup.',
         ):
             restaurar_backup(backup)
+
+    def test_backup_para_pasta_de_destino_inexistente_e_recusado(self):
+        inexistente = self.destino / 'pendrive-desconectado'
+
+        with self.assertRaisesMessage(ErroDeNegocio, f'A pasta de destino não existe: {inexistente}.'):
+            fazer_backup(inexistente)
