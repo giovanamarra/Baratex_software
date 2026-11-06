@@ -1,6 +1,6 @@
 # 31 — Data do Catálogo informada na Revisão e Oferta vigente pelo Catálogo mais recente
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 04, 06, 09 (todos resolvidos)
 Spec: [docs/spec.md](../../../docs/spec.md) (Revisão › Data do Catálogo, confirmação recusada; Modelo de dados › Catálogo, Catálogos já existentes, Oferta vigente)
@@ -83,3 +83,29 @@ Para M1, M2 e M3 morrerem com um só teste, use o caso da "mesma data" acima (o 
 - Data do Catálogo na comparação (13), ao incluir no Pedido (15) e nas linhas do Pedido (16); linha do Pedido que deixou de ser vigente (40).
 - Histórico de preço pela data do Catálogo (28).
 - Data do Catálogo futura (Out of Scope).
+
+## Comments
+
+**2026-11-05 — implementado por TDD** (commits `7179139` a `4dc08af`, mais o commit deste comentário)
+
+- **Data do Catálogo na Revisão:** `informar_data_do_catalogo(gestor, revisao_id, texto, hoje=None)` em `importacao/casos_de_uso.py`. O texto é lido por `data_do_catalogo_digitada(texto, hoje)` em `catalogos/casos_de_uso.py`, para o ticket 33 reaproveitar na correção da data. A Revisão guarda `data_do_catalogo` e `data_do_catalogo_so_mes_e_ano`. Só mês e ano fica como o dia 1. A tela mostra o campo junto do desconto e o atalho `É de hoje (dd/mm/aaaa)`, que envia `iniciada_em` pela mesma rota (`informar_data_do_catalogo`).
+- **Catálogo:** `data` (a data do Catálogo, que é a que vale), `data_so_mes_e_ano` e `importado_em` (dia em que a Importação começou, só registro). `data_exibida` mostra 15/10/2026 ou 10/2026, na lista, na busca, na página do Catálogo, na mensagem de confirmação e na Revisão confirmada.
+- **Migrações:** `importacao.0009_data_do_catalogo_na_revisao`, `catalogos.0012_data_do_catalogo_e_dia_da_importacao` e `catalogos.0013_dia_da_importacao_dos_catalogos_existentes` (copia `data` para `importado_em`; a data do Catálogo continua a mesma data completa). Testada com o MigrationExecutor e conferida numa cópia do db.sqlite3 da desenvolvedora: o mesmo conjunto de Ofertas vigentes antes e depois (382 de 382). Nessa cópia, nenhum código se repete entre os 2 Catálogos.
+- **Vigência** (`_que_vale_mais_que_esta`): data do Catálogo mais recente; na mesma data, o maior pk de Catálogo, que é o confirmado por último, porque o Catálogo é criado na confirmação.
+- **Pendente para o ticket 32 (decisão da usuária):** o desempate antigo pelo menor Preço unitário saiu. Até o 32, um código repetido **no mesmo Catálogo** aparece duas vezes como vigente na busca padrão.
+- **Testes antigos que mudaram:** os que confirmam passaram a informar a data com o auxiliar `informar_data_de_hoje` (como o atalho); `test_data_do_catalogo_e_o_dia_em_que_a_importacao_comecou` (04) virou `test_o_catalogo_guarda_a_data_informada_com_a_precisao_dela_e_separado_o_dia_da_importacao`; `test_no_mesmo_dia_vale_a_oferta_de_menor_preco_unitario_e_nao_a_de_menor_preco_impresso` (09) virou `test_na_mesma_data_vale_o_catalogo_confirmado_por_ultimo_mesmo_mais_caro`; `test_a_busca_padrao_mostra_so_a_oferta_do_catalogo_mais_recente_do_fornecedor` só trocou de nome (`test_vale_a_oferta_do_catalogo_de_data_mais_recente_mesmo_com_o_preco_maior`); os testes de tela da Revisão, da lista de Catálogos e da busca cobrem a data nova.
+
+### Placar das mutações (todas mortas)
+
+Cada uma aplicada sozinha em `catalogos/casos_de_uso.py`, com a suíte inteira rodando, e desfeita com `git checkout -- catalogos/casos_de_uso.py`.
+
+| # | Mutação | Resultado | Testes que derrubou |
+|---|---|---|---|
+| M1 | mesma data → menor Preço unitário | morta | `test_na_mesma_data_vale_o_catalogo_confirmado_por_ultimo_mesmo_mais_caro`, `test_na_mesma_data_e_com_o_mesmo_preco_vale_o_catalogo_confirmado_por_ultimo` |
+| M2 | mesma data → sem desempate | morta | os dois acima e `test_so_mes_e_ano_tem_a_mesma_data_que_o_dia_1_e_vale_o_confirmado_por_ultimo` |
+| M3 | mesma data → confirmado primeiro | morta | os mesmos três da M2 |
+| M14 | mais recente pelo dia da Importação | morta | `test_catalogo_antigo_importado_depois_nao_derruba_a_oferta_do_catalogo_mais_recente`, `test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1` |
+| M15 | só mês e ano = último dia do mês | morta | os dois testes de "só mês e ano" da busca (FAIL) e dois da Revisão |
+| M16 | compara só mês e ano, sem o dia | morta | `test_so_mes_e_ano_e_mais_antigo_que_um_dia_do_mesmo_mes_depois_do_dia_1` (FAIL). A primeira versão da mutação quebrava a consulta (`TruncMonth` sobre `OuterRef`); foi reescrita anotando `mes` na consulta de fora. |
+| M17 | data mais recente só ganha com Preço unitário ≤ | morta | 6 testes, entre eles `test_vale_a_oferta_do_catalogo_de_data_mais_recente_mesmo_com_o_preco_maior` |
+
