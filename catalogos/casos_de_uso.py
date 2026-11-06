@@ -289,8 +289,8 @@ def corrigir_data_do_catalogo(gestor, catalogo_id, texto, hoje=None):
 
 
 def correcoes_da_data(gestor, catalogo_id):
-    """As correções da data de um Catálogo (para a página do Catálogo)."""
-    return CorrecaoDaDataDoCatalogo.objects.filter(catalogo_id=catalogo_id)
+    """As correções da data de um Catálogo, da mais recente para a mais antiga (para a página do Catálogo)."""
+    return CorrecaoDaDataDoCatalogo.objects.filter(catalogo_id=catalogo_id).order_by('-pk')
 
 
 def definir_teto(gestor, valor):

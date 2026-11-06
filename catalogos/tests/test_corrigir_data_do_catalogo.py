@@ -68,3 +68,16 @@ class CorrigirDataDoCatalogoTests(TesteComArquivosEnviados):
             [registro(c) for c in correcoes_da_data(self.gestora, catalogo.pk)],
             [('socio', HOJE, '10/2026', '15/10/2026')],
         )
+
+    def test_as_correcoes_vem_da_mais_recente_para_a_mais_antiga(self):
+        catalogo = self.importar('15/10/2026', ['1001'])
+        corrigir_data_do_catalogo(self.socio, catalogo.pk, '10/2025', hoje=date(2026, 11, 2))
+        corrigir_data_do_catalogo(self.gestora, catalogo.pk, '01/10/2025', hoje=date(2026, 11, 4))
+
+        self.assertEqual(
+            [registro(c) for c in correcoes_da_data(self.socio, catalogo.pk)],
+            [
+                ('gestora', date(2026, 11, 4), '10/2025', '01/10/2025'),
+                ('socio', date(2026, 11, 2), '15/10/2026', '10/2025'),
+            ],
+        )
