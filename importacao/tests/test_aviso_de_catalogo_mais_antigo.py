@@ -32,3 +32,8 @@ class AvisoDeCatalogoMaisAntigoNaRevisaoTests(TesteComArquivosEnviados):
             'Este Catálogo é mais antigo que o de 15/10/2026 deste Fornecedor: '
             'os códigos que estão nos dois continuam com o preço do mais recente.',
         )
+
+    def test_catalogo_de_outro_fornecedor_nao_conta(self):
+        importar_e_confirmar(self.gestora, self.beta, [BALDE], '15/10/2026', HOJE)
+
+        self.assertEqual(self.aviso_com_a_data('01/09/2026'), '')

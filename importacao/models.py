@@ -47,7 +47,7 @@ class Revisao(models.Model):
 
     @property
     def aviso_de_catalogo_mais_antigo(self):
-        return aviso_de_catalogo_mais_antigo(self.data_do_catalogo)
+        return aviso_de_catalogo_mais_antigo(self.fornecedor_id, self.data_do_catalogo)
 
     def ofertas_propostas(self):
         """Na ordem do arquivo, com as Ofertas de um código repetido juntas, onde o código aparece primeiro
