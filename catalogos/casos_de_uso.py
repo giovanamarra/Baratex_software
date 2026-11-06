@@ -50,7 +50,9 @@ def registrar_catalogo(gestor, fornecedor, data, data_so_mes_e_ano, importado_em
     Oferta.objects.bulk_create(
         Oferta(
             catalogo=catalogo,
-            ordem=ordem,
+            # A posição no arquivo (ordem de leitura; a adicionada à mão fica depois). Desempata o código
+            # repetido no Catálogo (ticket 32), então vem da Oferta proposta, não da ordem em que chegam aqui.
+            ordem=oferta.ordem,
             codigo=oferta.codigo,
             descricao=oferta.descricao,
             preco_impresso=oferta.preco_impresso,
@@ -58,7 +60,7 @@ def registrar_catalogo(gestor, fornecedor, data, data_so_mes_e_ano, importado_em
             caminho=oferta.caminho,
             busca=texto_de_busca(oferta.codigo, oferta.descricao),
         )
-        for ordem, oferta in enumerate(ofertas)
+        for oferta in ofertas
     )
     return catalogo
 

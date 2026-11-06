@@ -8,9 +8,16 @@ from catalogos.casos_de_uso import cadastrar_fornecedor
 from contas.auxiliares_de_teste import criar_gestor
 from extracao.catalogos_ficticios import CARTOES_POR_PAGINA, CartaoFicticio, catalogo_ficticio_layout_a
 from extracao.extrair import extrair_catalogo
-from importacao.auxiliares_de_teste import TesteComArquivosEnviados, arquivo_enviado, corrigir
+from importacao.auxiliares_de_teste import (
+    TesteComArquivosEnviados,
+    arquivo_enviado,
+    corrigir,
+    informar_data_de_hoje,
+)
 from importacao.casos_de_uso import (
     adicionar_oferta_proposta,
+    confirmar_revisao,
+    informar_condicoes_do_catalogo,
     iniciar_importacao,
     obter_revisao,
     remover_oferta_proposta,
@@ -131,6 +138,18 @@ class CodigoRepetidoNaRevisaoTests(TesteComArquivosEnviados):
         self.assertEqual(
             [(o.codigo, o.marcas) for o in self.propostas(revisao)], [('AB-10', []), ('ab-10', [])]
         )
+
+    def test_a_confirmacao_nao_e_bloqueada_e_todas_as_repetidas_entram_no_catalogo_na_ordem_do_arquivo(self):
+        revisao = self.repetido_duas_vezes()
+        adicionar_oferta_proposta(self.gestora, revisao.pk, '1001', 'Panela Ficticia Digitada', '9,90', '12')
+        informar_condicoes_do_catalogo(self.gestora, revisao.pk, '0')
+        informar_data_de_hoje(self.gestora, revisao.pk)
+
+        catalogo = confirmar_revisao(self.gestora, revisao.pk)
+
+        self.assertEqual([o.descricao for o in catalogo.ofertas()], [
+            'Panela Ficticia Secao A', 'Tampa Ficticia', 'Panela Ficticia Secao B', 'Panela Ficticia Digitada',
+        ])
 
     def test_a_oferta_proposta_guarda_a_pagina_de_origem(self):
         revisao = self.importar(cartoes_com_repetido_na_pagina_2(
