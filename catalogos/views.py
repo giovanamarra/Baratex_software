@@ -109,7 +109,10 @@ def corrigir_data(request, pk):
             contexto = {'catalogo': catalogo, 'digitada': request.POST.get('data', ''), 'erro_ao_salvar': erro.mensagem}
             return render(request, 'catalogos/corrigir_data.html', contexto)
         catalogo.refresh_from_db()
-        messages.success(request, f'Data do Catálogo corrigida de {anterior} para {catalogo.data_exibida}.')
+        if catalogo.data_exibida == anterior:  # a mesma data não é correção (ticket 33)
+            messages.success(request, f'A data informada já é a do Catálogo ({anterior}): nada foi corrigido.')
+        else:
+            messages.success(request, f'Data do Catálogo corrigida de {anterior} para {catalogo.data_exibida}.')
         return redirect('catalogo', pk=pk)
     contexto = {'catalogo': catalogo, 'digitada': request.GET.get('data', '')}
     if 'data' in request.GET:  # "Ver o impacto": só aviso, nada é salvo

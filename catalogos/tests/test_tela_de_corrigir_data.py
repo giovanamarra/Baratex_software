@@ -77,3 +77,9 @@ class TelaDeCorrigirDataTests(TesteComArquivosEnviados):
             'Catálogo.</p>', html=True,
         )
         self.assertEqual(obter_catalogo(self.gestora, self.errado.pk).data_exibida, '05/03/2026')
+
+    def test_confirmar_a_mesma_data_avisa_que_nada_foi_corrigido(self):
+        resposta = self.client.post(self.url, {'data': '05/03/26'}, follow=True)
+
+        self.assertContains(resposta, 'A data informada já é a do Catálogo (05/03/2026): nada foi corrigido.')
+        self.assertNotContains(resposta, 'Data do Catálogo corrigida')
